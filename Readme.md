@@ -28,3 +28,5 @@ Each folder may contain other folders, though I advise against that. Instead, we
 When it comes to styling code itself, I strongly suggest using Wickham's suggestions: http://adv-r.had.co.nz/Style.html. I want to put emphasis on limiting code to a width of 80 characters. To do this, you might want to display the margin, which can be done in Tools > Global options > Code > Display.
 
 Additionally, I want to keep the practice to use vertical lines of dashes (`-`) to separate chunks of code. You best look at the examples that I have already set up.
+
+We could also think about using curly brackets `{}` to structure our code into blocks. This might make running code easier in some instances.
