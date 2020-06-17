@@ -12,8 +12,14 @@
 # Please load all packages here! That way, we can avoid loading anything 
 # multiple times. If possible, please restrict your use of packages, since
 # every package slows down R a little. If you need only one function, consider
-# using namespaces (::).
+# using namespaces (::).#
+library(tidyverse)
+library(lubridate)
 library(rstan)
+library(nCov2019)
+  # installation instructions can be found here:
+  # https://guangchuangyu.github.io/nCov2019/
+  # this currently does not work (Lukas)
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
