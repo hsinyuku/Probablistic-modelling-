@@ -1,0 +1,30 @@
+## Stylesheet
+
+### Handling data
+
+1. Keep data from external sources in a seperate folder and keep their names.
+2. Note down in a separate place (Notion? Markdown? Flowchart?) where each file comes (URL) and what data it contains (in mathematical notation as seen in the paper).
+3. Use sensible naming conventions everywhere. In the case of region-related data (where similar datasets exist multiple times for different regions), we should agree on a naming convention. In other cases, good naming may simply mean names that humans can read and understand.
+
+### Writing code
+
+I have written some example code in the setup.R file. There are two main points here:
+
+**Project management**
+
+Follow the project structure! This markdown is in the top level folder, along with the setup.R file. There will be six folders (code-related; there may be other folders that are not related to the project):
+
+1. `/input` - this contains all original data. Data in here is *never* altered!
+2. `/binary` - this contains data in binary format. Save data in a binary format when it is advisable - for example after extracting single variables from a .csv, which are afterwards used with Stan.
+3. `/graphics`- any graphical outputs, mainly plots.
+4. `/output` - all numerical results, like values of variables or distributions.
+5. `/R`- all R-scripts (except for `setup.R`).
+6. `/Stan`- all Stan-scripts.
+
+Each folder may contain other folders, though I advise against that. Instead, we should use good naming to discern different scripts.
+
+**Code styling**
+
+When it comes to styling code itself, I strongly suggest using Wickham's suggestions: http://adv-r.had.co.nz/Style.html. I want to put emphasis on limiting code to a width of 80 characters. To do this, you might want to display the margin, which can be done in Tools > Global options > Code > Display.
+
+Additionally, I want to keep the practice to use vertical lines of dashes (`-`) to separate chunks of code. You best look at the examples that I have already set up.
