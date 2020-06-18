@@ -1,4 +1,5 @@
 message("Hi Sexy Modellers! How do you feel today?")
+message("Please remember to update all the scripts by pulling from the repository.")
 
 if(interactive()) 
   try(fortunes::fortune(), silent = TRUE)
