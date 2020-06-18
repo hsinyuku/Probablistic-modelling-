@@ -18,7 +18,7 @@ ifelse(class(source("setup.R"))!="try-error",
 
 # ----------------------------------------------------------------------------#
 # input ####
-# -----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------#
 # should we move all this to a separate file that can be read in? This might 
 # increase the possibility that we can write functions and decreases the need
 # to repeat ourselves
@@ -65,7 +65,7 @@ incidence_cases = pull(confirmed_cases, confirmed_cases_hubei)
 # the object incidence_deaths
 # for Spain, data comes from .csv, code is different
 
-# dataset B: age distribution of all cases, for China -------------------------
+# dataset B: age distribution of all cases, for China ------------------------#
 # source: Chinese CDC Weekly, The epidemiological characteristics of an 
 #         outbreak...
 cases_tmax     = c(416, 549, 3619, 7600, 8571, 10008, 8583, 3918, 1408)
@@ -73,7 +73,7 @@ agedistr_cases = cases_tmax / sum(cases_tmax) # relative age distribution
 remove(cases_tmax)
 # for Spain, data comes from .csv, is not comparable
 
-# dataset D: age distribution of all deaths, for China ------------------------
+# dataset D: age distribution of all deaths, for China -----------------------#
 mort_tmax       = c(0, 1, 7, 18, 38, 130, 309, 312, 208)
 agedistr_deaths = mort_tmax / sum(mort_tmax) 
 
