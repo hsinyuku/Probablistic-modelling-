@@ -2,7 +2,7 @@
 # RunModel_Hubei.R
 # 
 # This file does computations on some preliminary variables (mainly fixed
-# parameters) and then feeds them into the model (written in Stan.)
+# parameters) and prepares them for Stan.
 # ----------------------------------------------------------------------------#
 
 
@@ -129,11 +129,19 @@ if(visualise) {
 
 
 # ----------------------------------------------------------------------------#
-# transmission parameters ####
+# other free parameters ####
 # ----------------------------------------------------------------------------#
-t0      = 0
-S       = as.numeric(day_max-day_start)
-t_data  = as.numeric(day_data-day_start)
-ts      = t_data:S
-D       = as.numeric(day_max-day_data+1)
-tswitch = as.numeric(day_quarantine-day_start)
+{
+  p_beta    = c(1, 1)
+  p_eta     = c(1, 1)
+  p_pi      = c(1, 999)
+  p_psi     = c(p_psi_alpha, p_psi_beta)
+  p_epsilon = c(1,1)
+  p_phi     = 1/100
+  p_rho     = c(1, 1)
+  p_xi      = c(1, 1)
+  p_nu      = 1/5 # this value might be wrong, have to check this!
+}
+# ----------------------------------------------------------------------------#
+
+
