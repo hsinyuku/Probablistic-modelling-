@@ -1,29 +1,29 @@
-# -----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------#
 # DataManagement_Template.R
 # 
 # This file prepares the data that is used for modelling, and is the
 # template file with which the other files can be compared.
-# -----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------#
 
 
-# -----------------------------------------------------------------------------
-# sourcing other scripts
-# -----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------#
+# sourcing other scripts ####
+# ----------------------------------------------------------------------------#
   # this line is an attempt at making the code execution stop when there are 
   # errors in on of the files to be sourced
 ifelse(class(source("setup.R"))!="try-error",
        print(paste("setup.R sourced.")))
-# -----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------#
 
 
-# -----------------------------------------------------------------------------
-# input
+# ----------------------------------------------------------------------------#
+# input ####
 # -----------------------------------------------------------------------------
 # should we move all this to a separate file that can be read in? This might 
 # increase the possibility that we can write functions and decreases the need
 # to repeat ourselves
 
-# Dates -----------------------------------------------------------------------
+# Dates ----------------------------------------------------------------------#
 {
   day_start =       as.Date("2019-12-31")
   day_data =        as.Date("2020-01-01")
@@ -31,7 +31,7 @@ ifelse(class(source("setup.R"))!="try-error",
   day_quarantine =  as.Date("2020-01-20")
 }
 
-# Age distribution ------------------------------------------------------------
+# Age distribution -----------------------------------------------------------#
 
 age_dist <- c(
   83932437 + 86735183,
@@ -51,7 +51,7 @@ pop_t = 59020000
 
 # Spain has a slightly different order in which data are inputted
 
-# dataset A: confirmed daily cases --------------------------------------------
+# dataset A: confirmed daily cases -------------------------------------------#
 confirmed_cases = read_csv("data/confirmed-cases_Hubei.csv") %>%
   mutate(date = ymd(paste(year, month, day, sep="-"))) %>%
   filter(date >= day_data) %>% 
@@ -59,7 +59,7 @@ confirmed_cases = read_csv("data/confirmed-cases_Hubei.csv") %>%
 incidence_cases = pull(confirmed_cases, confirmed_cases_hubei)
 # for Spain, the data looks different, so the code to read it looks different
 
-# dataset C: confirmed daily deaths -------------------------------------------
+# dataset C: confirmed daily deaths ------------------------------------------#
 # this whole block here does not work, because we can not install the package
 # nCov2019, wher the data comes from; when it works, this block will generate
 # the object incidence_deaths
@@ -77,4 +77,4 @@ remove(cases_tmax)
 mort_tmax       = c(0, 1, 7, 18, 38, 130, 309, 312, 208)
 agedistr_deaths = mort_tmax / sum(mort_tmax) 
 
-# -----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------#
