@@ -11,9 +11,9 @@
 # ----------------------------------------------------------------------------#
 # this line is an attempt at making the code execution stop when there are 
 # errors in on of the files to be sourced
-source("setup.R")
+source("R/01_DataManagement_Hubei.R")
 # set this to TRUE if you want visual inspection of paremeters
-visualise = T 
+visualise = F
 # ----------------------------------------------------------------------------#
 
 
@@ -86,8 +86,18 @@ tau_2 = 1/2.3 # days of incubation without transmission
 tau_1 = 1/2.7 # days of incubation with reduced transmission
 mu = (1-q_P)/(gt-1/tau_1-1/tau_2) 
               # duration for which symptomatic individuals are infectious
-kappa = (q_P*tau_2*psi)/((1-q_P)*mu-(1-psi)*q_P*tau_2)
-              # reduction in transmissibility
+psi = rbeta(1000, p_psi_alpha, p_psi_beta)
+kappa = (q_P * tau_2 * psi)/((1-q_P) * mu-(1-psi) * q_P * tau_2)
+              # reduction in transmissibility; this is a free parameter
+# visualising kappa and psi
+if(visualise) {
+  tibble(kappa, psi) %>%
+    pivot_longer(everything()) %>% 
+    ggplot() +
+    geom_density(aes(x = value, color = name))
+}
+remove(psi)
+p_children_trans = 1 # dont know what this is
 
 # can we somehow replace the contact matrix?
 contact_matrix_china = {c(0.810810810810811, 0.0908559523547268, 0.372736406439194,
@@ -125,6 +135,33 @@ if(visualise) {
     ggplot() +
     geom_tile(aes(x=age2,y=age1,fill=contacts))
 }
+# ----------------------------------------------------------------------------#
+
+
+# ----------------------------------------------------------------------------#
+# fixed corrections and delays ####
+# ----------------------------------------------------------------------------#
+# Fixed corrections ----------------------#
+p_report_80plus      = 1
+p_underreport_deaths = 1
+p_underreport_cases  = 1
+# Fixed delays ---------------------------#
+G       = 60
+# ----------------------------------------------------------------------------#
+
+
+# ----------------------------------------------------------------------------#
+# so-called controls ####
+# ----------------------------------------------------------------------------#
+# still trying to find out what those actually mean!
+t0        = 0
+S         = as.numeric(day_max-day_start)
+t_data    = as.numeric(day_data-day_start)
+ts        = t_data:S
+D         = as.numeric(day_max - day_data+1)
+tswitch   = as.numeric(day_quarantine - day_start)
+inference = 0
+doprint   = 0
 # ----------------------------------------------------------------------------#
 
 

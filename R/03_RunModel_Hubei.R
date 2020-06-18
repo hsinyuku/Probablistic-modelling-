@@ -10,23 +10,11 @@
 # ----------------------------------------------------------------------------#
 # this line is an attempt at making the code execution stop when there are 
 # errors in on of the files to be sourced
-source("setup.R")
-source("R/01_DataManagement_Hubei.R") # contains data
 source("R/02_PrepareModel_Hubei.R")   # contains all other parameters
 # ----------------------------------------------------------------------------#
 
 
-# ----------------------------------------------------------------------------#
-# transmission parameters ####
-# ----------------------------------------------------------------------------#
-# still trying to find out what those actually mean!
-t0      = 0
-S       = as.numeric(day_max-day_start)
-t_data  = as.numeric(day_data-day_start)
-ts      = t_data:S
-D       = as.numeric(day_max - day_data+1)
-tswitch = as.numeric(day_quarantine-day_start)
-# ----------------------------------------------------------------------------#
+
 
 
 # ----------------------------------------------------------------------------#
@@ -43,14 +31,14 @@ data_list_model16A = {list(
   tswitch   = tswitch,
   S         = S,
   ts        = ts,
-  inference = 0,
-  doprint   = 0,
+  inference = inference,
+  doprint   = doprint,
+  D         = D,
   # Data to fit ----------------------------#
-  D                = D,
   incidence_cases  = incidence_cases,  # cases per day
-  incidence_deaths = incidence_deaths, # deaths per day
-  agedistr_cases   = cases_tmax,       # age distribution of cases
-  agedistr_deaths  = mort_tmax,        # age distribution of deaths
+  # incidence_deaths = incidence_deaths, # deaths per day
+  agedistr_cases   = agedistr_cases,   # age distribution of cases
+  agedistr_deaths  = agedistr_deaths,  # age distribution of deaths
   # Parameters for Prior Distributions -----#
   p_beta    = p_beta,
   p_eta     = p_eta,
@@ -62,18 +50,18 @@ data_list_model16A = {list(
   p_xi      = p_xi,
   p_nu      = p_nu,
   # Fixed parameters -----------------------#
-  contact=contact_matrix_china,
+  contact           = contact_matrix_china,
   p_q_P             = q_P,
-  p_incubation      = incubation,
+  p_incubation      = 1/tau_2 + 1/tau_1,
   p_preclinical     = 1/tau_2,
   p_generation_time = gt,
-  p_children_trans  = 1,
+  p_children_trans  = p_children_trans,
   # Fixed corrections ----------------------#
-  p_report_80plus      = 1,
-  p_underreport_deaths = 1,
-  p_underreport_cases  = 1,
+  p_report_80plus      = p_report_80plus,
+  p_underreport_deaths = p_underreport_deaths,
+  p_underreport_cases  = p_underreport_cases,
   # Fixed delays ---------------------------#
-  G       = 60,
+  G       = G,
   p_gamma = gamma
 )}
 # ----------------------------------------------------------------------------#

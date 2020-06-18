@@ -62,12 +62,9 @@ incidence_cases = pull(confirmed_cases, confirmed_cases_hubei)
 # dataset B: age distribution of all cases, for China -------------------------
 # source: Chinese CDC Weekly, The epidemiological characteristics of an 
 #         outbreak...
-cases_tmax     = c(416, 549, 3619, 7600, 8571, 10008, 8583, 3918, 1408)
-agedistr_cases = cases_tmax / sum(cases_tmax) # relative age distribution
-remove(cases_tmax)
+agedistr_cases  = c(416, 549, 3619, 7600, 8571, 10008, 8583, 3918, 1408)
 
 # dataset D: age distribution of all deaths, for China ------------------------
-mort_tmax       = c(0, 1, 7, 18, 38, 130, 309, 312, 208)
-agedistr_deaths = mort_tmax / sum(mort_tmax) 
+agedistr_deaths = c(0, 1, 7, 18, 38, 130, 309, 312, 208)
 
 # -----------------------------------------------------------------------------
