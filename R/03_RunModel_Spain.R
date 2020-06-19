@@ -1,7 +1,8 @@
 # ----------------------------------------------------------------------------#
-# PrepareModel_Hubei.R
+# RunModel_Spain.R
 # 
-# This file uses all parameters to run the model.
+# This idea of this file is to only run the model. The computation of variables
+# should happen in a separate file that has to be called before.
 # ----------------------------------------------------------------------------#
 
 
@@ -10,7 +11,7 @@
 # ----------------------------------------------------------------------------#
 # this line is an attempt at making the code execution stop when there are 
 # errors in on of the files to be sourced
-source("R/02_PrepareModel_Hubei.R")   # contains all other parameters
+source("R/02_PrepareModel_Spain.R")   # contains all other parameters
 # ----------------------------------------------------------------------------#
 
 
@@ -47,7 +48,7 @@ data_list_model16A = {list(
   p_xi      = p_xi,
   p_nu      = p_nu,
   # Fixed parameters -----------------------#
-  contact           = contact_matrix_china,
+  contact           = contact_matrix_europe,
   p_q_P             = q_P,
   p_incubation      = 1/tau_2 + 1/tau_1,
   p_preclinical     = 1/tau_2,
@@ -67,4 +68,9 @@ data_list_model16A = {list(
 # ----------------------------------------------------------------------------#
 # preparing and running the model ####
 # ----------------------------------------------------------------------------#
-M_model16 = stan_model("models/model16.stan")
+{
+  tictoc::tic()
+  M_model16 = stan_model("Stan/model16.stan")
+  tictoc::toc()
+}
+
