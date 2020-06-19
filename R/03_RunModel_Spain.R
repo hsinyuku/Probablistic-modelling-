@@ -1,9 +1,8 @@
 # ----------------------------------------------------------------------------#
-# RunModel_Template.R
+# RunModel_Spain.R
 # 
 # This idea of this file is to only run the model. The computation of variables
 # should happen in a separate file that has to be called before.
-# !!! Currently, the name of the contact matrix still has to be changed!!!
 # ----------------------------------------------------------------------------#
 
 
@@ -12,7 +11,7 @@
 # ----------------------------------------------------------------------------#
 # this line is an attempt at making the code execution stop when there are 
 # errors in on of the files to be sourced
-source("R/02_PrepareModel_<Region>.R")   # contains all other parameters
+source("R/02_PrepareModel_Spain.R")   # contains all other parameters
 # ----------------------------------------------------------------------------#
 
 
@@ -49,7 +48,7 @@ data_list_model16A = {list(
   p_xi      = p_xi,
   p_nu      = p_nu,
   # Fixed parameters -----------------------#
-  contact           = contact_matrix_china,
+  contact           = contact_matrix_europe,
   p_q_P             = q_P,
   p_incubation      = 1/tau_2 + 1/tau_1,
   p_preclinical     = 1/tau_2,

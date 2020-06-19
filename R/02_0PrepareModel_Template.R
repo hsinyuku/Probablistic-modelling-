@@ -4,8 +4,8 @@
 # This file does computations on some preliminary variables (mainly fixed
 # parameters) and prepares them for Stan.
 # ----------------------------------------------------------------------------#
-# this is exactly the same for Spain; it even has a hardwired contact matrix
-# as well. Can we somehow remove this?
+# This is almost the same for Spain; it even has a hardwired contact matrix
+# as well. Can we somehow remove this? Changes are in the correction parameters
 
 # ----------------------------------------------------------------------------#
 # sourcing other scripts ####
@@ -146,6 +146,7 @@ if(visualise) {
 p_report_80plus      = 1
 p_underreport_deaths = 1
 p_underreport_cases  = 1
+p_children_trans     = 1 # dont know what this is
 # Fixed delays ---------------------------#
 G       = 60
 # ----------------------------------------------------------------------------#
@@ -163,6 +164,14 @@ D         = as.numeric(day_max - day_data+1)
 tswitch   = as.numeric(day_quarantine - day_start)
 inference = 0
 doprint   = 0
+# ----------------------------------------------------------------------------#
+
+
+# ----------------------------------------------------------------------------#
+# mising structure parameters ####
+# ----------------------------------------------------------------------------#
+t0 = 0
+K  = 9 
 # ----------------------------------------------------------------------------#
 
 

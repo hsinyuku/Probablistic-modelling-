@@ -51,7 +51,7 @@ age_dist <- age_dist %>%
   filter(Age %in% as.character(0:120)) %>% 
   mutate(age_group = age_class(as.numeric(Age),10,10,80)) %>% 
     # had to remove levels() around Age, because Age is clearly not a factor
-  group_by(Sex, age_group) %>%
+  group_by(age_group) %>%
   summarise(n = sum(Value), .groups = "keep") %>%
   pull(n)
 age_dist = age_dist/sum(age_dist)
