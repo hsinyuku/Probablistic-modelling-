@@ -32,22 +32,26 @@ ifelse(class(source("setup.R"))!="try-error",
 }
 
 # Age distribution -----------------------------------------------------------#
+age_dist <- read_csv("data/age_distribution_total_population_all_regions.csv")
+# error messages are ok, there are footnotes that are not part of the data
 
-age_dist <- c(
-  83932437 + 86735183,
-  84262751 + 82341859,
-  87158167+ 97989003,
-  128738970 + 100091455, 
-  96274146 + 119837617,
-  123445382 + 98740491,
-  77514139 + 74149766,
-  44949689 + 26544616,
-  16181417 + 7581777 + 2305024 + 475193 + 74692)
-# the last line probably sums up age groups 
-# Spain gets age distribution from data/contact_matrix/age_distribution.csv
-age_dist <- age_dist/sum(age_dist) # getting relative age distribution
+# Function to classify age groups --------------------------------------------#
+age_class = function(x, min_age, age_range, max_age) {
+  age_lim = seq(min_age, max_age, age_range)
+  return(sapply(as.list(x), function(x) sum(age_lim <= x)))
+} 
 
-pop_t = 59020000
+age_dist <- age_dist %>% 
+  filter(`Country or Area` == "_____") %>% ### fill in your area
+  filter(Year == 2018) %>%
+  filter(Age %in% as.character(0:120)) %>% 
+  mutate(age_group = age_class(as.numeric(Age),10, 10, 80)) %>% 
+  # had to remove levels() around Age, because Age is clearly not a factor
+  group_by(Sex, age_group) %>%
+  summarise(n = sum(Value), .groups = "keep") %>%
+  pull(n)
+
+age_dist = age_dist/sum(age_dist)
 
 # Spain has a slightly different order in which data are inputted
 
