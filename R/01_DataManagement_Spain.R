@@ -42,7 +42,7 @@ age_class = function(x, min_age, age_range, max_age) {
 
 # Age distribution ------------------------------------------------------------
 
-age_dist <- read_csv("data/age_distribution.csv") 
+age_dist <- read_csv("data/age_distribution_total_population_all_regions.csv") 
   # error messages are ok, there are footnotes that are not part of the data
 
 age_dist <- age_dist %>% 
