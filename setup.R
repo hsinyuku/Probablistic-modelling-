@@ -16,6 +16,7 @@
 library(tidyverse)
 library(lubridate)
 library(rstan)
+library(tictoc) # to compare some runtimes
 # library(nCov2019)
   # installation instructions can be found here:
   # https://guangchuangyu.github.io/nCov2019/

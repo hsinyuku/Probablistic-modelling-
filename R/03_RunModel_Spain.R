@@ -68,4 +68,9 @@ data_list_model16A = {list(
 # ----------------------------------------------------------------------------#
 # preparing and running the model ####
 # ----------------------------------------------------------------------------#
-M_model16 = stan_model("Stan/model16.stan")
+{
+  tictoc::tic()
+  M_model16 = stan_model("Stan/model16.stan")
+  tictoc::toc()
+}
+
