@@ -24,10 +24,12 @@ ifelse(class(source("setup.R"))!="try-error",
 # to repeat ourselves
 
 # Dates ----------------------------------------------------------------------#
+# day_max is 18.06.2020, day_start is 28.01.2020 to match the data from RKI
+
 {
-  day_start =       as.Date("2020-03-02")
-  day_data =        as.Date("2020-03-03")
-  day_max =         as.Date("2020-04-16")
+  day_start =       as.Date("2020-01-28")
+  day_data =        as.Date("2020-01-28")
+  day_max =         as.Date("2020-06-18")
   day_quarantine =  as.Date("2020-03-12")
 }
 
@@ -55,38 +57,37 @@ age_dist = age_dist/sum(age_dist)
 
 pop_t = 13.08e6
 
-# dataset A: confirmed daily cases -------------------------------------------#
-# Data extracted directly from RKI daily report and hard-coded here.
+# For the following data sets, data extracted directly from RKI daily report 
+# and hard-coded here.
 # https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Situationsberichte/2020-06-18-en.pdf?__blob=publicationFile
 
-incidence_cases <-  c(4271, 8730, 81674/3, 
-                    81674/3, 81674/3, 57884*3/5, 
-                    57884*2/5, 29801/3, 29801*2/3 + 5305) 
+# dataset A: confirmed daily cases -------------------------------------------#
+data_Germany <-  read.csv("data/confirmed_cases_deaths_Germany.csv", header = T) %>%
+  mutate(date = ymd(gsub(" 00:00:00", "", Meldedatum))) %>%
+  select(date, AnzahlFall, AnzahlTodesfall) %>%
+  group_by(date) %>%
+  summarise(new_cases = sum(AnzahlFall),
+            new_deaths = sum(AnzahlTodesfall)) %>%
+  arrange(date)
+  
 
-incidence_cases <- incidence_cases/(sum(incidence_cases))
+incidence_cases <- data_Germany$new_cases
 
 
 # dataset C: confirmed daily deaths ------------------------------------------#
-incidence_deaths <- 
+incidence_deaths <- data_Germany$new_deaths
 
 # dataset B: age distribution of all cases -----------------------------------#
-age_cases = read.csv("data/age_distribution_cases_Germany.csv",header = F) %>%
-  tbl_df() %>%
-  transmute(inc=V2) %>%
-  mutate(age=rep(seq(0,100,10),2), age2=rep(c(seq(0,80,10),80,80),2),sex=rep(c("Female","Male"),each=11))
+case_tmax <-  c(4271, 8730, 81674/3, 
+                        81674/3, 81674/3, 57884*3/5, 
+                        57884*2/5, 29801/3, 29801*2/3 + 5305) 
 
-,pop=age_dist$n,
-         cases=inc*pop/100000) %>%
-  group_by(age2) %>%
-  summarise(cases=round(sum(cases)))
-
-
-
+agedistr_cases <- case_tmax/(sum(case_tmax))
 
 # for Spain, data comes from .csv, is not comparable
 
 # dataset D: age distribution of all deaths, for China -----------------------#
-mort_tmax       = c(0, 1, 7, 18, 38, 130, 309, 312, 208)
+mort_tmax       = c(1, 2, 9, 23, 69, 310, 842, 1994, 3938 + 1612 + 51)
 agedistr_deaths = mort_tmax / sum(mort_tmax) 
 
 # ----------------------------------------------------------------------------#
