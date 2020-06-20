@@ -55,35 +55,27 @@ age_dist = age_dist/sum(age_dist)
 
 pop_t = 13.08e6
 
-# Spain has a slightly different order in which data are inputted
-
 # dataset A: confirmed daily cases -------------------------------------------#
-confirmed_cases = read_csv("data/confirmed-cases_Hubei.csv") %>%
-  mutate(date = ymd(paste(year, month, day, sep="-"))) %>%
-  filter(date >= day_data) %>% 
-  select(-c(day, month, year))
-incidence_cases = pull(confirmed_cases, confirmed_cases_hubei)
+# Data extracted directly from RKI daily report and hard-coded here.
+# https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Situationsberichte/2020-06-18-en.pdf?__blob=publicationFile
 
+incidence_cases <-  c(4271, 8730, 81674/3, 
+                    81674/3, 81674/3, 57884*3/5, 
+                    57884*2/5, 29801/3, 29801*2/3 + 5305) 
 
-data_germany <-  read.csv("data/cases_mort_germany.csv",header=T)
-data_bavaria <-
-  data_germany %>% transmute(
-    date = dmy(as.character(date)),
-    new_cases = cases_bavaria,
-    new_deaths = c(NA, diff(deaths_bavaria))
-  ) %>%
-  filter(date >= ymd(day_data), date <= ymd(day_max))
+incidence_cases <- incidence_cases/(sum(incidence_cases))
 
-incidence_cases=data_bavaria$new_cases
 
 # dataset C: confirmed daily deaths ------------------------------------------#
-incidence_deaths=data_bavaria$new_deaths
+incidence_deaths <- 
 
 # dataset B: age distribution of all cases -----------------------------------#
 age_cases = read.csv("data/age_distribution_cases_Germany.csv",header = F) %>%
   tbl_df() %>%
   transmute(inc=V2) %>%
-  mutate(age=rep(seq(0,100,10),2), age2=rep(c(seq(0,80,10),80,80),2),sex=rep(c("Female","Male"),each=11),pop=age_dist100$n,
+  mutate(age=rep(seq(0,100,10),2), age2=rep(c(seq(0,80,10),80,80),2),sex=rep(c("Female","Male"),each=11))
+
+,pop=age_dist$n,
          cases=inc*pop/100000) %>%
   group_by(age2) %>%
   summarise(cases=round(sum(cases)))
