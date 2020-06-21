@@ -10,7 +10,7 @@ ifelse(class(source("setup.R"))!="try-error",
        print(paste("setup.R sourced.")))
 # ----------------------------------------------------------------------------#
 
-setwd("/Users/ElinaKu/Documents/GitHub/covid_adjusted_cfr")
+
 
 # ----------------------------------------------------------------------------#
 # input ####
