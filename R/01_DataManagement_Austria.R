@@ -86,3 +86,6 @@ agedistr_deaths = read.table("data/austria/AltersverteilungTodesfaelle.csv",sep=
   pull(n)
 
 # ----------------------------------------------------------------------------#
+
+p_underreport_deaths=1
+p_underreport_cases=1
