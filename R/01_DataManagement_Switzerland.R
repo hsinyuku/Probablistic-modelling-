@@ -9,8 +9,10 @@
 ifelse(class(source("setup.R"))!="try-error",
        print(paste("setup.R sourced.")))
 # ----------------------------------------------------------------------------#
-
-
+library(tidyverse)
+library(lubridate)
+setwd("/Users/ElinaKu/Documents/GitHub/covid_adjusted_cfr")
+getwd()
 # ----------------------------------------------------------------------------#
 # input ####
 # ----------------------------------------------------------------------------#
@@ -37,7 +39,7 @@ excel_age_dist=read.csv("data/contact_matrix/age_distribution.csv",header=T)
 age_class=function(x,min_age,age_range,max_age){
   age_lim=seq(min_age,max_age,age_range)
   return(sapply(as.list(x),function(x) sum(age_lim<=x)))
-
+}
 age_dist = as.data.frame(excel_age_dist) %>%
   filter(Country.or.Area=="Switzerland") %>%
   filter(Year == 2018) %>%
@@ -78,3 +80,7 @@ agedistr_cases = pull(agedistr_cases_deaths,cases)
 agedistr_deaths = pull(agedistr_cases_deaths,deaths)
 
 # ----------------------------------------------------------------------------#
+
+p_underreport_cases=sum(incidence_cases)/sum(cases_deaths$new_cases)
+p_underreport_cases
+p_underreport_deaths=1
