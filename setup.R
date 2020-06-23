@@ -17,7 +17,8 @@ library(tidyverse)
 library(lubridate)
 library(rstan)
 library(tictoc) # to compare some runtimes
-# library(nCov2019)
+library(remotes)
+remotes::install_github("GuangchuangYu/nCov2019", dependencies = T, force = T)
   # installation instructions can be found here:
   # https://guangchuangyu.github.io/nCov2019/
   # this currently does not work (Lukas)

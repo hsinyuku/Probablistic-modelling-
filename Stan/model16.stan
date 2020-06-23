@@ -79,7 +79,8 @@ functions { // write functions that can be used later on
     for(k in 1:K) {
       f_inf[k] = beta * p_tswitch * sum((to_vector(y[(3*K+1):(4*K)]) + 
         kappa*to_vector(y[(2*K+1):(3*K)]) + 
-        kappa*to_vector(y[(4*K+1):(5*K)]))./ to_vector(age_dist) .* to_vector(contact[(K*(k-1)+1):(k*K)])); 
+        kappa*to_vector(y[(4*K+1):(5*K)]))./ to_vector(age_dist) .*
+        to_vector(contact[(K*(k-1)+1):(k*K)])); 
     }
 
     // Compartments

@@ -11,6 +11,7 @@ ifelse(class(source("setup.R"))!="try-error",
 # ----------------------------------------------------------------------------#
 
 
+
 # ----------------------------------------------------------------------------#
 # input ####
 # ----------------------------------------------------------------------------#
@@ -37,6 +38,7 @@ excel_age_dist=read.csv("data/contact_matrix/age_distribution.csv",header=T)
 age_class=function(x,min_age,age_range,max_age){
   age_lim=seq(min_age,max_age,age_range)
   return(sapply(as.list(x),function(x) sum(age_lim<=x)))
+}
 
 age_dist = as.data.frame(excel_age_dist) %>%
     filter(Country.or.Area=="Austria") %>%
