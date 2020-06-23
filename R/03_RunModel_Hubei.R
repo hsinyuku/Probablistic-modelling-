@@ -67,4 +67,5 @@ data_list_model16A = {list(
 # ----------------------------------------------------------------------------#
 # preparing and running the model ####
 # ----------------------------------------------------------------------------#
-M_model16 = stan_model("Stan/model16.stan")
+M_model16 = stan_model(model_name = "Stan/model16.stan")
+

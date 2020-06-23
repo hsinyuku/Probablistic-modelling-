@@ -1,4 +1,4 @@
-# ----------------------------------------------------------------------------#
+x# ----------------------------------------------------------------------------#
 # RunModel_Spain.R
 # 
 # This idea of this file is to only run the model. The computation of variables
@@ -69,8 +69,8 @@ data_list_model16A = {list(
 # preparing and running the model ####
 # ----------------------------------------------------------------------------#
 {
-  tictoc::tic()
+  # tictoc::tic()
   M_model16 = stan_model("Stan/model16.stan")
-  tictoc::toc()
+  # tictoc::toc()
 }
-x
+
