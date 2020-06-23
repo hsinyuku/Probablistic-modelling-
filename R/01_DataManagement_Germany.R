@@ -34,7 +34,7 @@ ifelse(class(source("setup.R"))!="try-error",
 }
 
 # Age distribution -----------------------------------------------------------#
-age_dist <- read_csv("data/age_distribution_total_population_all_regions.csv")
+age_dist <- read_csv("data/all_regions_pop_age_dist.csv")
 # error messages are ok, there are footnotes that are not part of the data
 
 # Function to classify age groups --------------------------------------------#
@@ -62,7 +62,7 @@ pop_t = 13.08e6
 # https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Situationsberichte/2020-06-18-en.pdf?__blob=publicationFile
 
 # dataset A: confirmed daily cases -------------------------------------------#
-data_Germany <-  read.csv("data/confirmed_cases_deaths_Germany.csv", header = T) %>%
+data_Germany <-  read.csv("data/Germany_cases_deaths_confirmed.csv", header = T) %>%
   mutate(date = ymd(gsub(" 00:00:00", "", Meldedatum))) %>%
   select(date, AnzahlFall, AnzahlTodesfall) %>%
   group_by(date) %>%
