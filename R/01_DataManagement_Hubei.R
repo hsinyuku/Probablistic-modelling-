@@ -48,16 +48,36 @@ age_dist <- age_dist/sum(age_dist) # getting relative age distribution
 pop_t = 59020000
 
 # dataset A: confirmed daily cases --------------------------------------------
-confirmed_cases = read_csv("data/confirmed-cases_Hubei.csv") %>%
+confirmed_cases = read_csv("data/Hubei_cases_confirmed.csv") %>%
   mutate(date = ymd(paste(year, month, day, sep="-"))) %>%
   filter(date >= day_data) %>% 
   select(-c(day, month, year))
+
 incidence_cases = pull(confirmed_cases, confirmed_cases_hubei)
 
 # dataset C: confirmed daily deaths -------------------------------------------
-# this whole block here does not work, because we can not install the package
-# nCov2019, wher the data comes from; when it works, this block will generate
-# the object incidence_deaths
+
+chinaDeath <- readRDS("data/Hubei_deaths_confirmed.Rds")
+
+chinaDeath <- chinaDeath$dailyHistory %>%  # Data within this table
+  select(date, hubei.dead) %>%  # Extract columns
+  mutate(date = as.Date(paste0("2020.",date),  
+                        ("%Y.%m.%d"))) %>%  # Convert date
+  filter(date <= day_max) %>%   # Filter until day_max
+  mutate(dailyDeath = hubei.dead - lag(hubei.dead, 1, default = 0)) %>%  
+  # Calc daily death, default = 0: to save the daily death on 20.01 instead of
+  # returning NA
+  mutate(dailyDeathCorrect = round(dailyDeath * 100 / 71.4, 0)) 
+  # The reported deaths in this data is believed to only account for 71.4% of
+  # the total confirmed deaths in this time frame. We correct that for each
+  # daily number of reported deaths.
+  
+# Daily deaths are only recorded from 20.01.2020, so 0s are filled in for the
+# time frame from day_start until 20.01.2020. It is now length 42.
+
+incidence_deaths = c(rep(0, day_max - day_data + 1 -
+                           length(chinaDeath$dailyDeathCorrect)),
+                     chinaDeath$dailyDeathCorrect)
 
 # dataset B: age distribution of all cases, for China -------------------------
 # source: Chinese CDC Weekly, The epidemiological characteristics of an 
@@ -68,3 +88,4 @@ agedistr_cases  = c(416, 549, 3619, 7600, 8571, 10008, 8583, 3918, 1408)
 agedistr_deaths = c(0, 1, 7, 18, 38, 130, 309, 312, 208)
 
 # -----------------------------------------------------------------------------
+
