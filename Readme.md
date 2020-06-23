@@ -3,7 +3,7 @@
 ### Handling data
 
 1. Keep data from external sources in a seperate folder and keep their names.
-2. Note down in a separate place (Notion? Markdown? Flowchart?) where each file comes (URL) and what data it contains (in mathematical notation as seen in the paper).
+2. Note down in a separate place (Notion) where each file comes (URL) and what data it contains (in mathematical notation as seen in the paper).
 3. Use sensible naming conventions everywhere. In the case of region-related data (where similar datasets exist multiple times for different regions), we should agree on a naming convention. In other cases, good naming may simply mean names that humans can read and understand.
 
 ### Writing code

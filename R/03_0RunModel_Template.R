@@ -12,7 +12,7 @@
 # ----------------------------------------------------------------------------#
 # this line is an attempt at making the code execution stop when there are 
 # errors in on of the files to be sourced
-source("R/02_PrepareModel_<Region>.R")   # contains all other parameters
+source("R/02_PrepareModel_Switzerland.R")   # contains all other parameters
 # ----------------------------------------------------------------------------#
 
 
@@ -73,4 +73,4 @@ data_list_model16A = {list(
   tictoc::tic() # tell me how long it took for you to initialise the model!
   M_model16 = stan_model("Stan/model16.stan")
   tictoc::toc()
-} 
+}

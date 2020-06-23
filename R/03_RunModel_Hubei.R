@@ -22,7 +22,7 @@ data_list_model16A = {list(
   K        = K,        # number of age groups
   age_dist = age_dist, # age distribution
   pop_t    = pop_t,    # total population
-  t0       = t0,        # start time in days
+  t0       = t0,       # start time in days
   # Controls -------------------------------#
   t_data    = t_data,
   tswitch   = tswitch,
@@ -67,4 +67,4 @@ data_list_model16A = {list(
 # ----------------------------------------------------------------------------#
 # preparing and running the model ####
 # ----------------------------------------------------------------------------#
-M_model16 = stan_model("models/model16.stan")
+M_model16 = stan_model("Stan/model16.stan")
