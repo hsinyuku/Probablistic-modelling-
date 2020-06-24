@@ -1,8 +1,9 @@
 # ----------------------------------------------------------------------------#
-# RunModel_Spain.R
+# RunModel_Switzerland.R
 # 
 # This idea of this file is to only run the model. The computation of variables
 # should happen in a separate file that has to be called before.
+# !!! Currently, the name of the contact matrix still has to be changed!!!
 # ----------------------------------------------------------------------------#
 
 
@@ -11,7 +12,7 @@
 # ----------------------------------------------------------------------------#
 # this line is an attempt at making the code execution stop when there are 
 # errors in on of the files to be sourced
-source("R/02_PrepareModel_Spain.R")   # contains all other parameters
+source("R/02_PrepareModel_Switzerland.R")   # contains all other parameters
 # ----------------------------------------------------------------------------#
 
 
@@ -23,7 +24,7 @@ data_list_model16A = {list(
   K        = K,        # number of age groups
   age_dist = age_dist, # age distribution
   pop_t    = pop_t,    # total population
-  t0       = t0,       # start time in days
+  t0       = t0,        # start time in days
   # Controls -------------------------------#
   t_data    = t_data,
   tswitch   = tswitch,
@@ -48,7 +49,7 @@ data_list_model16A = {list(
   p_xi      = p_xi,
   p_nu      = p_nu,
   # Fixed parameters -----------------------#
-  contact           = contact_matrix_europe,
+  contact           = contact_matrix_china,
   p_q_P             = q_P,
   p_incubation      = 1/tau_2 + 1/tau_1,
   p_preclinical     = 1/tau_2,
@@ -69,21 +70,7 @@ data_list_model16A = {list(
 # preparing and running the model ####
 # ----------------------------------------------------------------------------#
 {
-  # tictoc::tic()
-  M_model16 = stan_model(model_code = "Stan/model16.stan")
-  # tictoc::toc()
+  tictoc::tic() # tell me how long it took for you to initialise the model!
+  M_model16 = stan_model("Stan/model16.stan")
+  tictoc::toc()
 }
-T_model16 = sampling(M_model16,data = data_list_model16A,iter = 1000,chains = 10,
-                     init=0.5, control=list(max_treedepth=10,adapt_delta=0.8))
-
-print(T_model16,pars=c("beta","eta","epsilon","rho","pi","psi"))
-
-
-D_S_model16ASP = read_rdump("posterior_samples/data_S_model16SP-A_2020-05-04-16-26-01.R")
-
-S_model16ASP = read_stan_csv(paste0("posterior_samples/",
-                                    dir("posterior_samples",
-                                        pattern = 'S_model16SP-A_2020-05-04-16-26-01_[[:digit:]]+.csv')))
-
-# Checks
-print(S_model16ASP,pars=c("beta","eta","epsilon","rho","pi","psi"),digits_summary=4)
