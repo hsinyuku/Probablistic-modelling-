@@ -4,12 +4,9 @@
 # This file does computations on some preliminary variables (mainly fixed
 # parameters) and prepares them for Stan.
 # ----------------------------------------------------------------------------#
-<<<<<<< HEAD
 # This is almost the same for Spain; it even has a hardwired contact matrix
 # as well. Can we somehow remove this? Changes are in the correction parameters
-=======
-
->>>>>>> parent of ca0f27c... Jade - Switz & Aust.
+# Jade - Switz & Aust.
 
 # ----------------------------------------------------------------------------#
 # sourcing other scripts ####
