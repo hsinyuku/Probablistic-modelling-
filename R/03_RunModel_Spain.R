@@ -69,8 +69,21 @@ data_list_model16A = {list(
 # preparing and running the model ####
 # ----------------------------------------------------------------------------#
 {
-  tictoc::tic()
-  M_model16 = stan_model("Stan/model16.stan")
-  tictoc::toc()
+  # tictoc::tic()
+  M_model16 = stan_model(model_code = "Stan/model16.stan")
+  # tictoc::toc()
 }
-x
+T_model16 = sampling(M_model16,data = data_list_model16A,iter = 1000,chains = 10,
+                     init=0.5, control=list(max_treedepth=10,adapt_delta=0.8))
+
+print(T_model16,pars=c("beta","eta","epsilon","rho","pi","psi"))
+
+
+D_S_model16ASP = read_rdump("posterior_samples/data_S_model16SP-A_2020-05-04-16-26-01.R")
+
+S_model16ASP = read_stan_csv(paste0("posterior_samples/",
+                                    dir("posterior_samples",
+                                        pattern = 'S_model16SP-A_2020-05-04-16-26-01_[[:digit:]]+.csv')))
+
+# Checks
+print(S_model16ASP,pars=c("beta","eta","epsilon","rho","pi","psi"),digits_summary=4)
