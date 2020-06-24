@@ -72,10 +72,12 @@ functions { // write functions that can be used later on
     // Total number of infectious people
     p_tswitch = switch_eta(t,tswitch,eta,nu,xi);
     
-    // Force of infection by age classes: 
-    // beta * p_tswitch * sum((number of infected people by age + 
-    // + kappa*number of preclinical by age + kappa*number of asympto) / 
-    // (total number of people by age) * (number of contact by age))
+    /*
+      Force of infection by age classes: 
+      beta * p_tswitch * sum((number of infected people by age + 
+      + kappa*number of preclinical by age + kappa*number of asympto) / 
+      (total number of people by age) * (number of contact by age))
+    */
     for(k in 1:K) {
       f_inf[k] = beta * p_tswitch * sum((to_vector(y[(3*K+1):(4*K)]) + 
         kappa*to_vector(y[(2*K+1):(3*K)]) + 
