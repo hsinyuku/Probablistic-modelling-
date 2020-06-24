@@ -4,15 +4,19 @@
 # This file does computations on some preliminary variables (mainly fixed
 # parameters) and prepares them for Stan.
 # ----------------------------------------------------------------------------#
+<<<<<<< HEAD
 # This is almost the same for Spain; it even has a hardwired contact matrix
 # as well. Can we somehow remove this? Changes are in the correction parameters
+=======
+
+>>>>>>> parent of ca0f27c... Jade - Switz & Aust.
 
 # ----------------------------------------------------------------------------#
 # sourcing other scripts ####
 # ----------------------------------------------------------------------------#
 # this line is an attempt at making the code execution stop when there are 
 # errors in on of the files to be sourced
-source("R/01_0DataManagement_Template.R")
+source("setup.R")
 # set this to TRUE if you want visual inspection of paremeters
 visualise = T 
 # ----------------------------------------------------------------------------#
@@ -81,24 +85,14 @@ remove(m, low, high, v)
 # Ganyani (Wallinga en Hens) 48% (32-67%) 
 # https://medrxiv.org/content/10.1101/2020.03.05.20031815v1
 
-gt    = 5.2   # generation time in days
-q_P   = 0.46  # contribution of presymptomatic infections to the transmission
+gt = 5.2      # generation time in days
+q_P = 0.46    # contribution of presymptomatic infections to the transmission
 tau_2 = 1/2.3 # days of incubation without transmission
 tau_1 = 1/2.7 # days of incubation with reduced transmission
-mu    = (1-q_P)/(gt-1/tau_1-1/tau_2) 
-              # duration for which symptomatic individuals are infectious
-psi = rbeta(1000, p_psi_alpha, p_psi_beta)
+mu = (1-q_P)/(gt-1/tau_1-1/tau_2) 
+# duration for which symptomatic individuals are infectious
 kappa = (q_P*tau_2*psi)/((1-q_P)*mu-(1-psi)*q_P*tau_2)
-              # reduction in transmissibility
-# visualising kappa and psi
-if(visualise) {
-  tibble(kappa, psi) %>%
-    pivot_longer(everything()) %>% 
-    ggplot() +
-    geom_density(aes(x = value, color = name))
-}
-remove(psi)
-p_children_trans = 1 # dont know what this is
+# reduction in transmissibility
 
 # can we somehow replace the contact matrix?
 contact_matrix_china = {c(0.810810810810811, 0.0908559523547268, 0.372736406439194,
@@ -140,6 +134,7 @@ if(visualise) {
 
 
 # ----------------------------------------------------------------------------#
+<<<<<<< HEAD
 # fixed corrections and delays ####
 # ----------------------------------------------------------------------------#
 # Fixed corrections ----------------------#
@@ -176,6 +171,8 @@ K  = 9
 
 
 # ----------------------------------------------------------------------------#
+=======
+>>>>>>> parent of ca0f27c... Jade - Switz & Aust.
 # other free parameters ####
 # ----------------------------------------------------------------------------#
 {
