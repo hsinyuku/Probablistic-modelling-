@@ -51,20 +51,4 @@ get_par_lnorm = function(m, s) {
   return(list(mu=mu, sigma=sigma))
 }
 
-# other functions ------------------------------------------------------------#
-# this function is used to avoid downloading data from online sources all the
-# time. It checks whether the object to be downloaded is already in the global
-# environment; if not, it checks whether there is a .Rds-object with the data
-# to read into the global environment. If both is not the case, it downloads 
-# the data, reads it into the global enviromment and saves the data as .Rds
-check_online_data_existence = function(download_function(), object_name, file_name) {
-  if (!file.exists(paste0("data/", file_name))) {
-    object_name <- readRDS(file_name)
-  }
-  if (!exists(object_name)) {
-    stop()
-  }
-  object_name <- download()
-}
-
 # ----------------------------------------------------------------------------#
