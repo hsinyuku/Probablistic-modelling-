@@ -176,7 +176,7 @@ data { // this part mirrors the part in R where the model is specified; all
 }
 
 transformed data {
-  real tau_1 = 1.0 / (p_incubation - p_preclinical);
+  real tau_1 = 1.0 / (p_incubation - p_preclinical); // WHAT THE HELL IS THIS?
   real tau_2 = 1.0 / p_preclinical;
   real q_P = p_q_P;
   real gt = p_generation_time;
