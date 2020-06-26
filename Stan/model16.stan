@@ -1,21 +1,16 @@
 // applicable to data on cases by date of onset
 functions { // write functions that can be used later on
-  // logistic function that represents the effect of countermeasures; only used
-  // inside the compartmental model
+  // logistic function that represents the effect of countermeasures
   real switch_eta(real t, real t1, real eta, real nu, real xi) {
     return(eta+(1-eta)/(1+exp(xi*(t-t1-nu))));
   }
-  
   // --------------------------------------------------------------------------
-  // beginning of compartmental model (ODE function)
+  // begin of compartmental model (ODE function)
   // --------------------------------------------------------------------------
   real[] SEIR(
     // arguments to the ODE-function
     real t,
-    real[] y,     
-      /* This variable contains the proportion of each age group in each of the
-      compartments. Therefore, it must have length K*6 (it does not contain the
-      removed compartment R). */
+    real[] y,
     real[] theta, // theta is a list of all the parameters
     real[] x_r,   // list of all real-valued fixed paremeters
     int[] x_i     // list of all integer-valued fixed paremeters (only K)
@@ -24,10 +19,7 @@ functions { // write functions that can be used later on
     int K = x_i[1]; // number of age groups
     
     real tswitch = x_r[1]; // time of control measures
-    real dydt[(6*K)];      
-    /* SEPIAR (ignoring R) then C; thus the compartments and the respective 
-    values in the array are: S - 1:K, E - K+1:2K, P - 2K+1:3K, I - 3K+1:4K,
-    A - 4K+1:5K, C - 5K+1:6K*/
+    real dydt[(6*K)];      // SEPIAR (ignoring R) then C 
     real nI;               // total infectious
 
     real beta;         // transmission rate
@@ -45,12 +37,7 @@ functions { // write functions that can be used later on
     real contact[K*K]; // contact matrix, first K values, corresponds to number 
                        // of contact between age class 1 and other classes, etc
     real f_inf[K];     // force of infection
-    real init[K*2];
-      /* initial values. The first K values are the proportion of each age
-      group in the susceptible-compartment (proportion not infected per age
-      group), the second K values (K+1:K*2) are the proportion of each age
-      group in the exposed compartment (proportion of infected per age group
-      at the start of the simulation). */
+    real init[K*2];    // initial values
     real age_dist[K];  // age distribution of the general population
     real pi;           // number of cases at t0
     
@@ -78,35 +65,27 @@ functions { // write functions that can be used later on
     // Initial conditions
     for(k in 1:K){
       age_dist[k] = x_r[5+K*K + k];
-      init[k] = age_dist[k] * (1-pi); 
+      init[k] = age_dist[k] * (1-pi);
       init[K+k] = age_dist[k] * pi;
-      /* The percentage of population in the exposed compartment E in the
-      initial state of the SEIR-model is determined by pi. Accordingly, the
-      percentage of population in the susceptible compartment S is determined
-      by 1-pi. This assignment of the population in the initial state of the
-      model is done for each age group 1,..., k,...,K according to the 
-      age distribution of the population.*/
     }
     
     // Total number of infectious people
     p_tswitch = switch_eta(t,tswitch,eta,nu,xi);
     
-    /* Calculate time-dependent forcing function by age classes: 
-    beta * p_tswitch * sum((number of infected people by age + 
-    + kappa*number of preclinical by age + kappa*number of asympto) / 
-    (total number of people by age) * (number of contact by age)) */
+    /*
+      Force of infection by age classes: 
+      beta * p_tswitch * sum((number of infected people by age + 
+      + kappa*number of preclinical by age + kappa*number of asympto) / 
+      (total number of people by age) * (number of contact by age))
+    */
     for(k in 1:K) {
-      f_inf[k] = beta * p_tswitch * 
-        sum((to_vector(y[(3*K+1):(4*K)]) +  // 
-             kappa*to_vector(y[(2*K+1):(3*K)]) + 
-             kappa*to_vector(y[(4*K+1):(5*K)]))./
-             to_vector(age_dist) .*
-             to_vector(contact[(K*(k-1)+1):(k*K)])); 
+      f_inf[k] = beta * p_tswitch * sum((to_vector(y[(3*K+1):(4*K)]) + 
+        kappa*to_vector(y[(2*K+1):(3*K)]) + 
+        kappa*to_vector(y[(4*K+1):(5*K)]))./ to_vector(age_dist) .*
+        to_vector(contact[(K*(k-1)+1):(k*K)])); 
     }
 
-    /* Compartments: this for-loop represents one update of the ODE system
-    for each age group, after knowing the current value of the time-
-    dependent forcing for for each age class.*/
+    // Compartments
     for (k in 1:K) {
       // S: susceptible
       dydt[k] = - f_inf[k] * (y[k]+init[k]); 
@@ -118,7 +97,7 @@ functions { // write functions that can be used later on
       dydt[3*K+k] = psi * tau_2 * y[2*K+k] - mu * y[3*K+k];
       // A: asymptomatic
       dydt[4*K+k] = (1-psi) * tau_2 * y[2*K+k] - mu * y[4*K+k];
-      // C: cumulative number of infections by date of disease onset;
+      // C: cumulative number of infections by date of disease onset
       dydt[5*K+k] = psi * tau_2 * y[2*K+k];
     }
     return(dydt);
@@ -129,8 +108,7 @@ functions { // write functions that can be used later on
 }
 
 data { // this part mirrors the part in R where the model is specified; all
-       // variables get their value from the function call in R, so they do not
-       // need to be explicitly assigned a value.
+       // variables get their value from the function call in R
   // Structure ----------------------------------------------------------------
   int K;              // number of age classes
   vector[K] age_dist; // age distribution of the population
@@ -209,7 +187,7 @@ parameters{
   real<lower=0,upper=1> psi; // proportion of symptomatics
 }
 
-transformexd parameters {
+transformed parameters {
   // transformed parameters
   vector[K] rho;
   real xi = xi_raw+0.5;
@@ -243,12 +221,10 @@ transformexd parameters {
     x_r,   // real data
     x_i,   // integer data
     1.0E-10, 1.0E-10, 1.0E3); // tolerances and maximum steps
-  // extract and format ODE results (1.0E-9 correction to avoid negative values 
-  // due to unprecise estimates of zeros as tolerance is 1.0E-10)
+  // extract and format ODE results (1.0E-9 correction to avoid negative values due to unprecise estimates of zeros as tolerance is 1.0E-10)
   for(i in 1:S) {
     comp_C[i] = (to_vector(y[i,(5*K+1):(6*K)]) + 1.0E-9) * pop_t;
-    comp_diffC[i] = i==1 ? comp_C[i,] : 1.0E-9*pop_t + comp_C[i,] - comp_C[i-1,];
-    // lagged difference of cumulative incidence of symptomatics
+    comp_diffC[i] = i==1 ? comp_C[i,] : 1.0E-9*pop_t + comp_C[i,] - comp_C[i-1,]; // lagged difference of cumulative incidence of symptomatics
   }
   // Incidence and cumulative incidence after S
   for(g in 1:G) {
