@@ -79,7 +79,7 @@ incidence_deaths = read_csv("data/confirmed_deaths_daily_Spain.csv") %>%
   filter(date >= ymd(day_data), date <= ymd(day_max)) %>% 
   pull(new_deaths)
 
-# dataset B and C: age distribution of all cases, deaths ----------------------
+# dataset B and D: age distribution of all cases, deaths ----------------------
 agedistr = read_csv("data/age-distribution_cases-deaths_Spain.csv") %>%
   mutate(age2 = c(1:9,9))  %>%
   group_by(age2) %>%

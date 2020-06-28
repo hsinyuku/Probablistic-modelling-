@@ -150,13 +150,13 @@ data { // this part mirrors the part in R where the model is specified; all
   int agedistr_cases[K]; // number of cases at tmax for the K age classes
   int agedistr_deaths[K]; // mortality at tmax for the K age classes
   // Priors -------------------------------------------------------------------
-  real p_beta;
+  real p_beta[2];
   real p_eta[2];
   real p_pi[2];
   real p_epsilon[2];
   real p_rho[2];
   real p_phi;
-  real p_xi;
+  real p_xi[2];
   real p_nu;
   real p_psi[2];
   // Fixed parameters ---------------------------------------------------------
@@ -209,7 +209,7 @@ parameters{
   real<lower=0,upper=1> psi; // proportion of symptomatics
 }
 
-transformexd parameters {
+transformed parameters {
   // transformed parameters
   vector[K] rho;
   real xi = xi_raw+0.5;
@@ -234,7 +234,7 @@ transformexd parameters {
   // change of format for integrate_ode_rk45
   theta[1:6] = {beta,eta,xi,nu,pi,psi};
   // run ODE solver
-  y = integrate_ode_bdf( // simulate data on the current state of theta
+  y = integrate_ode_rk45( // simulate data on the current state of theta
     SEIR,  // ODE function
     init,  // initial states
     t0,    // t0
@@ -270,13 +270,13 @@ transformexd parameters {
 
 model {
   // priors
-  beta ~ beta(p_beta,p_beta);
+  beta ~ beta(p_beta[1],p_beta[2]);
   eta ~ beta(p_eta[1],p_eta[2]);
   for(k in 1:K) epsilon[k] ~ beta(p_epsilon[1],p_epsilon[2]);
   for(k in 1:(K-1)) raw_rho[k] ~ beta(p_rho[1],p_rho[2]);
   pi ~ beta(p_pi[1],p_pi[2]);
   phi ~ exponential(p_phi);
-  xi_raw ~ beta(p_xi,p_xi); 
+  xi_raw ~ beta(p_xi[1],p_xi[2]); 
   nu ~ exponential(p_nu);
   psi ~ beta(p_psi[1],p_psi[2]);
   // debug
