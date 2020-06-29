@@ -72,48 +72,13 @@ data_list_model16A = {list(
 # Creating DSO object
 {
   tictoc::tic()
-  M_model16 = stan_model(file = "Stan/model16.stan")
+  spain_DSO = stan_model(file = "Stan/all_regions_Stan_model.stan")
   tictoc::toc()
 }
 
 # Sampling from the posterior distribution
-
-T_model16 = sampling(M_model16,data = data_list_model16A,iter = 30,chains = 1,
+spain_samples = sampling(spain_DSO,data = data_list_model16A,iter = 100,chains = 2,
                      init=0.5, control=list(max_treedepth=10,adapt_delta=0.8))
 
-# ----------------------------------------------------------------------------#
-# Model diagnostics ####
-# ----------------------------------------------------------------------------#
-
-# Paremeter sets in theta
-pars <- c("beta","eta","epsilon","rho","pi","psi")
-
-# Print the parameter approximation
-# n_eff determines how well the chains explore the parameter space (higher
-# better, > 100 is good)
-# Rhat determines how close the chains are to each other (~ 1 is good)
-print(T_model16, pars = pars)
-
-# Print posterior density plots of parameter with respect to chains (to check if
-# they are in close agreement with one another)
-stan_dens(T_model16, pars = "beta", separate_chains = T)
-
-summary(T_model16, pars = "predicted_reported_incidence_symptomatic_cases", probs = c(0.05, 0.5, 0.95))$summary
-
-
-
-
-
-
-
-bashfile_rdump("model16",id="SP-A",data_list_model16A,warmup=500,iter=500,adapt_delta=0.8,max_depth=10,init=0.5,timelimit=12,chains=4)
-
-
-D_S_model16ASP = read_rdump("posterior_samples/data_S_model16SP-A_2020-05-04-16-26-01.R")
-
-S_model16ASP = read_stan_csv(paste0("posterior_samples/",
-                                    dir("posterior_samples",
-                                        pattern = 'S_model16SP-A_2020-05-04-16-26-01_[[:digit:]]+.csv')))
-
-# Checks
-print(S_model16ASP,pars=c("beta","eta","epsilon","rho","pi","psi"),digits_summary=4)
+# Save the samples and the DSO object to RDS
+saveRDS(object = spain_DSO, file = "Postspain_DSO.Rds")

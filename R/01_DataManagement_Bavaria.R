@@ -133,6 +133,7 @@ age_otherGroups <- age_cases %>%
   pull()        
          
 agedistr_cases = c(age_otherGroups, age_80plus)
+
 # ----------------------------------------------------------------------------#
 
 # dataset D: age distribution of all deaths -------------------------------####
@@ -169,3 +170,19 @@ age_otherGroups <- age_deaths %>%
 agedistr_deaths = c(0, 0, 0, age_otherGroups, age_80plus)
 
 # ----------------------------------------------------------------------------#
+
+
+# ----------------------------------------------------------------------------#
+# scale age distribution of cases/deaths to the total number in the state  ####
+# ----------------------------------------------------------------------------#
+
+# One assumption from the paper is that the authors take age distribution of 
+# cases/deaths (in absolute numbers) of the whole Germany and apply it to
+# the region (in data B and D). Since we have the total number of cases/deaths 
+# in the region (through data A and C), we scale B and D down.
+
+agedistr_cases = agedistr_cases / sum(agedistr_cases) * sum(incidence_cases)
+agedistr_cases = round(agedistr_cases, 0)
+  
+agedistr_deaths = agedistr_deaths / sum(agedistr_deaths) * sum(incidence_deaths)
+agedistr_deaths = round(agedistr_deaths, 0)
