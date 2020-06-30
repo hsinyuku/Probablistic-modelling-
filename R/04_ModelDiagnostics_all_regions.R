@@ -44,3 +44,4 @@ plot_incidence_cases(samples = samples,
 
 plot_total_cases(samples = samples,
                      data_list = data_list_model) # sourced from 02_
+
