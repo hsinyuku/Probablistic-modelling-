@@ -211,6 +211,7 @@ transformed parameters {
   rho[K] = p_report_80plus; // fixed ascertainment proportion for ages 80+
   // change of format for integrate_ode_rk45
   theta[1:6] = {beta,eta,xi,nu,pi,psi};
+  
   // run ODE solver
   y = integrate_ode_rk45( // simulate data on the current state of theta
     SEIR,  // ODE function
@@ -235,6 +236,7 @@ transformed parameters {
   for(i in 1:(S+G)) comp_diffM[i] = rep_vector(1.0E-9,K);
   for(i in 1:S) for(g in 1:G) comp_diffM[i+g] += comp_diffC[i] .* epsilon * p_gamma[g];
   for(i in 1:(S+G)) for(k in 1:K) comp_M[i,k] = sum(comp_diffM[1:i,k]);
+  
   // Compute outcomes
   for(i in t_data:S){
     output_incidence_cases[i-t_data+1] = sum(comp_diffC[i].*rho)*p_underreport_cases;
@@ -292,6 +294,7 @@ generated quantities{
   real predicted_overall_incidence_all_cases[S]; 
   int predicted_reported_incidence_deaths[S+G];
   real predicted_overall_incidence_deaths[S+G];
+  real compartment_data[S, K*6];
   
   int predicted_comp_reported_diffC[S,K];
   vector[K] predicted_comp_overall_diffC[S];
@@ -328,6 +331,10 @@ generated quantities{
     predicted_overall_incidence_symptomatic_cases[i] = predicted_reported_incidence_symptomatic_cases[i] / p_underreport_cases / avg_rho;
     predicted_overall_incidence_all_cases[i] = predicted_reported_incidence_symptomatic_cases[i] / p_underreport_cases / avg_rho / psi;
   }
+
+  compartment_data = y;
+  
+  
   for(i in 1:(S+G)) {
     predicted_reported_incidence_deaths[i] = neg_binomial_2_rng(sum(comp_diffM[i])*p_underreport_deaths, sum(comp_diffM[i])*p_underreport_deaths/phi[2]);
     predicted_overall_incidence_deaths[i] = (1e-9+predicted_reported_incidence_deaths[i]) / p_underreport_deaths;
