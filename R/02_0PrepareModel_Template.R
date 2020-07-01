@@ -1,12 +1,11 @@
 # ----------------------------------------------------------------------------#
-# RunModel_Template.R
+PrepareModel_Template.R
 # 
 # This file does computations on some preliminary variables (mainly fixed
 # parameters) and prepares them for Stan.
 # ----------------------------------------------------------------------------#
 # This is almost the same for Spain; it even has a hardwired contact matrix
 # as well. Can we somehow remove this? Changes are in the correction parameters
-# Jade - Switz & Aust.
 
 # ----------------------------------------------------------------------------#
 # sourcing other scripts ####
@@ -131,7 +130,6 @@ if(visualise) {
 
 
 # ----------------------------------------------------------------------------#
-<<<<<<< HEAD
 # fixed corrections and delays ####
 # ----------------------------------------------------------------------------#
 # Fixed corrections ----------------------#
@@ -168,8 +166,7 @@ K  = 9
 
 
 # ----------------------------------------------------------------------------#
-=======
->>>>>>> parent of ca0f27c... Jade - Switz & Aust.
+
 # other free parameters ####
 # ----------------------------------------------------------------------------#
 {

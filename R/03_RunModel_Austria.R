@@ -12,7 +12,7 @@
 # ----------------------------------------------------------------------------#
 # this line is an attempt at making the code execution stop when there are 
 # errors in on of the files to be sourced
-source("R/02_PrepareModel_Template.R")   # contains all other parameters
+source("R/02_PrepareModel_Switzerland.R")   # contains all other parameters
 # ----------------------------------------------------------------------------#
 
 
