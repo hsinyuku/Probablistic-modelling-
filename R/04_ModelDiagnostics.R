@@ -29,7 +29,7 @@ theme_set(theme_bw())
 # Load the saved posterior samples in the data. I don't want to source
 # 03_RunModel file here as it would force the whole sampling process to repeat
 # every time we call this script. 
-samples <-  readRDS(file = paste0("Posteriors/",region, "_samples1000.Rds"))
+samples <-  readRDS(file = paste0("Posteriors/",region, "_Samples.Rds"))
 # ----------------------------------------------------------------------------#
 
 # Gather all paremeters in theta
