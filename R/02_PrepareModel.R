@@ -1,19 +1,20 @@
 # ----------------------------------------------------------------------------#
-# RunModel_Hubei.R
+# PrepareModel.R
 # 
 # This file does computations on some preliminary variables (mainly fixed
 # parameters) and prepares them for Stan.
 # ----------------------------------------------------------------------------#
-
+# This is almost the same for Spain; it even has a hardwired contact matrix
+# as well. Can we somehow remove this? Changes are in the correction parameters
 
 # ----------------------------------------------------------------------------#
 # sourcing other scripts ####
 # ----------------------------------------------------------------------------#
 # this line is an attempt at making the code execution stop when there are 
 # errors in on of the files to be sourced
-source("R/01_DataManagement_Hubei.R")
+source("setup.R")
 # set this to TRUE if you want visual inspection of paremeters
-visualise = F
+visualise = T 
 # ----------------------------------------------------------------------------#
 
 
@@ -42,7 +43,7 @@ if(visualise) {
              aes(x = x, y = y), fill = "grey", alpha = 0.5, col = "grey") +
     geom_line(data = tibble(x = seq(0, 60, 0.001)) %>% 
                 mutate(y = dlnorm(x, linton_pars$mu,linton_pars$sigma)),
-                 aes(x = x, y = y), col = "black") +
+              aes(x = x, y = y), col = "black") +
     coord_cartesian(xlim = c(0, 60))
 }
 
@@ -85,48 +86,39 @@ q_P = 0.46    # contribution of presymptomatic infections to the transmission
 tau_2 = 1/2.3 # days of incubation without transmission
 tau_1 = 1/2.7 # days of incubation with reduced transmission
 mu = (1-q_P)/(gt-1/tau_1-1/tau_2) 
-              # duration for which symptomatic individuals are infectious
+# duration for which symptomatic individuals are infectious
 psi = rbeta(1000, p_psi_alpha, p_psi_beta)
-kappa = (q_P * tau_2 * psi)/((1-q_P) * mu-(1-psi) * q_P * tau_2)
-              # reduction in transmissibility; this is a free parameter
-# visualising kappa and psi
-if(visualise) {
-  tibble(kappa, psi) %>%
-    pivot_longer(everything()) %>% 
-    ggplot() +
-    geom_density(aes(x = value, color = name))
-}
-remove(psi)
-p_children_trans = 1 # dont know what this is
+kappa = (q_P*tau_2*psi)/((1-q_P)*mu-(1-psi)*q_P*tau_2)
+# reduction in transmissibility
 
 # can we somehow replace the contact matrix?
 contact_matrix_china = {c(0.810810810810811, 0.0908559523547268, 0.372736406439194,
-                         1.27360250772, 0.200569529052988, 0.375083342749019,
-                         0.60252680195839, 0.0934189610338407, 0.0225225225225225,
-                         0.0904095466183592, 2.4392523364486, 0.140093983348316,
-                         0.706545801082683, 0.942937990573664, 0.27920963239528,
-                         0.326366336169345, 0.196893495540358, 0.106045179398683,
-                         0.289504965045504, 0.109348487445688, 1.76086956521739,
-                         0.923069180041088, 0.93772012267962, 0.965186137047983,
-                         0.274120168579709, 0.116564256844925, 0.0773400190233669,
-                         0.91820215964926, 0.511898453884688, 0.85680985412458,
-                         2.70542635658915, 1.41323192857305, 0.993399938008648,
-                         0.719603621821669, 0.146103509716984, 0.07633130138862,
-                         0.13119227828341, 0.619819944222649, 0.789700390093264,
-                         1.28218991206025, 2.17699115044248, 1.1199461877854,
-                         0.514253349451317, 0.496466649026704, 0.101504389707241,
-                         0.259078294801222, 0.193808465356441, 0.858341528544101,
-                         0.951750199084178, 1.18265232149625, 2.31730769230769,
-                         0.977037933291252, 0.606164987575222, 0.4393566902894,
-                         0.552747314447092, 0.300880970126328, 0.323770338070664,
-                         0.915670466885606, 0.721247101248993, 1.29765260904839,
-                         2.76146788990826, 0.959867553314515, 0.340125585278128,
-                         0.121809161946423, 0.25799743320884, 0.1956843612527,
-                         0.264241585561661, 0.989672909331423, 1.14428055461657,
-                         1.36428769674242, 1.96363636363636, 1.0266513139522,
-                         0.0447824174066075, 0.211894911958445, 0.197988778289041,
-                         0.210517772531686, 0.308554588199316, 1.26474943927563,
-                         0.737190168823191, 1.56555579008225, 2.0625)}
+                          1.27360250772, 0.200569529052988, 0.375083342749019,
+                          0.60252680195839, 0.0934189610338407, 0.0225225225225225,
+                          0.0904095466183592, 2.4392523364486, 0.140093983348316,
+                          0.706545801082683, 0.942937990573664, 0.27920963239528,
+                          0.326366336169345, 0.196893495540358, 0.106045179398683,
+                          0.289504965045504, 0.109348487445688, 1.76086956521739,
+                          0.923069180041088, 0.93772012267962, 0.965186137047983,
+                          0.274120168579709, 0.116564256844925, 0.0773400190233669,
+                          0.91820215964926, 0.511898453884688, 0.85680985412458,
+                          2.70542635658915, 1.41323192857305, 0.993399938008648,
+                          0.719603621821669, 0.146103509716984, 0.07633130138862,
+                          0.13119227828341, 0.619819944222649, 0.789700390093264,
+                          1.28218991206025, 2.17699115044248, 1.1199461877854,
+                          0.514253349451317, 0.496466649026704, 0.101504389707241,
+                          0.259078294801222, 0.193808465356441, 0.858341528544101,
+                          0.951750199084178, 1.18265232149625, 2.31730769230769,
+                          0.977037933291252, 0.606164987575222, 0.4393566902894,
+                          0.552747314447092, 0.300880970126328, 0.323770338070664,
+                          0.915670466885606, 0.721247101248993, 1.29765260904839,
+                          2.76146788990826, 0.959867553314515, 0.340125585278128,
+                          0.121809161946423, 0.25799743320884, 0.1956843612527,
+                          0.264241585561661, 0.989672909331423, 1.14428055461657,
+                          1.36428769674242, 1.96363636363636, 1.0266513139522,
+                          0.0447824174066075, 0.211894911958445, 0.197988778289041,
+                          0.210517772531686, 0.308554588199316, 1.26474943927563,
+                          0.737190168823191, 1.56555579008225, 2.0625)}
 
 # visualising the contact matrix
 if(visualise) {
@@ -145,6 +137,7 @@ if(visualise) {
 p_report_80plus      = 1
 p_underreport_deaths = 1
 p_underreport_cases  = 1
+p_children_trans     = 1 # dont know what this is
 # Fixed delays ---------------------------#
 G       = 60
 # ----------------------------------------------------------------------------#
@@ -174,6 +167,7 @@ K  = 9
 
 
 # ----------------------------------------------------------------------------#
+
 # other free parameters ####
 # ----------------------------------------------------------------------------#
 {
@@ -190,3 +184,51 @@ K  = 9
 # ----------------------------------------------------------------------------#
 
 
+# ----------------------------------------------------------------------------#
+# specifying data for Stan ####
+# ----------------------------------------------------------------------------#
+data_list_model = {list(
+  # Structure ------------------------------#
+  K        = K,        # number of age groups
+  age_dist = age_dist, # age distribution
+  pop_t    = pop_t,    # total population
+  t0       = t0,        # start time in days
+  # Controls -------------------------------#
+  t_data    = t_data,
+  tswitch   = tswitch,
+  S         = S,
+  ts        = ts,
+  inference = inference,
+  doprint   = doprint,
+  D         = D,
+  # Data to fit ----------------------------#
+  incidence_cases  = incidence_cases,  # cases per day
+  incidence_deaths = incidence_deaths, # deaths per day
+  agedistr_cases   = agedistr_cases,   # age distribution of cases
+  agedistr_deaths  = agedistr_deaths,  # age distribution of deaths
+  # Parameters for Prior Distributions -----#
+  p_beta    = p_beta,
+  p_eta     = p_eta,
+  p_pi      = p_pi,
+  p_psi     = p_psi,
+  p_epsilon = p_epsilon,
+  p_phi     = p_phi,
+  p_rho     = p_rho,
+  p_xi      = p_xi,
+  p_nu      = p_nu,
+  # Fixed parameters -----------------------#
+  contact           = contact_matrix_china,
+  p_q_P             = q_P,
+  p_incubation      = 1/tau_2 + 1/tau_1,
+  p_preclinical     = 1/tau_2,
+  p_generation_time = gt,
+  p_children_trans  = p_children_trans,
+  # Fixed corrections ----------------------#
+  p_report_80plus      = p_report_80plus,
+  p_underreport_deaths = p_underreport_deaths,
+  p_underreport_cases  = p_underreport_cases,
+  # Fixed delays ---------------------------#
+  G       = G,
+  p_gamma = gamma
+)}
+# ----------------------------------------------------------------------------#

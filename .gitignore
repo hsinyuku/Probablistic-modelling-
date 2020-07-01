@@ -40,3 +40,4 @@ vignettes/*.pdf
 
 # no links to other files
 *.lnk 
+Posteriors/spain_samples1000.Rds

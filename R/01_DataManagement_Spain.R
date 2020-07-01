@@ -87,3 +87,17 @@ agedistr = read_csv("data/age-distribution_cases-deaths_Spain.csv") %>%
 
 agedistr_cases  = pull(agedistr,cases)
 agedistr_deaths = pull(agedistr,deaths)
+# ----------------------------------------------------------------------------#
+
+
+# ----------------------------------------------------------------------------#
+# fixed corrections and delays ####
+# ----------------------------------------------------------------------------#
+# Fixed corrections ----------------------#
+p_report_80plus      = 1
+p_underreport_deaths = 1
+p_underreport_cases  = 142343/180689
+p_children_trans     = 1 # dont know what this is
+# Fixed delays ---------------------------#
+G         = 60
+# ----------------------------------------------------------------------------#

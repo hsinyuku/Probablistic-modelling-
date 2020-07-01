@@ -18,7 +18,9 @@ forcing <- dplyr::left_join(values, dates) %>%
 
 pivot_wider(forcing, names_from = value, id_cols = c(region, t),
             values_from = forcing) %>% 
-ggplot(aes(x = t, ymin = CrILower, y = median, ymax = CrIUpper, fill = region)) +
-  facet_wrap(facets = "region") +
-  geom_ribbon(alpha = 0.6) + geom_line() + theme_minimal()
+ggplot(aes(x = t, ymin = CrILower, y = median, ymax = CrIUpper)) +
+  facet_wrap(facets = "region", nrow = 1) +
+  geom_ribbon(alpha = 0.6) + geom_line() + theme_bw() + 
+  labs(y = "", x = "Days since begin of simulation period") +
+  ggsave("Figures/AllRegions_ForcingFunction.png", width = 10, height = 3)
 
