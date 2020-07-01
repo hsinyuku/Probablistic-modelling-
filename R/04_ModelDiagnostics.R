@@ -62,34 +62,34 @@ plot_incidence_cases(samples = samples,
 
 # Plot simulated deaths & residual deaths vs real deaths
 plot_incidence_deaths(samples = samples,
-                     data_list = data_list_model, # sourced from 02_
-                     start_date = day_data,
-                     end_date = day_max) %>% 
+                      data_list = data_list_model, # sourced from 02_
+                      start_date = day_data,
+                      end_date = day_max) %>% 
   save_gg(plot = ., name = "Incidence Deaths Timeline", region, width = 6, height = 3)
 
 # Plot age distribution in % of real reported cases and sim reported symp. cases
 plot_agedist_cases_perc(samples = samples,
                      data_list = data_list_model, #sourced from 02_
                      region = region) %>% 
-  save_gg(plot = ., name = "Age Dist Cases", region)
+  save_gg(plot = ., name = "Age Dist Cases", region, width = 5, height = 3)
 
 # Plot age distribution in % of real reported deaths and sim deaths until tmax
 plot_agedist_deaths_perc(samples = samples,
                         data_list = data_list_model, #sourced from 02_
                         region = region) %>% 
-  save_gg(plot = ., name = "Age Dist Deaths", region)
+  save_gg(plot = ., name = "Age Dist Deaths", region, height = 3, width = 5)
 
 # Plot ascertainment rate among age groups
 plot_ascertainment(samples = samples,
                    data_list = data_list_model, # sourced from 02_
                    region = region) %>% 
-  save_gg(plot = ., name = "Ascertainment Rate", region)
+  save_gg(plot = ., name = "Ascertainment Rate", region, height = 3, width = 5)
 
 # Plot eta for each age groups (extension)
 plot_eta(samples = samples,
          data_list = data_list_model, #sourced from 02_
          region = region) %>% 
-  save_gg(plot = ., name = "Transmissibility Reduction", region)
+  save_gg(plot = ., name = "Transmissibility Reduction", region, height = 3, width = 5)
 
 # Take out sCFR by age groups, write it into Posteriors folder
 icfr_by_age <- data.frame(ageGroup = seq(1,9,1),
