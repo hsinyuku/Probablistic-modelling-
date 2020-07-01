@@ -25,7 +25,7 @@ plot_ascertainment <- function(samples,
   rhoData <- rhoData %>% mutate(ageGroup = rep(c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+")))
   
   ggplot(rhoData, aes(x = ageGroup, y = `50%`*100)) +
-    geom_col(fill = col3, width = 0.6) +
+    geom_col(fill = col3, width = 0.5) +
     labs(x = "Age group", y = "Ascertainment Rate (%)",
          title = paste0("Ascertainment Rate (", region,")"),
          subtitle = "% of symptomatic individuals seeking care") +
@@ -34,9 +34,6 @@ plot_ascertainment <- function(samples,
 
 plot_eta <- function(samples,
                      data_list,
-                     col1 = "#EDC951",
-                     col2 = "#EB6841",
-                     col3 = "#CC333F",
                      region) {
   
   
@@ -57,10 +54,10 @@ plot_eta <- function(samples,
     ))
   
   ggplot(eta_age, aes(x = ageGroup, y = `50%`*100)) +
-    geom_col(fill = col3, width = 0.6) +
-    labs(x = "Age group", y = "Ascertainment Rate (%)",
-         title = paste0("Ascertainment Rate (", region,")"),
-         subtitle = "% of symptomatic individuals seeking care") +
+    geom_col(fill = "#8FCB9B", width = 0.5) +
+    labs(x = "Age group", y = "Reduction in transmissibility (%)",
+         title = paste0("Reduction in transmissibility after applying control measures (", region,")"),
+         subtitle = "Among age groups") +
     theme(axis.text.x=element_text(angle=45,hjust=1)) +
     scale_y_continuous(limits = c(0,100))
   
