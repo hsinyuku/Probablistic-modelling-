@@ -42,12 +42,13 @@ visualise = F
 }
 
 m <- contact_matrix(survey = shanghai_survey, 
-                    age.limits=c(0,10,20,30,40,50,60,70,80),symmetric = TRUE)
+                    age.limits=c(0, 10, 20, 30, 40, 50, 60, 70, 80), symmetric = TRUE)
+
 if (visualise) {
   tibble(contacts=as.numeric(m$matrix)) %>%
     mutate(age1=rep(1:9,9),age2=rep(1:9,each=9)) %>%
     ggplot() +
-    geom_tile(aes(x=age2,y=age1,fill=contacts))
+    geom_tile(aes(x=age2, y=age1, fill=contacts))
 }
 
 # the actual contact matrix
