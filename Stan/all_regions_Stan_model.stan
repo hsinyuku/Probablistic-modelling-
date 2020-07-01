@@ -333,33 +333,58 @@ generated quantities{
     predicted_overall_incidence_deaths[i] = (1e-9+predicted_reported_incidence_deaths[i]) / p_underreport_deaths;
   }
   for(i in 1:S) {
-    predicted_comp_reported_diffC[i] = predicted_reported_incidence_symptomatic_cases[i] == 0 ? rep_array(0,K) : multinomial_rng(output_agedistr_cases,predicted_reported_incidence_symptomatic_cases[i]);
-    predicted_comp_overall_diffC[i] = to_vector(predicted_comp_reported_diffC[i]) ./ rho / p_underreport_cases;
-    predicted_comp_overall_diffA[i] = to_vector(predicted_comp_reported_diffC[i]) ./ rho * (1-psi) / psi / p_underreport_cases;
+    predicted_comp_reported_diffC[i] = 
+      predicted_reported_incidence_symptomatic_cases[i] == 0 ? rep_array(0,K) : 
+      multinomial_rng(output_agedistr_cases,predicted_reported_incidence_symptomatic_cases[i]);
+    predicted_comp_overall_diffC[i] = 
+      to_vector(predicted_comp_reported_diffC[i]) ./ rho / p_underreport_cases;
+    predicted_comp_overall_diffA[i] = 
+      to_vector(predicted_comp_reported_diffC[i]) ./ rho * (1-psi) / psi / 
+      p_underreport_cases;
   }
-  for(i in 1:(S+G)) predicted_comp_diffM[i] = predicted_reported_incidence_deaths[i] == 0 ? rep_array(0,K) : multinomial_rng(output_agedistr_deaths,predicted_reported_incidence_deaths[i]);
+  for(i in 1:(S+G)) predicted_comp_diffM[i] = predicted_reported_incidence_deaths[i] == 0 ?
+    rep_array(0,K) : multinomial_rng(output_agedistr_deaths, 
+    predicted_reported_incidence_deaths[i]);
   for(i in 1:K) {
-    predicted_total_reported_symptomatic_cases_by_age[i] = sum(predicted_comp_reported_diffC[1:S,i]) ;
-    predicted_total_overall_symptomatic_cases_by_age[i] = sum(predicted_comp_overall_diffC[1:S,i]);
-    predicted_total_overall_all_cases_by_age[i] = sum(predicted_comp_overall_diffC[1:S,i]) + sum(predicted_comp_overall_diffA[1:S,i]);
-    predicted_total_overall_deaths_tmax_by_age[i] = sum(predicted_comp_diffM[1:S,i]) / p_underreport_deaths;
-    predicted_total_overall_deaths_delay_by_age[i] = sum(predicted_comp_diffM[1:(S+G),i]) / p_underreport_deaths;
+    predicted_total_reported_symptomatic_cases_by_age[i] = 
+      sum(predicted_comp_reported_diffC[1:S,i]) ;
+    predicted_total_overall_symptomatic_cases_by_age[i] = 
+      sum(predicted_comp_overall_diffC[1:S,i]);
+    predicted_total_overall_all_cases_by_age[i] = 
+      sum(predicted_comp_overall_diffC[1:S,i]) + sum(predicted_comp_overall_diffA[1:S,i]);
+    predicted_total_overall_deaths_tmax_by_age[i] = 
+      sum(predicted_comp_diffM[1:S,i]) / p_underreport_deaths;
+    predicted_total_overall_deaths_delay_by_age[i] = 
+      sum(predicted_comp_diffM[1:(S+G),i]) / p_underreport_deaths;
   }
-  predicted_total_reported_symptomatic_cases = sum(predicted_total_reported_symptomatic_cases_by_age);
-  predicted_total_overall_symptomatic_cases = sum(predicted_total_overall_symptomatic_cases_by_age);
-  predicted_total_overall_all_cases = sum(predicted_total_overall_all_cases_by_age);
-  predicted_total_overall_deaths_tmax = sum(predicted_total_overall_deaths_tmax_by_age);
-  predicted_total_overall_deaths_delay = sum(predicted_total_overall_deaths_delay_by_age);
+  predicted_total_reported_symptomatic_cases = 
+    sum(predicted_total_reported_symptomatic_cases_by_age);
+  predicted_total_overall_symptomatic_cases = 
+    sum(predicted_total_overall_symptomatic_cases_by_age);
+  predicted_total_overall_all_cases = 
+    sum(predicted_total_overall_all_cases_by_age);
+  predicted_total_overall_deaths_tmax = 
+    sum(predicted_total_overall_deaths_tmax_by_age);
+  predicted_total_overall_deaths_delay = 
+    sum(predicted_total_overall_deaths_delay_by_age);
   
-  cfr_A_symptomatic_by_age = predicted_total_overall_deaths_tmax_by_age ./ predicted_total_reported_symptomatic_cases_by_age;
-  cfr_B_symptomatic_by_age = predicted_total_overall_deaths_delay_by_age ./ predicted_total_reported_symptomatic_cases_by_age;
-  cfr_C_symptomatic_by_age = predicted_total_overall_deaths_tmax_by_age ./ predicted_total_overall_symptomatic_cases_by_age;
-  cfr_D_symptomatic_by_age = predicted_total_overall_deaths_delay_by_age ./ predicted_total_overall_symptomatic_cases_by_age;
+  cfr_A_symptomatic_by_age = 
+    predicted_total_overall_deaths_tmax_by_age ./ predicted_total_reported_symptomatic_cases_by_age;
+  cfr_B_symptomatic_by_age = 
+    predicted_total_overall_deaths_delay_by_age ./ predicted_total_reported_symptomatic_cases_by_age;
+  cfr_C_symptomatic_by_age = 
+    predicted_total_overall_deaths_tmax_by_age ./ predicted_total_overall_symptomatic_cases_by_age;
+  cfr_D_symptomatic_by_age = 
+    predicted_total_overall_deaths_delay_by_age ./ predicted_total_overall_symptomatic_cases_by_age;
   
-  cfr_A_symptomatic = predicted_total_overall_deaths_tmax / predicted_total_reported_symptomatic_cases;
-  cfr_B_symptomatic = predicted_total_overall_deaths_delay / predicted_total_reported_symptomatic_cases;
-  cfr_C_symptomatic = predicted_total_overall_deaths_tmax / predicted_total_overall_symptomatic_cases;
-  cfr_D_symptomatic = predicted_total_overall_deaths_delay / predicted_total_overall_symptomatic_cases;
+  cfr_A_symptomatic = 
+    predicted_total_overall_deaths_tmax / predicted_total_reported_symptomatic_cases;
+  cfr_B_symptomatic = 
+    predicted_total_overall_deaths_delay / predicted_total_reported_symptomatic_cases;
+  cfr_C_symptomatic = 
+    predicted_total_overall_deaths_tmax / predicted_total_overall_symptomatic_cases;
+  cfr_D_symptomatic = 
+    predicted_total_overall_deaths_delay / predicted_total_overall_symptomatic_cases;
   
   cfr_C_all_by_age = predicted_total_overall_deaths_tmax_by_age ./ predicted_total_overall_all_cases_by_age;
   cfr_D_all_by_age = predicted_total_overall_deaths_delay_by_age ./ predicted_total_overall_all_cases_by_age;
