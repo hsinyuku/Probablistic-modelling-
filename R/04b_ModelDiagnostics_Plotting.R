@@ -11,54 +11,131 @@ inv_logit = function(x) exp(x)/(1+exp(x))
 logit = function(x) log(x/(1-x))
 
 # plot functions
-plot_incidence_cases = function(samples,data_list,col1="darkcyan",col2="chartreuse3",col3="deepskyblue2",start_date,end_date) {
+
+plot_ascertainment <- function(samples,
+                                data_list,
+                                col1 = "#EDC951",
+                                col2 = "#EB6841",
+                                col3 = "#CC333F",
+                                region) {
+
+  rhoData <- summary(samples, "rho")$summary %>% as_tibble()
+  rhoData <- rhoData %>% mutate(ageGroup = rep(c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+")))
+  
+  ggplot(rhoData, aes(x = ageGroup, y = `50%`*100)) +
+    geom_col(fill = col3, width = 0.6) +
+    labs(x = "Age group", y = "Ascertainment Rate (%)",
+         title = paste0("Ascertainment Rate (", region,")"),
+         subtitle = "% of symptomatic individuals seeking care") +
+    theme(axis.text.x=element_text(angle=45,hjust=1))
+}
+
+plot_agedist_cases_perc <- function(samples,
+                                    data_list,
+                                    col1 = "#EDC951",
+                                    col2 = "#EB6841",
+                                    col3 = "#CC333F",
+                                    region) {
+  
+  pred_agedist_cases <- data.frame(
+    ageGroup = seq(1, 9, 1),
+    all = summary(samples, "predicted_total_overall_all_cases_by_age")$summary %>% as_tibble() %>% pull(`50%`),
+    symptomatic = summary(samples, "predicted_total_overall_symptomatic_cases_by_age")$summary %>% as_tibble() %>% pull(`50%`),
+    reported = summary(
+      samples,
+      "predicted_total_reported_symptomatic_cases_by_age"
+    )$summary %>% as_tibble() %>% pull(`50%`),
+    real = data_list$agedistr_cases
+  ) %>% mutate(all = all/sum(all), symptomatic = symptomatic/sum(symptomatic), reported = reported/sum(reported), real = real/sum(real)) %>% 
+    pivot_longer(cols = -ageGroup, names_to = "caseType", values_to = "value")
+    
+  pred_agedist_cases %>% filter(caseType %in% c("reported", "real")) %>% 
+    ggplot(aes(x = ageGroup, y = value, fill = caseType)) +
+    geom_col(position = "dodge")
+                                   
+  
+  
+  
+}
+
+
+
+plot_incidence_cases = function(samples,
+                                data_list,
+                                col1 = "#EDC951",
+                                col2 = "#EB6841",
+                                col3 = "#CC333F",
+                                start_date,
+                                end_date,
+                                region) {
   t0 = data_list$t0
-  tmax2 = data_list$S
-  D = data_list$D
-  if(!is.null(data_list$D1)) D =  data_list$D1
+  S = data_list$S
   G = data_list$G
   tswitch = data_list$tswitch
-  S = data_list$S
-  y = rstan::extract(samples,"y")[[1]]
-  data_incidence_cases = data.frame(time=1:D,incidence=data_list$incidence_cases) %>%
-    mutate(date=time+start_date)
-  predicted_reported_incidence_symptomatic_cases = rstan::summary(samples,"predicted_reported_incidence_symptomatic_cases")[[1]] %>%
-    tbl_df() %>%
+
+  data_incidence_cases <-
+    data.frame(time = 1:S,
+               incidence = data_list$incidence_cases) %>%
+    mutate(date = time + start_date)
+  
+  predicted_reported_incidence_symptomatic_cases = 
+    rstan::summary(samples,"predicted_reported_incidence_symptomatic_cases")[[1]] %>%
+    as_tibble() %>%
     mutate(time=1:S,
            date=time+start_date) %>%
-    left_join(data_incidence_cases) %>%
-    filter(time<=tmax2)
-  predicted_overall_incidence_symptomatic_cases = rstan::summary(samples,"predicted_overall_incidence_symptomatic_cases")[[1]] %>%
-    tbl_df() %>%
+    left_join(data_incidence_cases)
+  
+  predicted_overall_incidence_symptomatic_cases = 
+    rstan::summary(samples,"predicted_overall_incidence_symptomatic_cases")[[1]] %>%
+    as_tibble() %>%
     mutate(time=1:S,
            date=time+start_date) %>%
-    left_join(data_incidence_cases) %>%
-    filter(time<=tmax2)
+    left_join(data_incidence_cases)
+
   predicted_overall_incidence_all_cases = rstan::summary(samples,"predicted_overall_incidence_all_cases")[[1]] %>%
-    tbl_df() %>%
+    as_tibble() %>%
     mutate(time=1:S,
            date=time+start_date) %>%
-    left_join(data_incidence_cases) %>%
-    filter(time<=tmax2)
+    left_join(data_incidence_cases)
+
   ggplot() +
-    geom_ribbon(data=predicted_overall_incidence_all_cases,aes(x=date,ymin=`2.5%`,ymax=`97.5%`),fill=col3,alpha=1) +
-    geom_line(data=predicted_overall_incidence_all_cases,aes(x=date,y=`50%`),linetype=3) +
-    geom_ribbon(data=predicted_overall_incidence_symptomatic_cases,aes(x=date,ymin=`2.5%`,ymax=`97.5%`),fill=col2,alpha=1) +
-    geom_line(data=predicted_overall_incidence_symptomatic_cases,aes(x=date,y=`50%`),linetype=3) +
-    geom_ribbon(data=predicted_reported_incidence_symptomatic_cases,aes(x=date,ymin=`2.5%`,ymax=`97.5%`),fill=col1,alpha=1) +
-    geom_line(data=predicted_reported_incidence_symptomatic_cases,aes(x=date,y=`50%`)) +
-    geom_point(data=data_incidence_cases,aes(x=date,y=incidence),shape=21,fill="white") +
+    
+    geom_ribbon(data = predicted_overall_incidence_all_cases, aes(x = date, ymin = `2.5%`, ymax = `97.5%`, fill = "col1"), alpha = 1) +
+    
+    geom_ribbon(data=predicted_overall_incidence_symptomatic_cases,aes(x=date,ymin=`2.5%`,ymax=`97.5%`,fill= "col2"),alpha=1) +
+    
+    geom_ribbon(data=predicted_reported_incidence_symptomatic_cases,aes(x=date,ymin=`2.5%`,ymax=`97.5%`,fill= "col3"),alpha=1) +
+    
+    geom_line(data=predicted_overall_incidence_all_cases,aes(x=date,y=`50%`,linetype = "dotted")) +
+    
+    geom_line(data=predicted_overall_incidence_symptomatic_cases,aes(x=date,y=`50%`,linetype = "longdash")) +
+    
+    geom_line(data=predicted_reported_incidence_symptomatic_cases,aes(x=date,y=`50%`, linetype = "solid")) +
+    
+    geom_point(data=data_incidence_cases,aes(x=date,y=incidence, shape = "21") ,fill="white") +
+    
     coord_cartesian(xlim=c(start_date,end_date)) +
-    labs(x="Time",y="Cases per day") +
+    labs(title = paste0("Daily Real cases vs Simulated cases (",region,")"),
+         subtitle = "SIM: All cases, Symptomatic cases, Reported cases",
+         x = "Time",
+         y = "Cases") +
     scale_y_continuous(expand=expand_scale(mult=c(0,.05)),
                        labels=function(x) paste0(x/1000,"K")) +
+    
     geom_vline(xintercept=tswitch+start_date,linetype=2) +
-    geom_vline(xintercept=tmax2+start_date,linetype=2) 
+    
+    geom_vline(xintercept=S+start_date,linetype=2) +
+
+    scale_fill_manual(name = "Sim. cases (CI)", values = c("col1" = col1, "col2" = col3, "col3" = col2), labels = c("All","Symptomatic","Reported")) +
+    scale_linetype_manual(name = "Sim. cases (Median)", values = c("dotted" = "longdash", "longdash" = "dotted", "solid" = "solid"), labels = c("All","Symptomatic","Reported")) +
+    scale_shape_manual(name = "Real cases", values = c("21" = 21), labels = "Daily cases")
 }
+
+
 
 plot_total_cases = function(samples,data_list,col1="darkcyan",col2="chartreuse3",col3="deepskyblue2") {
   t0 = data_list$t0
-  tmax2 = data_list$S
+  S = data_list$S
   D = data_list$D
   G = data_list$G
   tswitch = data_list$tswitch
@@ -66,7 +143,7 @@ plot_total_cases = function(samples,data_list,col1="darkcyan",col2="chartreuse3"
   y = rstan::extract(samples,"y")[[1]]
   data_incidence_cases = data.frame(time=1:D,incidence=data_list$incidence_cases)
   totals = rstan::summary(samples,c("predicted_total_reported_symptomatic_cases","predicted_total_overall_symptomatic_cases","predicted_total_overall_all_cases"))[[1]] %>%
-    tbl_df() %>%
+    as_tibble() %>%
     mutate(type=c("predicted_total_reported_symptomatic_cases","predicted_total_overall_symptomatic_cases","predicted_total_overall_all_cases"),
            type2=c("R","S","A"),
            type3="") %>%
@@ -84,7 +161,7 @@ plot_total_cases = function(samples,data_list,col1="darkcyan",col2="chartreuse3"
 
 plot_agedist_cases = function(samples,data_list,col1="darkcyan",col2="chartreuse3",col3="deepskyblue2") {
   t0 = data_list$t0
-  tmax2 = data_list$S
+  S = data_list$S
   D = data_list$D
   G = data_list$G
   tswitch = data_list$tswitch
@@ -103,7 +180,7 @@ plot_agedist_cases = function(samples,data_list,col1="darkcyan",col2="chartreuse
          "predicted_total_overall_symptomatic_cases_by_age",
          "predicted_total_overall_all_cases_by_age")
   pred = rstan::summary(samples,pp)[[1]] %>%
-    tbl_df() %>%
+    as_tibble() %>%
     mutate(age_group=rep(c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+"),3),
            type=rep(pp,each=9),
            type2=rep(c("R","S","A"),each=9)) %>%
@@ -123,7 +200,7 @@ plot_agedist_cases = function(samples,data_list,col1="darkcyan",col2="chartreuse
 
 plot_incidence_deaths = function(samples,data_list,col1="firebrick",col2="gold",col3="darkorange",start_date,end_date) {
   t0 = data_list$t0
-  tmax2 = data_list$S
+  S = data_list$S
   D = data_list$D
   G = data_list$G
   tswitch = data_list$tswitch
@@ -131,7 +208,7 @@ plot_incidence_deaths = function(samples,data_list,col1="firebrick",col2="gold",
   y = rstan::extract(samples,"y")[[1]]
   data_incidence_deaths = data.frame(time=1:D,incidence=data_list$incidence_deaths)
   predicted_overall_incidence_deaths = rstan::summary(samples,"predicted_overall_incidence_deaths")[[1]] %>%
-    tbl_df() %>%
+    as_tibble() %>%
     mutate(time=1:(D+G),
            date=time+start_date) %>%
     left_join(data_incidence_deaths)
@@ -146,12 +223,12 @@ plot_incidence_deaths = function(samples,data_list,col1="firebrick",col2="gold",
     labs(x="Time",y="Deaths per day") +
     scale_y_continuous(expand=expand_scale(mult=c(0,.05))) +
     geom_vline(xintercept=tswitch+start_date,linetype=2) +
-    geom_vline(xintercept=tmax2+start_date,linetype=2) 
+    geom_vline(xintercept=S+start_date,linetype=2) 
 }
 
 plot_total_deaths = function(samples,data_list,col1="firebrick",col2="gold",col3="darkorange",start_date,end_date) {
   t0 = data_list$t0
-  tmax2 = data_list$S
+  S = data_list$S
   D = data_list$D
   G = data_list$G
   tswitch = data_list$tswitch
@@ -159,7 +236,7 @@ plot_total_deaths = function(samples,data_list,col1="firebrick",col2="gold",col3
   y = rstan::extract(samples,"y")[[1]]
   data_incidence_deaths = data.frame(time=1:D,incidence=data_list$incidence_deaths)
   totals = rstan::summary(samples,c("predicted_total_overall_deaths_tmax","predicted_total_overall_deaths_delay"))[[1]] %>%
-    tbl_df() %>%
+    as_tibble() %>%
     mutate(type=c("predicted_total_reported_symptomatic_cases","predicted_total_overall_symptomatic_cases"),
            type2=c("R","A"),
            type3="") %>%
@@ -176,7 +253,7 @@ plot_total_deaths = function(samples,data_list,col1="firebrick",col2="gold",col3
 
 plot_agedist_deaths = function(samples,data_list,col1="firebrick",col2="darkorange") {
   t0 = data_list$t0
-  tmax2 = data_list$S
+  S = data_list$S
   D = data_list$D
   G = data_list$G
   tswitch = data_list$tswitch
@@ -194,7 +271,7 @@ plot_agedist_deaths = function(samples,data_list,col1="firebrick",col2="darkoran
   pp = c("predicted_total_overall_deaths_tmax_by_age",
          "predicted_total_overall_deaths_delay_by_age")
   pred = rstan::summary(samples,pp)[[1]] %>%
-    tbl_df() %>%
+    as_tibble() %>%
     mutate(age_group=rep(c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+"),2),
            type=rep(pp,each=9),
            type2=rep(c("R","A"),each=9)) %>%
@@ -214,7 +291,7 @@ plot_agedist_deaths = function(samples,data_list,col1="firebrick",col2="darkoran
 
 plot_cfr = function(samples,data_list,col1,col2,col3) {
   t0 = data_list$t0
-  tmax2 = data_list$S
+  S = data_list$S
   D = data_list$D
   G = data_list$G
   tswitch = data_list$tswitch
@@ -226,7 +303,7 @@ plot_cfr = function(samples,data_list,col1,col2,col3) {
   )
   pp2 = c("Crude","Among symptomatics","Among all infected")
   pred = rstan::summary(samples,pp)[[1]] %>%
-    tbl_df() %>%
+    as_tibble() %>%
     mutate(type=pp,
            type2=factor(pp2,levels=pp2)) 
   ggplot(pred) +
@@ -241,7 +318,7 @@ plot_cfr = function(samples,data_list,col1,col2,col3) {
 
 plot_agedist_cfr= function(samples,data_list,col1,col2,col3,insert=c(.7,7,.35,.95)) {
   t0 = data_list$t0
-  tmax2 = data_list$S
+  S = data_list$S
   D = data_list$D
   G = data_list$G
   tswitch = data_list$tswitch
@@ -249,13 +326,13 @@ plot_agedist_cfr= function(samples,data_list,col1,col2,col3,insert=c(.7,7,.35,.9
   y = rstan::extract(samples,"y")[[1]]
   xshift = .15
   A = rstan::summary(samples,"cfr_A_symptomatic_by_age")[[1]] %>%
-    tbl_df() %>%
+    as_tibble() %>%
     mutate(age_group=c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+"),
            age_group2=1:9,
            type2="Crude",
            x2=age_group2-xshift) 
   B = rstan::summary(samples,"epsilon")[[1]] %>%
-    tbl_df() %>%
+    as_tibble() %>%
     mutate(age_group=c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+"),
            age_group2=1:9,
            type2="Among symptomatics",
@@ -264,7 +341,7 @@ plot_agedist_cfr= function(samples,data_list,col1,col2,col3,insert=c(.7,7,.35,.9
   psi = rstan::extract(samples,"psi")[[1]]
   C = t(apply(epsilon2,2,function(x) qsum(x*psi))) %>%
     as.data.frame(.) %>%
-    tbl_df() %>%
+    as_tibble() %>%
     mutate(age_group=c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+"),
            age_group2=1:9,
            type2="Among all infected",
@@ -308,7 +385,7 @@ plot_agedist_cfr= function(samples,data_list,col1,col2,col3,insert=c(.7,7,.35,.9
 
 plot_incidence_deaths2 = function(samples,data_list,col1="firebrick",col2="gold",col3="darkorange",start_date,end_date) {
   t0 = data_list$t0
-  tmax2 = data_list$S
+  S = data_list$S
   D = data_list$D
   G = data_list$G
   tswitch = data_list$tswitch
@@ -316,7 +393,7 @@ plot_incidence_deaths2 = function(samples,data_list,col1="firebrick",col2="gold"
   y = rstan::extract(samples,"y")[[1]]
   data_incidence_deaths = data.frame(time=1:D,incidence=data_list$incidence_deaths)
   predicted_overall_incidence_deaths = rstan::summary(samples,"predicted_overall_incidence_deaths")[[1]] %>%
-    tbl_df() %>%
+    as_tibble() %>%
     mutate(time=1:(D+G),
            date=time+start_date) %>%
     left_join(data_incidence_deaths)
@@ -331,5 +408,5 @@ plot_incidence_deaths2 = function(samples,data_list,col1="firebrick",col2="gold"
     labs(x="Time",y="Deaths per day") +
     scale_y_continuous(expand=expand_scale(mult=c(0,.05))) +
     geom_vline(xintercept=tswitch+start_date,linetype=2) +
-    geom_vline(xintercept=tmax2+start_date,linetype=2) 
+    geom_vline(xintercept=S+start_date,linetype=2) 
 }

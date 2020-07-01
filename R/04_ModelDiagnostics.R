@@ -27,20 +27,41 @@ theme_set(theme_bw())
 # Load the saved posterior samples in the data. I don't want to source
 # 03_RunModel file here as it would force the whole sampling process to repeat
 # every time we call this script. 
-samples <-  readRDS(file = paste0("Posteriors/",region, "_samples.Rds"))
+samples <-  readRDS(file = paste0("Posteriors/",region, "_samples1000.Rds"))
 # ----------------------------------------------------------------------------#
 
 # Gather all paremeters in theta
-pars <- c("beta","eta","epsilon","rho","pi","psi")
+pars <- c("beta","epsilon","rho","pi","psi")
+
+
 
 # Plot the parameter posteriors and overlaying the chains to check for
 # consistence
 stan_dens(samples, pars = pars, separate_chains = T)
 
+
+print(samples, pars = pars)
+
+# Plot simulated cases (all, symptomatic, reported) vs real cases
 plot_incidence_cases(samples = samples,
                      data_list = data_list_model, # sourced from 02_
                      start_date = day_data,
-                     end_date = day_max)
+                     end_date = day_max,
+                     region = "spain")
+
+
+plot_agedist_cases(samples = samples,
+                     data_list = data_list_model #sourced from 02_
+                     )
+
+# Plot ascertainment rate among age groups
+plot_ascertainment(samples = samples,
+                   data_list = data_list_model, # sourced from 02_
+                   region = "spain")
+
+
+
+summary(samples, "eta")$summary
 
 plot_total_cases(samples = samples,
                      data_list = data_list_model) # sourced from 02_
