@@ -6,15 +6,7 @@
 # ----------------------------------------------------------------------------#
 
 
-# ----------------------------------------------------------------------------#
-# sourcing other scripts ####
-# ----------------------------------------------------------------------------#
-# this line is an attempt at making the code execution stop when there are 
-# errors in on of the files to be sourced
-source("R/01_DataManagement_Spain.R")
-# set this to TRUE if you want visual inspection of paremeters
-visualise = T 
-# ----------------------------------------------------------------------------#
+visualise = F # this controls whether plots are printed
 
 
 # ----------------------------------------------------------------------------#
@@ -26,7 +18,7 @@ linton_sd   = 11.6
 
 # the given values are mean and standard deviation of the lognormal-
 # distribution and thus have to be transformed (we guess)
-linton_pars = get_par_lnorm(linton_mean,linton_sd)
+linton_pars = get_par_lnorm(linton_mean, linton_sd)
 
 # Discretize - I vectorised this function, makes it a little bit faster (like
 # 4 milliseconds)
@@ -130,17 +122,7 @@ if(visualise) {
 # ----------------------------------------------------------------------------#
 
 
-# ----------------------------------------------------------------------------#
-# fixed corrections and delays ####
-# ----------------------------------------------------------------------------#
-# Fixed corrections ----------------------#
-p_report_80plus      = 1
-p_underreport_deaths = 1
-p_underreport_cases  = 142343/180689
-p_children_trans     = 1 # dont know what this is
-# Fixed delays ---------------------------#
-G         = 60
-# ----------------------------------------------------------------------------#
+
 
 
 # ----------------------------------------------------------------------------#

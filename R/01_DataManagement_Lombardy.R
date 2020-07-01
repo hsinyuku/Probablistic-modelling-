@@ -47,7 +47,7 @@ pop_t = 10.04e6
 
 # datasets -------------------------------------------------------------------#
 # all the data has been extracted from the following daily bulletin of the Italian Istituto Superiore
-# di Sanità(ISS) published on 28/04:
+# di Sanit?(ISS) published on 28/04:
 # https://www.epicentro.iss.it/coronavirus/bollettino/Bolletino-sorveglianza-integrata-COVID-19_28-aprile-2020_appendix.pdf 
 
 # datasets A and B: confirmed daily cases and deaths -------------------------#
@@ -91,5 +91,6 @@ prop_mort_tmax = mort_tmax / sum(mort_tmax)
 # Underreporting in all of Italy ---------------------#
 
 p_underreport_cases = sum(incidence_cases)/74346
+p_underreport_deaths = 1
 
 # ----------------------------------------------------------------------------#
