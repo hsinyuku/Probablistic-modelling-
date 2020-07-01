@@ -136,7 +136,7 @@ if(visualise) {
 # Fixed corrections ----------------------#
 p_report_80plus      = 1
 p_underreport_deaths = 1
-p_underreport_cases  = 142343/180689 # this has to be fixed when we want to merge!
+p_underreport_cases  = 142343/180689
 p_children_trans     = 1 # dont know what this is
 # Fixed delays ---------------------------#
 G         = 60

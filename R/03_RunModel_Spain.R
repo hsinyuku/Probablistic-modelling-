@@ -18,15 +18,15 @@ source("R/02_PrepareModel_Spain.R")   # contains all other parameters
 # ----------------------------------------------------------------------------#
 
 # Creating DSO object
-spain_DSO = stan_model(file = "Stan/all_regions_Stan_model.stan")
+spain_DSO = stan_model(file = "Stan/all_regions_Stan_model change eta.stan")
 
 # Sampling from the posterior distribution
-spain_samples = sampling(spain_DSO,data = data_list_model,iter = 10,chains = 2,
+spain_samples1000 = sampling(spain_DSO,data = data_list_model,iter = 1000,chains = 4,
                      init= 0.5, control=list(max_treedepth=10,adapt_delta=0.8))
 
 # Save the samples and the DSO object to RDS
 saveRDS(object = spain_DSO, file = "Posteriors/spain_DSO.Rds")
-saveRDS(object = spain_samples, file = "Posteriors/spain_samples.Rds")
+saveRDS(object = spain_samples1000, file = "Posteriors/spain_samples1000.Rds")
 
 
 
@@ -54,3 +54,6 @@ compartment_data %>% group_by(date) %>% summarise(mean = sum(mean), median = sum
 
 
 summary(spain_samples, pars = "predicted_total_overall_deaths_tmax_by_age")$summary
+
+# This maybe is a way to load y from data
+y = rstan::extract(samples,"y")[[1]]
