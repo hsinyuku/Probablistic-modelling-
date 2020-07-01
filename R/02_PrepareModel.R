@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------#
-PrepareModel_Template.R
+# PrepareModel.R
 # 
 # This file does computations on some preliminary variables (mainly fixed
 # parameters) and prepares them for Stan.
@@ -87,6 +87,7 @@ tau_2 = 1/2.3 # days of incubation without transmission
 tau_1 = 1/2.7 # days of incubation with reduced transmission
 mu = (1-q_P)/(gt-1/tau_1-1/tau_2) 
 # duration for which symptomatic individuals are infectious
+psi = rbeta(1000, p_psi_alpha, p_psi_beta)
 kappa = (q_P*tau_2*psi)/((1-q_P)*mu-(1-psi)*q_P*tau_2)
 # reduction in transmissibility
 
@@ -183,3 +184,51 @@ K  = 9
 # ----------------------------------------------------------------------------#
 
 
+# ----------------------------------------------------------------------------#
+# specifying data for Stan ####
+# ----------------------------------------------------------------------------#
+data_list_model = {list(
+  # Structure ------------------------------#
+  K        = K,        # number of age groups
+  age_dist = age_dist, # age distribution
+  pop_t    = pop_t,    # total population
+  t0       = t0,        # start time in days
+  # Controls -------------------------------#
+  t_data    = t_data,
+  tswitch   = tswitch,
+  S         = S,
+  ts        = ts,
+  inference = inference,
+  doprint   = doprint,
+  D         = D,
+  # Data to fit ----------------------------#
+  incidence_cases  = incidence_cases,  # cases per day
+  # incidence_deaths = incidence_deaths, # deaths per day
+  agedistr_cases   = agedistr_cases,   # age distribution of cases
+  agedistr_deaths  = agedistr_deaths,  # age distribution of deaths
+  # Parameters for Prior Distributions -----#
+  p_beta    = p_beta,
+  p_eta     = p_eta,
+  p_pi      = p_pi,
+  p_psi     = p_psi,
+  p_epsilon = p_epsilon,
+  p_phi     = p_phi,
+  p_rho     = p_rho,
+  p_xi      = p_xi,
+  p_nu      = p_nu,
+  # Fixed parameters -----------------------#
+  contact           = contact_matrix_china,
+  p_q_P             = q_P,
+  p_incubation      = 1/tau_2 + 1/tau_1,
+  p_preclinical     = 1/tau_2,
+  p_generation_time = gt,
+  p_children_trans  = p_children_trans,
+  # Fixed corrections ----------------------#
+  p_report_80plus      = p_report_80plus,
+  p_underreport_deaths = p_underreport_deaths,
+  p_underreport_cases  = p_underreport_cases,
+  # Fixed delays ---------------------------#
+  G       = G,
+  p_gamma = gamma
+)}
+# ----------------------------------------------------------------------------#
