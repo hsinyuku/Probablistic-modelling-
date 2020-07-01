@@ -203,7 +203,7 @@ data_list_model = {list(
   D         = D,
   # Data to fit ----------------------------#
   incidence_cases  = incidence_cases,  # cases per day
-  # incidence_deaths = incidence_deaths, # deaths per day
+  incidence_deaths = incidence_deaths, # deaths per day
   agedistr_cases   = agedistr_cases,   # age distribution of cases
   agedistr_deaths  = agedistr_deaths,  # age distribution of deaths
   # Parameters for Prior Distributions -----#
