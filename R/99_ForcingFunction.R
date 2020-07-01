@@ -16,7 +16,9 @@ forcing <- dplyr::left_join(values, dates) %>%
   unnest(cols = forcing) %>% 
   select(region, t, forcing)
 
-ggplot(forcing, aes(x = t, y = forcing, col = value)) +
+pivot_wider(forcing, names_from = value, id_cols = c(region, t),
+            values_from = forcing) %>% 
+ggplot(aes(x = t, ymin = CrILower, y = median, ymax = CrIUpper, fill = region)) +
   facet_wrap(facets = "region") +
-  geom_line() + theme_minimal()
+  geom_ribbon(alpha = 0.6) + geom_line() + theme_minimal()
 
