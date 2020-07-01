@@ -1,8 +1,8 @@
 # ----------------------------------------------------------------------------#
-# RunModel_Spain.R
+# ModelDiagnostics.R
 # 
-# This idea of this file is to only run the model. The computation of variables
-# should happen in a separate file that has to be called before.
+# This idea of this file is to run model diagnostics. Functions for this file
+# come from the script 04a_ModelDiagnostics_Plotting_Functions
 # ----------------------------------------------------------------------------#
 #
 #

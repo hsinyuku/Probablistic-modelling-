@@ -1,3 +1,10 @@
+# ----------------------------------------------------------------------------#
+# ModelDiagnostics_Plotting.R
+# 
+# This script provides functions to plot out model diagnostics.
+# ----------------------------------------------------------------------------#
+
+
 # general functions
 qsum = function(x) c(`50%`=median(x),quantile(x,c(0.025,0.975)))
 inv_logit = function(x) exp(x)/(1+exp(x))
