@@ -75,7 +75,7 @@ plot_agedist_cases_perc <- function(samples,
                                     region) {
   
   pred_agedist_cases <- data.frame(
-    ageGroup = seq(1, 9, 1),
+    ageGroup = c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+"),
     all = summary(samples, "predicted_total_overall_all_cases_by_age")$summary %>% as_tibble() %>% pull(`50%`),
     symptomatic = summary(samples, "predicted_total_overall_symptomatic_cases_by_age")$summary %>% as_tibble() %>% pull(`50%`),
     reported = summary(
@@ -95,7 +95,8 @@ plot_agedist_cases_perc <- function(samples,
     scale_fill_manual(guide = guide_legend(reverse = TRUE), 
                       name = "Case Type", 
                       labels = c("Real", "Simulated"), 
-                      values = c("#66CC51", "#FFCC33"))
+                      values = c("#66CC51", "#FFCC33")) +
+    theme(axis.text.x=element_text(angle=45,hjust=1))
   
 }
 
@@ -107,7 +108,7 @@ plot_agedist_deaths_perc <- function(samples,
                                     region) {
   
   pred_agedist_deaths <- data.frame(
-    ageGroup = seq(1, 9, 1),
+    ageGroup = c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+"),
     sim = summary(samples, "predicted_total_overall_deaths_tmax_by_age")$summary %>% as_tibble() %>% pull(`50%`),
     real = data_list$agedistr_cases
   ) %>% mutate(sim = sim/sum(sim), real = real/sum(real)) %>% 
@@ -122,7 +123,8 @@ plot_agedist_deaths_perc <- function(samples,
     scale_fill_manual(guide = guide_legend(reverse = TRUE), 
                       name = "Death Type", 
                       labels = c("Real", "Simulated"), 
-                      values = c("#3FB8AF", "#FF3D7F"))
+                      values = c("#3FB8AF", "#FF3D7F")) +
+    theme(axis.text.x=element_text(angle=45,hjust=1))
 }
 
 
