@@ -1,12 +1,11 @@
 // applicable to data on cases by date of onset
+// ------------------
 functions { // write functions that can be used later on
-  // logistic function that represents the effect of countermeasures
+  // forcing function ----
   real switch_eta(real t, real t1, real eta, real nu, real xi) {
     return(eta+(1-eta)/(1+exp(xi*(t-t1-nu))));
   }
-  // --------------------------------------------------------------------------
-  // begin of compartmental model (ODE function)
-  // --------------------------------------------------------------------------
+  // compartmental model ----
   real[] SEIR(
     // arguments to the ODE-function
     real t,
@@ -102,32 +101,31 @@ functions { // write functions that can be used later on
     }
     return(dydt);
   }
-  // --------------------------------------------------------------------------
-  // end of compartmental model
-  // --------------------------------------------------------------------------
+  // 
 }
 
+// ------------------
 data { // this part mirrors the part in R where the model is specified; all
        // variables get their value from the function call in R
-  // Structure ----------------------------------------------------------------
+  // |_ Structure ----
   int K;              // number of age classes
   vector[K] age_dist; // age distribution of the population
   int pop_t;          // total population
   real tswitch;       // time of introduction of control measures
-  // Controls -----------------------------------------------------------------
+  // |_ Controls ----
   real t0; //starting time
   int t_data; //time of first data
   int S;
   real ts[S]; // time bins
   int inference; // 0: simulating from priors; 1: fit to data
   int doprint;
-  // Data to fit
+  // |_ Data to fit ----
   int D; // number of days with reported incidence
   int incidence_cases[D]; // overal incidence for W weeks
   int incidence_deaths[D]; // overal incidence for W weeks
   int agedistr_cases[K]; // number of cases at tmax for the K age classes
   int agedistr_deaths[K]; // mortality at tmax for the K age classes
-  // Priors -------------------------------------------------------------------
+  // |_ Parameters for Priors ----
   real p_beta[2];
   real p_eta[2];
   real p_pi[2];
@@ -137,22 +135,24 @@ data { // this part mirrors the part in R where the model is specified; all
   real p_xi[2];
   real p_nu;
   real p_psi[2];
-  // Fixed parameters ---------------------------------------------------------
+  // |_ Fixed values ----
   real contact[K*K]; // contact matrix
   real p_q_P; // proportion of transmission that is caused by presymptomatics
   real p_incubation; // incubation period
   real p_preclinical; // preclinical period (part of the incubation with possible transmission)
   real p_generation_time; 
   real p_children_trans; // relative transmissibility in children 1-10
-  // Fixed corrections  -------------------------------------------------------
+  // |_ Fixed corrections ----
   real p_report_80plus; // fixed ascertainment proportion for ages 80+
   real p_underreport_deaths; // correction for deaths reported later
   real p_underreport_cases; // correction for cases reported later
-  // Fixed delays  ------------------------------------------------------------
+  // |_ Fixed delays ----
   int G;
   real p_gamma[G]; // from onset to death
 }
 
+
+// ------------------
 transformed data {
   real tau_1 = 1.0 / (p_incubation - p_preclinical); // WHAT THE HELL IS THIS?
   real tau_2 = 1.0 / p_preclinical;
@@ -175,6 +175,8 @@ transformed data {
   }
 }
 
+
+// ------------------
 parameters{
   real<lower=0,upper=1> beta; // base transmission rate
   real<lower=0,upper=1> eta; // reduction in transmission rate after quarantine measures
@@ -187,24 +189,25 @@ parameters{
   real<lower=0,upper=1> psi; // proportion of symptomatics
 }
 
+
+// ------------------
 transformed parameters {
-  // transformed parameters
   vector[K] rho;
   real xi = xi_raw+0.5;
-  // change of format for integrate_ode_rk45
+  // change of format for integrate_ode_rk45 - WHAT EXACTLY DOES THIS DO?
   real theta[6]; // vector of parameters
   real y[S,K*6]; // raw ODE output
   vector[K] comp_C[S+G];
   vector[K] comp_diffC[S+G];
   vector[K] comp_M[S+G];
   vector[K] comp_diffM[S+G];
-  // outcomes
+  // outcomes - WHAT EXACTLY DOES THIS DO?
   vector[D] output_incidence_cases; // overall case incidence by day
   vector[D] output_incidence_deaths; // overal mortality incidence by day 
   simplex[K] output_agedistr_cases; // final age distribution of cases
   simplex[K] output_agedistr_deaths; // final age distribution of deaths
   
-  // transformed paremeters
+  // transformed parameters - WHAT EXACTLY DOES THIS DO?
   for(i in 1:(K-1)){
     rho[i] = raw_rho[i]*p_report_80plus;
   }
@@ -212,7 +215,7 @@ transformed parameters {
   // change of format for integrate_ode_rk45
   theta[1:6] = {beta,eta,xi,nu,pi,psi};
   
-  // run ODE solver
+  //|_ ODE solver ----
   y = integrate_ode_rk45( // simulate data on the current state of theta
     SEIR,  // ODE function
     init,  // initial states
@@ -227,12 +230,12 @@ transformed parameters {
     comp_C[i] = (to_vector(y[i,(5*K+1):(6*K)]) + 1.0E-9) * pop_t;
     comp_diffC[i] = i==1 ? comp_C[i,] : 1.0E-9*pop_t + comp_C[i,] - comp_C[i-1,]; // lagged difference of cumulative incidence of symptomatics
   }
-  // Incidence and cumulative incidence after S
+  //|_ (Cum.) incidences after S ----
   for(g in 1:G) {
     comp_C[S+g] = comp_C[S];
     comp_diffC[S+g] = rep_vector(1.0E-9,K);
   }
-  // Mortality
+  //|_ Mortality ----
   for(i in 1:(S+G)) comp_diffM[i] = rep_vector(1.0E-9,K);
   for(i in 1:S) for(g in 1:G) comp_diffM[i+g] += comp_diffC[i] .* epsilon * p_gamma[g];
   for(i in 1:(S+G)) for(k in 1:K) comp_M[i,k] = sum(comp_diffM[1:i,k]);
@@ -246,18 +249,20 @@ transformed parameters {
   output_agedistr_deaths = (comp_M[S,]) ./ sum(comp_M[S,]);
 }
 
+
+// ------------------
 model {
-  // priors
+  //|_ Prior Distributions ----
   beta ~ beta(p_beta[1],p_beta[2]);
-  eta ~ beta(p_eta[1],p_eta[2]);
+  eta  ~ beta(p_eta[1],p_eta[2]);
   for(k in 1:K) epsilon[k] ~ beta(p_epsilon[1],p_epsilon[2]);
   for(k in 1:(K-1)) raw_rho[k] ~ beta(p_rho[1],p_rho[2]);
-  pi ~ beta(p_pi[1],p_pi[2]);
-  phi ~ exponential(p_phi);
+  pi   ~ beta(p_pi[1],p_pi[2]);
+  phi  ~ exponential(p_phi);
   xi_raw ~ beta(p_xi[1],p_xi[2]); 
   nu ~ exponential(p_nu);
   psi ~ beta(p_psi[1],p_psi[2]);
-  // debug
+  //|_ Debug ----
   if(doprint==1) {
     print("beta: ",beta);
     print("eta: ",beta);
@@ -270,7 +275,7 @@ model {
     print("comp_M[5,]: ",comp_M[5,]);
     print("comp_diffM[5,]: ",comp_diffM[5,]);
   }
-  // likelihood
+  // |_ Likelihood ----
   if (inference!=0) {
     for(i in 1:D) { // repeat for every day in the model
       target += neg_binomial_2_lpmf( incidence_cases[i] | 
@@ -283,6 +288,8 @@ model {
   }
 }
 
+
+// ------------------
 generated quantities{
   real avg_rho = sum(age_dist .* rho);
   real beta2 = beta*eta;
