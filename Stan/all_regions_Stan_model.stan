@@ -48,7 +48,7 @@ functions { // write functions that can be used later on
     pi   = theta[5];
     psi  = theta[6];
 
-    // Fixed parameters
+    // Fixed real valued parameters
     tau_1 = x_r[2];
     tau_2 = x_r[3];
     q_P   = x_r[4];
@@ -105,8 +105,7 @@ functions { // write functions that can be used later on
 }
 
 // ------------------
-data { // this part mirrors the part in R where the model is specified; all
-       // variables get their value from the function call in R
+data {
   // |_ Structure ----
   int K;              // number of age classes
   vector[K] age_dist; // age distribution of the population
@@ -114,11 +113,11 @@ data { // this part mirrors the part in R where the model is specified; all
   real tswitch;       // time of introduction of control measures
   // |_ Controls ----
   real t0; //starting time
-  int t_data; //time of first data
-  int S;
+  int  t_data; //time of first data
+  int  S; // 
   real ts[S]; // time bins
-  int inference; // 0: simulating from priors; 1: fit to data
-  int doprint;
+  int  inference; // 0: simulating from priors; 1: fit to data
+  int  doprint;
   // |_ Data to fit ----
   int D; // number of days with reported incidence
   int incidence_cases[D]; // overal incidence for W weeks
@@ -159,7 +158,7 @@ transformed data {
   real q_P = p_q_P;
   real gt = p_generation_time;
   real x_r[5+K*K+K]; // 5 parameters + K*K contact matrix parameters + K age_dist parameters
-  int x_i[1] = {K};
+  int  x_i[1] = {K};
   real init[K*6] = rep_array(0.0, K*6); // initial values
   real contact2[K*K] = contact;
   for(i in 1:(2*K)) contact2[i] = contact[i] * p_children_trans; // apply lower transmissibility in children
