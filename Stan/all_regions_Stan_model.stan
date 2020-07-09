@@ -227,7 +227,10 @@ transformed parameters {
   // extract and format ODE results (1.0E-9 correction to avoid negative values due to unprecise estimates of zeros as tolerance is 1.0E-10)
   for(i in 1:S) {
     comp_C[i] = (to_vector(y[i,(5*K+1):(6*K)]) + 1.0E-9) * pop_t;
-    comp_diffC[i] = i==1 ? comp_C[i,] : 1.0E-9*pop_t + comp_C[i,] - comp_C[i-1,]; // lagged difference of cumulative incidence of symptomatics
+      // C_k(t): number of presymptomatic people at day i in 1:S
+    comp_diffC[i] = i==1 ? comp_C[i,] : 1.0E-9*pop_t + comp_C[i,] - comp_C[i-1,];
+      // Delta C_{k,t}
+      // number of new symptomatic infections per day of symptom onset by age group
   }
   //|_ (Cum.) incidences after S ----
   for(g in 1:G) {
@@ -242,9 +245,13 @@ transformed parameters {
   // Compute outcomes
   for(i in t_data:S){
     output_incidence_cases[i-t_data+1] = sum(comp_diffC[i].*rho)*p_underreport_cases;
+      // R_t: total number of new reported infections per day of symptom onset
+      // not a percentage, but a count
     output_incidence_deaths[i-t_data+1] = sum(comp_diffM[i])*p_underreport_deaths;
   }
   output_agedistr_cases = (comp_C[S,].*rho) ./ sum(comp_C[S,].*rho);
+    // D_k^{cases}: age distribution of all reported cases over the modeled
+    // period; not a percentage, but a count
   output_agedistr_deaths = (comp_M[S,]) ./ sum(comp_M[S,]);
 }
 
@@ -252,15 +259,15 @@ transformed parameters {
 // ------------------
 model {
   //|_ Prior Distributions ----
-  beta ~ beta(p_beta[1],p_beta[2]);
-  eta  ~ beta(p_eta[1],p_eta[2]);
+  beta   ~ beta(p_beta[1],p_beta[2]);
+  eta    ~ beta(p_eta[1],p_eta[2]);
   for(k in 1:K) epsilon[k] ~ beta(p_epsilon[1],p_epsilon[2]);
   for(k in 1:(K-1)) raw_rho[k] ~ beta(p_rho[1],p_rho[2]);
-  pi   ~ beta(p_pi[1],p_pi[2]);
-  phi  ~ exponential(p_phi);
+  pi     ~ beta(p_pi[1],p_pi[2]);
+  phi    ~ exponential(p_phi);
   xi_raw ~ beta(p_xi[1],p_xi[2]); 
-  nu ~ exponential(p_nu);
-  psi ~ beta(p_psi[1],p_psi[2]);
+  nu     ~ exponential(p_nu);
+  psi    ~ beta(p_psi[1],p_psi[2]);
   //|_ Debug ----
   if(doprint==1) {
     print("beta: ",beta);
@@ -295,10 +302,10 @@ generated quantities{
   real mu = (1-q_P)/(gt-1/tau_1-1/tau_2);
   real kappa = (q_P*tau_2*psi)/((1-q_P)*mu-(1-psi)*q_P*tau_2);
 
-  int predicted_reported_incidence_symptomatic_cases[S]; 
+  int  predicted_reported_incidence_symptomatic_cases[S]; 
   real predicted_overall_incidence_symptomatic_cases[S]; 
   real predicted_overall_incidence_all_cases[S]; 
-  int predicted_reported_incidence_deaths[S+G];
+  int  predicted_reported_incidence_deaths[S+G];
   real predicted_overall_incidence_deaths[S+G];
   real compartment_data[S, K*6];
   

@@ -196,11 +196,11 @@ data_list_model = {list(
   # Controls -------------------------------#
   t_data    = t_data,
   tswitch   = tswitch,
-  S         = S,
+  S         = S,         # days between day_max and day_start
   ts        = ts,
   inference = inference,
   doprint   = doprint,
-  D         = D,
+  D         = D,        # days between day_max and day_start, but +1 (not clear why)
   # Data to fit ----------------------------#
   incidence_cases  = incidence_cases,  # cases per day
   incidence_deaths = incidence_deaths, # deaths per day
@@ -228,7 +228,7 @@ data_list_model = {list(
   p_underreport_deaths = p_underreport_deaths,
   p_underreport_cases  = p_underreport_cases,
   # Fixed delays ---------------------------#
-  G       = G,
+  G       = G, # fixed delay
   p_gamma = gamma
 )}
 # ----------------------------------------------------------------------------#
