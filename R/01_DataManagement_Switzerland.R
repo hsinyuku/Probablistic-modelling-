@@ -34,7 +34,7 @@ getwd()
   # from : data/contact_matrix/age_distribution.csv
   # from: http://data.un.org/Data.aspx?d=POP&f=tableCode%3A22
   # uses a self-defined function : age_class
-excel_age_dist=read.csv("data/contact_matrix/age_distribution.csv",header=T)
+excel_age_dist=read.csv("data/Switzerland_Austria_contact.csv",header=T)
 
 age_class=function(x,min_age,age_range,max_age){
   age_lim=seq(min_age,max_age,age_range)
@@ -56,7 +56,7 @@ pop_t = 8.545e6
 ### Both cases (A) & deaths (B) are from:
    # data/switzerland/agg_data.csv
 
-cases_deaths=read.csv("data/switzerland/agg_data.csv",header=T) %>%
+cases_deaths=read.csv("data/Switzerland_cases.csv",header=T) %>%
   transmute(date=ymd(as.character(date)),new_cases=count_pos,new_cases_onset=onset_dt,new_deaths=death_dt) %>%
   filter(date>=ymd(day_data),date<=ymd(day_max))
 
@@ -70,7 +70,7 @@ incidence_deaths = pull(cases_deaths,new_deaths)
 ### Both age distributions of cases (B) and deaths(D) are from : 
   # data/switzerland/age_cases_mort.csv
   
-agedistr_cases_deaths=read.csv("data/switzerland/age_cases_mort.csv",header=T) %>%
+agedistr_cases_deaths=read.csv("data/Switzerland_age_dist.csv",header=T) %>%
   select(age_class,cases,deaths)
 
 # dataset B: age distribution of all cases ------------------------#

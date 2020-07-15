@@ -33,7 +33,7 @@ ifelse(class(source("setup.R"))!="try-error",
 # from : data/contact_matrix/age_distribution.csv (same for Switzerland)
 # from: http://data.un.org/Data.aspx?d=POP&f=tableCode%3A22
 # uses a self-defined function : age_class
-excel_age_dist=read.csv("data/contact_matrix/age_distribution.csv",header=T)
+excel_age_dist=read.csv("data/Switzerland_Austria_contact.csv",header=T)
 
 age_class=function(x,min_age,age_range,max_age){
   age_lim=seq(min_age,max_age,age_range)
@@ -56,14 +56,14 @@ pop_t = 8.859e6  # (Source Eurostat 2019)
 ### Confirmed cases (A) & deaths (B) are from different csv.:
 
 # dataset A: confirmed daily cases -------------------------------------------#
-cases = read.table("data/austria/Epikurve.csv",sep=";",header=T) %>%
+cases = read.table("data/Austria_cases.csv",sep=";",header=T) %>%
   transmute(date=dmy(time),new_cases=tag_Erkrankungen) %>%
   filter(date>=ymd(day_data),date<=ymd(day_max))
 
 incidence_cases = pull(cases,new_cases)
 
 # dataset C: confirmed daily deaths ------------------------------------------#
-deaths = read.table("data/austria/TodesfaelleTimeline.csv",sep=";",header=T) %>%
+deaths = read.table("data/Austria_deaths.csv",sep=";",header=T) %>%
   transmute(date=dmy(time),new_deaths=c(NA,diff(Todesfalle))) %>%
   filter(date>=ymd(day_data),date<=ymd(day_max))
 
@@ -72,14 +72,14 @@ incidence_deaths = pull(deaths,new_deaths)
 ### Age distributions of cases (B) and deaths(D) are from different csv. : 
 
 # dataset B: age distribution of all cases ------------------------#
-agedistr_cases = read.table("data/austria/Altersverteilung.csv",sep=";",header=T) %>%
+agedistr_cases = read.table("data/Austria_cases_age_dist.csv",sep=";",header=T) %>%
   transmute(age=age, cases=number, age2=c(1:9,9)) %>%
   group_by(age2) %>%
   summarise(n=sum(cases)) %>%
   pull(n)
 
 # dataset D: age distribution of all deaths -----------------------#
-agedistr_deaths = read.table("data/austria/AltersverteilungTodesfaelle.csv",sep=";",header=T) %>%
+agedistr_deaths = read.table("data/Austria_deaths_age_dist.csv",sep=";",header=T) %>%
   transmute(age=age, new_deaths=number, age2=c(1:9,9)) %>%
   group_by(age2) %>%
   summarise(n=sum(new_deaths)) %>%
