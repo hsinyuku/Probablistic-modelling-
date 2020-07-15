@@ -28,15 +28,26 @@ ifelse(class(source("setup.R"))!="try-error",
   day_quarantine = as.Date("2020-02-24")
 }
 
-# Age distribution In Lombardy -----------------------------------------------#
-# For 9 age classes.
+# summarise exact ages into age groups, starting from min_age and going to
+# max_age in intervals of age_range (both min_age and max_age are upper bound
+# for the age groups)
 
-age_dist = read.csv("age_distribution.csv") %>%
-  filter(country=="Italy") %>%
-  gather("age","n",3:23) %>%
-  mutate(n=as.numeric(n),age2=c(0,0,10,10,20,20,30,30,40,40,50,50,60,60,70,70,80,80,80,80,80)) %>%
-  group_by(age2) %>%
-  summarise(n=sum(n)) %>%
+age_class = function(x, min_age, age_range, max_age) {
+  age_lim = seq(min_age, max_age, age_range)
+  return(sapply(as.list(x), function(x) sum(age_lim <= x)))
+} 
+
+# Age distribution In Lombardy -----------------------------------------------#
+age_dist <- read_csv("data/all_regions_pop_age_dist.csv")
+# error messages are ok, there are footnotes that are not part of the data
+
+age_dist <- age_dist %>% 
+  filter(`Country or Area` == "Italy") %>%
+  filter(Year == 2018) %>%
+  filter(Age %in% as.character(0:120)) %>% 
+  mutate(age_group = age_class(as.numeric(Age),10,10,80)) %>% 
+  group_by(age_group) %>%
+  summarise(n = sum(Value), .groups = "keep") %>%
   pull(n)
 age_dist = age_dist/sum(age_dist)
 
@@ -46,13 +57,13 @@ age_dist = age_dist/sum(age_dist)
 pop_t = 10.04e6
 
 # datasets -------------------------------------------------------------------#
-# all the data has been extracted from the following daily bulletin of the Italian Istituto Superiore
-# di Sanit?(ISS) published on 28/04:
-# https://www.epicentro.iss.it/coronavirus/bollettino/Bolletino-sorveglianza-integrata-COVID-19_28-aprile-2020_appendix.pdf 
+# all the data has been extracted from the appendix to the daily bulletin of the Italian Istituto Superiore
+# di Sanità (ISS) published on 28/04:
+# https://www.epicentro.iss.it/coronavirus/bollettino/Bollettino-sorveglianza-integrata-COVID-19_28-aprile-2020_appendix.pdf 
 
 # datasets A and B: confirmed daily cases and deaths -------------------------#
 
-lombardy_cases_deaths <- read.csv("Lombardy_Cases_Deaths_Confirmed.csv") %>% 
+lombardy_cases_deaths <- read.csv("data/Lombardy_Cases_Deaths_Confirmed.csv") %>% 
   tbl_df() %>%
   mutate(date=ymd(paste("2020",month,day,sep="-"))) %>% 
   filter(date>=day_data,date<=day_max)
@@ -69,7 +80,7 @@ sum(incidence_deaths)
 
 # dataset B and D: Age distribution of cases and deaths ----------------------#
 
-age_distributions_cases_deaths = read.csv("Age-Distribution_Cases-Deaths_Lombardy.csv") %>%
+age_distributions_cases_deaths = read.csv("data/Age_Distribution_Cases_Deaths_Lombardy.csv") %>%
   tbl_df()
 
 # dataset B ------------------------------------------------------------------#
@@ -91,6 +102,5 @@ prop_mort_tmax = mort_tmax / sum(mort_tmax)
 # Underreporting in all of Italy ---------------------#
 
 p_underreport_cases = sum(incidence_cases)/74346
-p_underreport_deaths = 1
 
 # ----------------------------------------------------------------------------#
