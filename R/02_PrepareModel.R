@@ -1,20 +1,8 @@
 # ----------------------------------------------------------------------------#
-PrepareModel_Template.R
+# PrepareModel.R
 # 
 # This file does computations on some preliminary variables (mainly fixed
-# parameters) and prepares them for Stan.
-# ----------------------------------------------------------------------------#
-# This is almost the same for Spain; it even has a hardwired contact matrix
-# as well. Can we somehow remove this? Changes are in the correction parameters
-
-# ----------------------------------------------------------------------------#
-# sourcing other scripts ####
-# ----------------------------------------------------------------------------#
-# this line is an attempt at making the code execution stop when there are 
-# errors in on of the files to be sourced
-source("setup.R")
-# set this to TRUE if you want visual inspection of paremeters
-visualise = T 
+# parameters) and prepares them for Stan. It should not be called on its own.
 # ----------------------------------------------------------------------------#
 
 
@@ -73,13 +61,6 @@ remove(m, low, high, v)
 # ----------------------------------------------------------------------------#
 # transmission parameters ####
 # ----------------------------------------------------------------------------#
-# reduced transmissibility of pre- and a-symptomatics kappa:
-# He et al: 44% (25–69%) of secondary cases were infected during the index 
-# cases’ presymptomatic stage http://nature.com/articles/s41591-020-0869-5
-# Liu estimated 46% (21 – 46%) (S. Funk group) 
-# https://wellcomeopenresearch.org/articles/5-58
-# Ganyani (Wallinga en Hens) 48% (32-67%) 
-# https://medrxiv.org/content/10.1101/2020.03.05.20031815v1
 
 gt = 5.2      # generation time in days
 q_P = 0.46    # contribution of presymptomatic infections to the transmission
@@ -87,10 +68,13 @@ tau_2 = 1/2.3 # days of incubation without transmission
 tau_1 = 1/2.7 # days of incubation with reduced transmission
 mu = (1-q_P)/(gt-1/tau_1-1/tau_2) 
 # duration for which symptomatic individuals are infectious
+# # duration for which symptomatic individuals are infectious
+psi = rbeta(1000, p_psi_alpha, p_psi_beta)
 kappa = (q_P*tau_2*psi)/((1-q_P)*mu-(1-psi)*q_P*tau_2)
 # reduction in transmissibility
 
-# can we somehow replace the contact matrix?
+# just kept both contact matrices so we don't confuse the two hardwired 
+# contact matrices
 contact_matrix_china = {c(0.810810810810811, 0.0908559523547268, 0.372736406439194,
                           1.27360250772, 0.200569529052988, 0.375083342749019,
                           0.60252680195839, 0.0934189610338407, 0.0225225225225225,
@@ -118,6 +102,38 @@ contact_matrix_china = {c(0.810810810810811, 0.0908559523547268, 0.3727364064391
                           0.0447824174066075, 0.211894911958445, 0.197988778289041,
                           0.210517772531686, 0.308554588199316, 1.26474943927563,
                           0.737190168823191, 1.56555579008225, 2.0625)}
+contact_matrix_europe = {c(5.13567073170732, 1.17274819632136, 0.982359525171638,
+                           2.21715890088845, 1.29666356906914, 0.828866413937242,
+                           0.528700773224482, 0.232116187961884, 0.0975205061876398,
+                           1.01399087153423, 10.420788530466, 1.5084165224448,
+                           1.46323525034693, 2.30050630727188, 1.0455742822567,
+                           0.396916593664865, 0.276112578159939, 0.0867321859134207,
+                           0.787940961549209, 1.39931415327149, 4.91448118586089,
+                           2.39551550152373, 2.08291844616138, 1.67353143324194,
+                           0.652483430981848, 0.263165822550241, 0.107498717856296,
+                           1.53454251726848, 1.17129688889679, 2.06708280469829,
+                           3.91165644171779, 2.74588910732349, 1.66499320847473,
+                           1.02145416818956, 0.371633336270256, 0.112670158106901,
+                           0.857264438638371, 1.7590640625625, 1.71686658407219,
+                           2.62294018855816, 3.45916114790287, 1.87635185962704,
+                           0.862205884832066, 0.523958801433231, 0.205791955532149,
+                           0.646645383952458, 0.943424739130445, 1.62776721065554, 
+                           1.87677409215498, 2.21415705015835, 2.5920177383592,
+                           1.10525460534109, 0.472961105423521, 0.282448363507455,
+                           0.504954014454259, 0.438441714821823, 0.77694120330432,
+                           1.40954408148402, 1.24556204828388, 1.35307720400585,
+                           1.70385674931129, 0.812686154912104, 0.270111273681845,
+                           0.305701280434649, 0.420580126969344, 0.432113761275257,
+                           0.707170907986224, 1.04376196943771, 0.798427737704416,
+                           1.12065725135372, 1.33035714285714, 0.322575366839763,
+                           0.237578345845701, 0.24437789962337, 0.326505855457376,
+                           0.396586297530862, 0.758318763302674, 0.881999483055259,
+                           0.688988121391528, 0.596692087603768, 0.292682926829268)}
+if (region == "Hubei") {
+  contact_matrix = contact_matrix_china
+} else {
+  contact_matrix = contact_matrix_europe
+}
 
 # visualising the contact matrix
 if(visualise) {
@@ -126,6 +142,7 @@ if(visualise) {
     ggplot() +
     geom_tile(aes(x=age2,y=age1,fill=contacts))
 }
+remove(contact_matrix_china, contact_matrix_europe)
 # ----------------------------------------------------------------------------#
 
 
@@ -133,10 +150,10 @@ if(visualise) {
 # fixed corrections and delays ####
 # ----------------------------------------------------------------------------#
 # Fixed corrections ----------------------#
-p_report_80plus      = 1
-p_underreport_deaths = 1
-p_underreport_cases  = 1
-p_children_trans     = 1 # dont know what this is
+p_report_80plus      = 1 # this if 1 for every region
+p_underreport_deaths = p_underreport_deaths
+p_underreport_cases  = p_underreport_cases
+p_children_trans     = 1 # this is 1 for every region
 # Fixed delays ---------------------------#
 G       = 60
 # ----------------------------------------------------------------------------#
@@ -165,8 +182,6 @@ K  = 9
 # ----------------------------------------------------------------------------#
 
 
-# ----------------------------------------------------------------------------#
-
 # other free parameters ####
 # ----------------------------------------------------------------------------#
 {
@@ -178,7 +193,7 @@ K  = 9
   p_phi     = 1/100
   p_rho     = c(1, 1)
   p_xi      = c(1, 1)
-  p_nu      = 1/5 # this value might be wrong, have to check this!
+  p_nu      = 1/5
 }
 # ----------------------------------------------------------------------------#
 

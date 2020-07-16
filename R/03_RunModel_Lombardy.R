@@ -68,6 +68,6 @@ data_list_model16A = {list(
 # ----------------------------------------------------------------------------#
 {
   tictoc::tic() 
-  M_model16 = stan_model("Stan/model16.stan")
+  M_model16 = stan_model("Stan/all_regions_Stan_model.stan")
   tictoc::toc()
 }
