@@ -112,7 +112,7 @@ t_data    = as.numeric(day_data-day_start)
 ts        = t_data:S
 D         = as.numeric(day_max - day_data+1)
 tswitch   = as.numeric(day_quarantine - day_start)
-inference = 0
+inference = inference
 doprint   = 0
 # ----------------------------------------------------------------------------#
 

@@ -6,40 +6,42 @@
 # ----------------------------------------------------------------------------#
 
 # run the whole block to get the necessary data for the Stan-model
-{
+
 # ----------------------------------------------------------------------------#
-#  ####
+# controls  ####
 # ----------------------------------------------------------------------------#
-# this line is an attempt at making the code execution stop when there are 
-# errors in on of the files to be sourced
-remove(list = ls()) # clearing the work space
 source("setup.R")   # contains all other parameters
-
+# the following parameters all determine which parts of the code are executed
+# (or not). 
+# Data for which region should be simulated and/or fitted?
 region = "Switzerland"
-
-# type of population distribution: age group or gender. Takes either "age" or 
-# "gender"
+if(region == "Baden-Württemberg") region = "BadenW"
+if (!(region %in% regions)) warning(
+  "The region you specified is not a correct string.\nFunctions will not ",
+  "work! Please change the string. \nCheck the regions-object for ",
+  "the correct spelling of the regions.")
+# Should the data be differentiated acording to age groups or gender? Takes
+# either "age" or "gender"
 type = "age"
+# Should the original data be plotted? Boolean.
+visualise = TRUE
+# Should the Stan-model include the updating of the posteriors? If not, the
+# posteriors will not be fitted to the data! Takes on 1 (yes, should be fitted)
+# or 0 (no, should not be fitted).
+inference = 1
+if (class(inference) == "logical") inference = as.integer(inference)
+# ----------------------------------------------------------------------------#
 
-# set this to TRUE if you want to get visualisations of the data
-visualise = F
 
-if(region == "Baden-Württemberg") {
-  region = "BadenW"
-}
-if (!(region %in% regions)) {
-  warning("The region you specified is not a correct string.\nFunctions will not ",
-          "work! Please change the string. \nCheck the regions-object for ",
-          "the correct spelling of the regions.")
-}
 # ----------------------------------------------------------------------------#
 
 # ----------------------------------------------------------------------------#
 # sourcing other scripts ####
 # ----------------------------------------------------------------------------#
-
-# this line is an attempt at making the code execution stop when there are 
-# errors in on of the files to be sourced
+# Cleaning the global environment so no data from other runs of the code can 
+# influence the current run.
+remove(list = ls()[!(ls() %in% list("region", "type", "visualise", "inference"))]) 
+  # clearing the work space, except for the necessary control parameters
 source(paste0("R/01_DataManagement_", region, ".R"))
 source("R/02_PrepareModel.R", echo = T)
 # Works with:
@@ -51,7 +53,7 @@ source("R/02_PrepareModel.R", echo = T)
 #   Switzerland
 #   Lombardy
 # ----------------------------------------------------------------------------#
-}
+
 
 # ----------------------------------------------------------------------------#
 # preparing and running the model ####
