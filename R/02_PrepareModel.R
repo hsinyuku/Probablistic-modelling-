@@ -131,8 +131,10 @@ contact_matrix_europe = {c(5.13567073170732, 1.17274819632136, 0.982359525171638
                            0.688988121391528, 0.596692087603768, 0.292682926829268)}
 if (region == "Hubei") {
   contact_matrix = contact_matrix_china
+  remove(contact_matrix_china)
 } else {
   contact_matrix = contact_matrix_europe
+  remove(contact_matrix_europe)
 }
 
 # visualising the contact matrix
@@ -142,7 +144,6 @@ if(visualise) {
     ggplot() +
     geom_tile(aes(x=age2,y=age1,fill=contacts))
 }
-remove(contact_matrix_china, contact_matrix_europe)
 # ----------------------------------------------------------------------------#
 
 
