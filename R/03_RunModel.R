@@ -19,9 +19,9 @@ region = "Lombardy"
 
 # type of population distribution: age group or gender. Takes either "age" or 
 # "gender"
-
 type = "age"
 
+# set this to TRUE if you want to get visualisations of the data
 visualise = F
 
 if(region == "Baden-Württemberg") {
