@@ -18,6 +18,7 @@ library(lubridate)
 library(rstan)
 library(tictoc) # to compare some runtimes
 library(socialmixr)
+library(data.table) # for contact matrix
 # library(remotes)
 # remotes::install_github("GuangchuangYu/nCov2019", dependencies = T, force = T)
   # installation instructions can be found here:

@@ -16,6 +16,8 @@
 # this line is an attempt at making the code execution stop when there are 
 # errors in on of the files to be sourced
 source("setup.R")
+source("R/00_ContactMatrix_Gender_Function.R")
+
 # set this to TRUE if you want visual inspection of parameters
 visualise = F
 # ----------------------------------------------------------------------------#
@@ -27,6 +29,7 @@ visualise = F
 
 # Making sure we do not download the survey over and over again. Execute the
 # according lines individually to force a download.
+
 {
   if (!file.exists("data/contact_matrix_shanghai.Rds")) {
     print("Downloading contact matrix:")
@@ -41,7 +44,7 @@ visualise = F
   }
 }
 
-m <- contact_matrix(survey = shanghai_survey, 
+m <- contact_matrix(survey = shanghai_survey,
                     age.limits=c(0, 10, 20, 30, 40, 50, 60, 70, 80), symmetric = TRUE)
 
 if (visualise) {
@@ -54,10 +57,12 @@ if (visualise) {
 # the actual contact matrix
 m <- structure(m$matrix,dim=c(9,9))
 
-paste(t(m),sep="' '", collapse=", ")  
+paste(t(m),sep="' '", collapse=", ")
 # This result is hard-wired in run_model16_China
 # to get a vector to export to other scripts:
 contact_matrix_Hubei <- c(t(m))
+
+m <- contact_matrix_gender(shanghai_survey)
 
 # ----------------------------------------------------------------------------#
 
@@ -90,9 +95,10 @@ if (visualise) {
 }
 
 m <- structure(m$matrix,dim=c(9,9))
-paste(t(m), sep="' '", collapse=", ")  
-# This result is hard-wired in run_model16 for all european countries
+paste(t(m), sep="' '", collapse=", ")
+# This result is hard-wired in run_model16 for all European countries
 # to get a vector to export to other scripts:
 contact_matrix_POLYMOD <- c(t(m))
+
 
 remove(m, contact_matrix_Hubei, contact_matrix_POLYMOD)

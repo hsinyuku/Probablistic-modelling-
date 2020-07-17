@@ -11,10 +11,18 @@
 # ----------------------------------------------------------------------------#
 # this line is an attempt at making the code execution stop when there are 
 # errors in on of the files to be sourced
-remove(list = ls()) # clearing the workspace
+remove(list = ls()) # clearing the work space
 source("setup.R")   # contains all other parameters
-region = "Lombardy"
+
+region = "Spain"
+
+# type of population distribution: age group or gender. Takes either "age" or 
+# "gender"
+
+type = "age"
+
 visualise = F
+
 if(region == "Baden-Württemberg") {
   region = "BadenW"
 }
@@ -24,7 +32,6 @@ if (!(region %in% regions)) {
           "the correct spelling of the regions.")
 }
 # ----------------------------------------------------------------------------#
-# 
 
 # ----------------------------------------------------------------------------#
 # sourcing other scripts ####
