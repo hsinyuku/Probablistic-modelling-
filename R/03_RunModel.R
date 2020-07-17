@@ -13,7 +13,7 @@
 # errors in on of the files to be sourced
 remove(list = ls()) # clearing the workspace
 source("setup.R")   # contains all other parameters
-region = "Lombardy"
+region = "BadenW"
 visualise = F
 if(region == "Baden-Württemberg") {
   region = "BadenW"
@@ -45,7 +45,7 @@ source("R/02_PrepareModel.R", echo = T)
 # ----------------------------------------------------------------------------#
 # preparing and running the model ####
 # ----------------------------------------------------------------------------#
-model16DSO = stan_model("Stan/model16.stan")
+model16DSO = stan_model("Stan/all_regions_Stan_model.stan")
 
 # Sampling from the posterior distribution
 samples = sampling(model16DSO,data = data_list_model, iter = 1000,
