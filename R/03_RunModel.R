@@ -13,7 +13,7 @@
 # errors in on of the files to be sourced
 remove(list = ls()) # clearing the workspace
 source("setup.R")   # contains all other parameters
-region = "BadenW"
+region = "Switzerland"
 visualise = F
 if(region == "Baden-Württemberg") {
   region = "BadenW"
@@ -35,10 +35,12 @@ if (!(region %in% regions)) {
 source(paste0("R/01_DataManagement_", region, ".R"))
 source("R/02_PrepareModel.R", echo = T)
 # Works with:
+#   Austria
 #   Spain
 #   Baden-Württemberg
 #   Bavaria
 #   Hubei
+#   Switzerland
 # ----------------------------------------------------------------------------#
 
 
