@@ -6,15 +6,16 @@
 # ----------------------------------------------------------------------------#
 
 
+{
 # ----------------------------------------------------------------------------#
-#  ####
+# preliminaries ####
 # ----------------------------------------------------------------------------#
 # this line is an attempt at making the code execution stop when there are 
 # errors in on of the files to be sourced
 remove(list = ls()) # clearing the work space
 source("setup.R")   # contains all other parameters
 
-region = "Spain"
+region = "Lombardy"
 
 # type of population distribution: age group or gender. Takes either "age" or 
 # "gender"
@@ -48,7 +49,9 @@ source("R/02_PrepareModel.R", echo = T)
 #   Bavaria
 #   Hubei
 #   Switzerland
+#   Lombardy
 # ----------------------------------------------------------------------------#
+}
 
 
 # ----------------------------------------------------------------------------#
