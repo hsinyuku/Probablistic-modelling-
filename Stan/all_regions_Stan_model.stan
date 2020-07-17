@@ -1,11 +1,11 @@
 // applicable to data on cases by date of onset
 // ------------------
 functions { // write functions that can be used later on
-  // forcing function ----
+  // |_ forcing function ----
   real switch_eta(real t, real t1, real eta, real nu, real xi) {
     return(eta+(1-eta)/(1+exp(xi*(t-t1-nu))));
   }
-  // compartmental model ----
+  // |_ compartmental model ----
   real[] SEIR(
     // arguments to the ODE-function
     real t,
@@ -161,8 +161,8 @@ transformed data {
   int  x_i[1] = {K};
   real init[K*6] = rep_array(0.0, K*6); // initial values
   real contact2[K*K] = contact;
-  for(i in 1:(2*K)) contact2[i] = contact[i] * p_children_trans; // apply lower transmissibility in children
-  // filling in the 
+  for(i in 1:(2*K)) contact2[i] = contact[i] * p_children_trans; 
+    // apply lower transmissibility in children
   x_r[1] = tswitch;
   x_r[2] = tau_1;
   x_r[3] = tau_2;
@@ -193,20 +193,20 @@ parameters{
 transformed parameters {
   vector[K] rho;
   real xi = xi_raw+0.5;
-  // change of format for integrate_ode_rk45 - WHAT EXACTLY DOES THIS DO?
+  // change of format for integrate_ode_rk45
   real theta[6]; // vector of parameters
   real y[S,K*6]; // raw ODE output
   vector[K] comp_C[S+G];
   vector[K] comp_diffC[S+G];
   vector[K] comp_M[S+G];
   vector[K] comp_diffM[S+G];
-  // outcomes - WHAT EXACTLY DOES THIS DO?
+  // outcomes
   vector[D] output_incidence_cases; // overall case incidence by day
   vector[D] output_incidence_deaths; // overal mortality incidence by day 
   simplex[K] output_agedistr_cases; // final age distribution of cases
   simplex[K] output_agedistr_deaths; // final age distribution of deaths
   
-  // transformed parameters - WHAT EXACTLY DOES THIS DO?
+  // transformed parameters
   for(i in 1:(K-1)){
     rho[i] = raw_rho[i]*p_report_80plus;
   }
@@ -340,13 +340,18 @@ generated quantities{
   real cfr_D_all; //cfr by age classes, correction of underreporting and asymptomatics, correction of time lag
   
   for(i in 1:S){
-    predicted_reported_incidence_symptomatic_cases[i] = neg_binomial_2_rng(sum(comp_diffC[i].*rho)*p_underreport_cases, sum(comp_diffC[i].*rho)*p_underreport_cases/phi[1]);
-    predicted_overall_incidence_symptomatic_cases[i] = predicted_reported_incidence_symptomatic_cases[i] / p_underreport_cases / avg_rho;
-    predicted_overall_incidence_all_cases[i] = predicted_reported_incidence_symptomatic_cases[i] / p_underreport_cases / avg_rho / psi;
+    predicted_reported_incidence_symptomatic_cases[i] =
+      neg_binomial_2_rng(sum(comp_diffC[i].*rho) * p_underreport_cases,
+        sum(comp_diffC[i].*rho)*p_underreport_cases/phi[1]);
+    predicted_overall_incidence_symptomatic_cases[i] = 
+      predicted_reported_incidence_symptomatic_cases[i] 
+        / p_underreport_cases / avg_rho;
+    predicted_overall_incidence_all_cases[i] = 
+      predicted_reported_incidence_symptomatic_cases[i] / 
+        p_underreport_cases / avg_rho / psi;
   }
 
   compartment_data = y;
-  
   
   for(i in 1:(S+G)) {
     predicted_reported_incidence_deaths[i] = neg_binomial_2_rng(sum(comp_diffM[i])*p_underreport_deaths, sum(comp_diffM[i])*p_underreport_deaths/phi[2]);
@@ -389,13 +394,17 @@ generated quantities{
     sum(predicted_total_overall_deaths_delay_by_age);
   
   cfr_A_symptomatic_by_age = 
-    predicted_total_overall_deaths_tmax_by_age ./ predicted_total_reported_symptomatic_cases_by_age;
+    predicted_total_overall_deaths_tmax_by_age ./ 
+      predicted_total_reported_symptomatic_cases_by_age;
   cfr_B_symptomatic_by_age = 
-    predicted_total_overall_deaths_delay_by_age ./ predicted_total_reported_symptomatic_cases_by_age;
+    predicted_total_overall_deaths_delay_by_age ./ 
+      predicted_total_reported_symptomatic_cases_by_age;
   cfr_C_symptomatic_by_age = 
-    predicted_total_overall_deaths_tmax_by_age ./ predicted_total_overall_symptomatic_cases_by_age;
+    predicted_total_overall_deaths_tmax_by_age ./
+      predicted_total_overall_symptomatic_cases_by_age;
   cfr_D_symptomatic_by_age = 
-    predicted_total_overall_deaths_delay_by_age ./ predicted_total_overall_symptomatic_cases_by_age;
+    predicted_total_overall_deaths_delay_by_age ./
+      predicted_total_overall_symptomatic_cases_by_age;
   
   cfr_A_symptomatic = 
     predicted_total_overall_deaths_tmax / predicted_total_reported_symptomatic_cases;

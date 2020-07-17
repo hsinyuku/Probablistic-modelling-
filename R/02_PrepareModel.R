@@ -106,7 +106,6 @@ G       = 60
 # ----------------------------------------------------------------------------#
 # so-called controls ####
 # ----------------------------------------------------------------------------#
-# still trying to find out what those actually mean!
 t0        = 0
 S         = as.numeric(day_max-day_start)
 t_data    = as.numeric(day_data-day_start)

@@ -5,7 +5,7 @@
 # should happen in a separate file that has to be called before.
 # ----------------------------------------------------------------------------#
 
-
+# run the whole block to get the necessary data for the Stan-model
 {
 # ----------------------------------------------------------------------------#
 #  ####
@@ -15,7 +15,7 @@
 remove(list = ls()) # clearing the work space
 source("setup.R")   # contains all other parameters
 
-region = "Lombardy"
+region = "Switzerland"
 
 # type of population distribution: age group or gender. Takes either "age" or 
 # "gender"
@@ -56,15 +56,15 @@ source("R/02_PrepareModel.R", echo = T)
 # ----------------------------------------------------------------------------#
 # preparing and running the model ####
 # ----------------------------------------------------------------------------#
-model16DSO = stan_model("Stan/all_regions_Stan_model.stan")
+model_DSO = stan_model("Stan/all_regions_Stan_model.stan")
 
 # Sampling from the posterior distribution
-samples = sampling(model16DSO,data = data_list_model, iter = 1000,
+samples = sampling(model_DSO, data = data_list_model, iter = 1000,
                        chains = 4, init= 0.5,
                        control=list(max_treedepth=10,adapt_delta=0.8))
 
 # Save the samples and the DSO object to RDS
-saveRDS(object = model16DSO, file = paste0("Posteriors/", region, "_DSO.Rds"))
+saveRDS(object = model_DSO, file = paste0("Posteriors/", region, "_DSO.Rds"))
 saveRDS(object = samples, file = paste0("Posteriors/", region, "_samples.Rds"))
 
 
