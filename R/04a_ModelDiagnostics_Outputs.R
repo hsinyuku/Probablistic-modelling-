@@ -23,7 +23,7 @@ region <- "Spain"
 source("setup.R")
 source(paste0("R/01_DataManagement_", region, ".R"))
 source("R/02_PrepareModel.R", echo = T)
-source("R/04b_ModelDiagnostics_Plotting.R") # for visualizations
+source("R/04b_ModelDiagnostics_Functions.R") # for visualizations
 theme_set(theme_bw())
 
 # Load the saved posterior samples in the data. I don't want to source
