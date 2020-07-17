@@ -82,7 +82,7 @@ contact_matrix <- contact_matrix_gender_age(type = type, region = region)
 
 # visualising the contact matrix
 if(visualise) {
-  tibble(contacts = contact_matrix_china) %>%
+  tibble(contacts = contact_matrix) %>%
     mutate(age1 = rep(1:9,9), age2 = rep(1:9,each=9)) %>%
     ggplot() +
     geom_tile(aes(x=age2,y=age1,fill=contacts))
@@ -142,3 +142,50 @@ K  = 9
 # ----------------------------------------------------------------------------#
 
 
+# ----------------------------------------------------------------------------#
+# specifying data for Stan ####
+# ----------------------------------------------------------------------------#
+data_list_model = {list(
+  # Structure ------------------------------#
+  K        = K,        # number of age groups
+  age_dist = age_dist, # age distribution
+  pop_t    = pop_t,    # total population
+  t0       = t0,        # start time in days
+  # Controls -------------------------------#
+  t_data    = t_data,
+  tswitch   = tswitch,
+  S         = S,         # days between day_max and day_start
+  ts        = ts,
+  inference = inference,
+  doprint   = doprint,
+  D         = D,        # days between day_max and day_start, but +1 (not clear why)
+  # Data to fit ----------------------------#
+  incidence_cases  = incidence_cases,  # cases per day
+  incidence_deaths = incidence_deaths, # deaths per day
+  agedistr_cases   = agedistr_cases,   # age distribution of cases
+  agedistr_deaths  = agedistr_deaths,  # age distribution of deaths
+  # Parameters for Prior Distributions -----#
+  p_beta    = p_beta,
+  p_eta     = p_eta,
+  p_pi      = p_pi,
+  p_psi     = p_psi,
+  p_epsilon = p_epsilon,
+  p_phi     = p_phi,
+  p_rho     = p_rho,
+  p_xi      = p_xi,
+  p_nu      = p_nu,
+  # Fixed parameters -----------------------#
+  contact           = contact_matrix_china,
+  p_q_P             = q_P,
+  p_incubation      = 1/tau_2 + 1/tau_1,
+  p_preclinical     = 1/tau_2,
+  p_generation_time = gt,
+  p_children_trans  = p_children_trans,
+  # Fixed corrections ----------------------#
+  p_report_80plus      = p_report_80plus,
+  p_underreport_deaths = p_underreport_deaths,
+  p_underreport_cases  = p_underreport_cases,
+  # Fixed delays ---------------------------#
+  G       = G, # fixed delay
+  p_gamma = gamma
+)}

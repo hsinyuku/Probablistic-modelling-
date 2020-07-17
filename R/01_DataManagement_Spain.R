@@ -42,7 +42,7 @@ age_class = function(x, min_age, age_range, max_age) {
 
 # Age distribution ------------------------------------------------------------
 
-age_dist <- read_csv("data/age_distribution.csv") 
+age_dist <- read_csv("data/all_regions_pop_age_dist.csv") 
   # error messages are ok, there are footnotes that are not part of the data
 
 age_dist <- age_dist %>% 
@@ -60,7 +60,7 @@ pop_t = 46.94e6
 
 # dataset A: confirmed daily cases --------------------------------------------
 #https://www.mscbs.gob.es/profesionales/saludPublica/ccayes/alertasActual/nCov-China/documentos/Actualizacion_89_COVID-19.pdf
-cases <- read_csv("data/confirmed-cases_daily_Spain.csv", col_names = F) %>%
+cases <- read_csv("data/Spain_cases_confirmed.csv", col_names = F) %>%
   # adding date and rounding values to whole integers
   transmute(date = seq(dmy("20-02-2020"), dmy("24-04-2020"), by="day"),
             new_cases = round(X2)) %>%
@@ -71,7 +71,7 @@ remove(cases)
 # dataset C: confirmed daily deaths -------------------------------------------
 # dataset loaded from https://covid19.isciii.es/ (link at the bottom left), 
 # situation 28-04-2020
-incidence_deaths = read_csv("data/confirmed_deaths_daily_Spain.csv") %>%
+incidence_deaths = read_csv("data/Spain_deaths_confirmed.csv") %>%
   transmute(date = dmy(FECHA), deaths = round(Fallecidos)) %>%
   group_by(date) %>%
   summarise(deaths = sum(deaths,na.rm=T)) %>%
@@ -80,7 +80,7 @@ incidence_deaths = read_csv("data/confirmed_deaths_daily_Spain.csv") %>%
   pull(new_deaths)
 
 # dataset B and D: age distribution of all cases, deaths ----------------------
-agedistr = read_csv("data/age-distribution_cases-deaths_Spain.csv") %>%
+agedistr = read_csv("data/Spain_cases_deaths_age_dist.csv") %>%
   mutate(age2 = c(1:9,9))  %>%
   group_by(age2) %>%
   summarise(cases = sum(cases, na.rm=T), deaths = sum(deaths, na.rm=T))
@@ -94,10 +94,6 @@ agedistr_deaths = pull(agedistr,deaths)
 # fixed corrections and delays ####
 # ----------------------------------------------------------------------------#
 # Fixed corrections ----------------------#
-p_report_80plus      = 1
 p_underreport_deaths = 1
 p_underreport_cases  = 142343/180689
-p_children_trans     = 1 # dont know what this is
-# Fixed delays ---------------------------#
-G         = 60
 # ----------------------------------------------------------------------------#
