@@ -102,5 +102,5 @@ prop_mort_tmax = mort_tmax / sum(mort_tmax)
 # Underreporting in all of Italy ---------------------#
 
 p_underreport_cases = sum(incidence_cases)/74346
-
+p_underreport_deaths = 1
 # ----------------------------------------------------------------------------#

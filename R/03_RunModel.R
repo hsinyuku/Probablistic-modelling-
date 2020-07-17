@@ -6,6 +6,7 @@
 # ----------------------------------------------------------------------------#
 
 
+{
 # ----------------------------------------------------------------------------#
 #  ####
 # ----------------------------------------------------------------------------#
@@ -14,7 +15,7 @@
 remove(list = ls()) # clearing the work space
 source("setup.R")   # contains all other parameters
 
-region = "Spain"
+region = "Lombardy"
 
 # type of population distribution: age group or gender. Takes either "age" or 
 # "gender"
@@ -48,8 +49,9 @@ source("R/02_PrepareModel.R", echo = T)
 #   Bavaria
 #   Hubei
 #   Switzerland
+#   Lombardy
 # ----------------------------------------------------------------------------#
-
+}
 
 # ----------------------------------------------------------------------------#
 # preparing and running the model ####
