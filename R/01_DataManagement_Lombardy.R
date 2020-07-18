@@ -56,6 +56,18 @@ age_dist = age_dist/sum(age_dist)
 
 pop_t = 10.04e6
 
+# Gender distribution -----------------------------------------------------####
+# Gender distribution data for the year 2020 is collected under 
+# https://population.un.org/wpp/DataQuery/
+
+gender_dist <- read.csv2("data/all_region_pop_gender_dist.csv")
+colnames(gender_dist) <- c("location","sexRatioMto100F", "M", "F")
+gender_dist <- gender_dist %>% select(location, M, F) %>% 
+  pivot_longer(-location, names_to = "Sex", values_to = "Ratio") %>% 
+  filter(location == "Italy") %>% pull(Ratio)
+
+# ----------------------------------------------------------------------------#
+
 # datasets -------------------------------------------------------------------#
 # all the data has been extracted from the appendix to the daily bulletin of the Italian Istituto Superiore
 # di Sanità (ISS) published on 28/04:
@@ -98,6 +110,19 @@ agedistr_deaths = mort_tmax
 sum(agedistr_deaths)
 
 prop_mort_tmax = mort_tmax / sum(mort_tmax)
+
+# dataset B & D: gender distribution of all cases and deaths --------------####
+# This dataset is extracted from:
+# https://www.epicentro.iss.it/coronavirus/bollettino/Bollettino-sorveglianza-integrata-COVID-19_28-aprile-2020.pdf
+# Percentage values are (Male, Female)
+gender_cases <- read.csv("data/Italy_cases_deaths_gender_dist.csv", sep = ";") %>% 
+  filter(status == "cases") %>% pull(value)
+gender_deaths <- read.csv("data/Italy_cases_deaths_gender_dist.csv", sep = ";") %>% 
+  filter(status == "deaths") %>% pull(value)
+
+genderdistr_cases = gender_cases
+genderdistr_deaths = gender_deaths
+# ----------------------------------------------------------------------------#
 
 # Underreporting in all of Italy ---------------------#
 

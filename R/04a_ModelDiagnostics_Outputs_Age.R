@@ -29,7 +29,7 @@ theme_set(theme_bw())
 # Load the saved posterior samples in the data. I don't want to source
 # 03_RunModel file here as it would force the whole sampling process to repeat
 # every time we call this script. 
-samples <-  readRDS(file = paste0("Posteriors/",region, "_Samples.Rds"))
+samples <-  readRDS(file = paste0("Posteriors/",region, "_Samples_200718.Rds"))
 # ----------------------------------------------------------------------------#
 
 # Gather all paremeters in theta
@@ -100,3 +100,29 @@ icfr_by_age <- data.frame(ageGroup = seq(1,9,1),
   round(3)
 
 write.csv2(icfr_by_age, paste0("Posteriors/",region, " - iCFR.csv"))
+
+
+summary(samples, "compartment.data")$summary
+
+# Take out the daily values of the compartments to visualize SEPIAR model
+# Content-wise not successfully
+compartment_data <- summary(samples, pars = "compartment_data")$summary
+row.names(compartment_data) <- c()
+compartment_data <- compartment_data %>% as.data.frame() %>%
+  cbind(
+    date = seq(day_data, day_max, 1),
+    ageGroup = as.integer(rep(1:9, 46 * 6)),
+    compartment = rep(c(
+      rep("S", 9),
+      rep("E", 9),
+      rep("P", 9),
+      rep("I", 9),
+      rep("A", 9),
+      rep("C", 9)
+    ), 46),
+    .
+  ) %>%
+  arrange(date)
+
+compartment_data %>% group_by(date) %>%
+  summarise(mean = sum(mean), median = sum(`50%`)) %>% View()

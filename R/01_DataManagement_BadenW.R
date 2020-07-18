@@ -58,8 +58,19 @@ age_dist_absolute <- pop_age %>%
 # age_dist is % of population age distribution
 age_dist = age_dist_absolute/sum(age_dist_absolute)
 
-
 pop_t = 13.08e6
+
+# Gender distribution -----------------------------------------------------####
+# Gender distribution data for the year 2020 is collected under 
+# https://population.un.org/wpp/DataQuery/
+
+gender_dist <- read.csv2("data/all_region_pop_gender_dist.csv")
+colnames(gender_dist) <- c("location","sexRatioMto100F", "M", "F")
+gender_dist <- gender_dist %>% select(location, M, F) %>% 
+  pivot_longer(-location, names_to = "Sex", values_to = "Ratio") %>% 
+  filter(location == "Germany") %>% pull(Ratio)
+
+# ----------------------------------------------------------------------------#
 
 # ----------------------------------------------------------------------------#
 # age_dist_absolute11 is absolute number of each age group. Here, the population
@@ -132,6 +143,19 @@ age_otherGroups <- age_cases %>%
 agedistr_cases = c(age_otherGroups, age_80plus)
 # ----------------------------------------------------------------------------#
 
+
+# dataset B: gender distribution of all cases -----------------------------####
+# This dataset is extracted from Statista website:
+# https://www.statista.com/statistics/1105480/coronavirus-covid-19-cases-by-gender-germany/
+# We assume that the gender distribution of cases in Bavaria is the same as that
+# in Germany.
+
+# Percentage values are (Male, Female)
+gender_cases <- read.csv("data/Germany_cases_deaths_gender_dist.csv", sep = ";") %>% 
+  filter(status == "cases") %>% pull(value)
+
+# ----------------------------------------------------------------------------#
+
 # dataset D: age distribution of all deaths -------------------------------####
 
 # This data is extracted from Figure 4, COVID-Situation Report 26.04.2020 of
@@ -166,3 +190,36 @@ age_otherGroups <- age_deaths %>%
 agedistr_deaths = c(0, 0, 0, age_otherGroups, age_80plus)
 
 # ----------------------------------------------------------------------------#
+
+# dataset D: gender distribution of all deaths ----------------------------####
+# This dataset is extracted from Statista website:
+# https://www.statista.com/statistics/1105512/coronavirus-covid-19-deaths-by-gender-germany/
+# We assume that the gender distribution of deaths in Bavaria is the same as 
+# that in Germany.
+
+# Percentage values are (Male, Female)
+gender_deaths <- read.csv("data/Germany_cases_deaths_gender_dist.csv", sep = ";") %>% 
+  filter(status == "deaths") %>% pull(value)
+
+# ----------------------------------------------------------------------------#
+
+# ----------------------------------------------------------------------------#
+# scale age distribution of cases/deaths to the total number in the state  ####
+# ----------------------------------------------------------------------------#
+
+# One assumption from the paper is that the authors take age distribution of 
+# cases/deaths (in absolute numbers) of the whole Germany and apply it to
+# the region (in data B and D). Since we have the total number of cases/deaths 
+# in the region (through data A and C), we scale B and D down.
+
+agedistr_cases = agedistr_cases / sum(agedistr_cases) * sum(incidence_cases)
+agedistr_cases = round(agedistr_cases, 0)
+
+agedistr_deaths = agedistr_deaths / sum(agedistr_deaths) * sum(incidence_deaths)
+agedistr_deaths = round(agedistr_deaths, 0)
+
+genderdistr_cases = gender_cases * sum(incidence_cases)
+genderdistr_cases = round(genderdistr_cases, 0)
+
+genderdistr_deaths = gender_deaths * sum(incidence_deaths)
+genderdistr_deaths = round(genderdistr_deaths, 0)

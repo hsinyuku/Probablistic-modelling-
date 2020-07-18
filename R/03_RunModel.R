@@ -14,17 +14,22 @@ source("setup.R")   # contains all other parameters
 # the following parameters all determine which parts of the code are executed
 # (or not). 
 # Data for which region should be simulated and/or fitted?
-region = "Switzerland"
+region = "Bavaria"
+
+# Should the data be differentiated according to age groups or gender? Takes
+# either "age" or "gender"
+type = "gender"
+
+# ----------------------------------------------------------------------------#
 if(region == "Baden-Württemberg") region = "BadenW"
 if (!(region %in% regions)) warning(
   "The region you specified is not a correct string.\nFunctions will not ",
   "work! Please change the string. \nCheck the regions-object for ",
   "the correct spelling of the regions.")
-# Should the data be differentiated acording to age groups or gender? Takes
-# either "age" or "gender"
-type = "age"
+
 # Should the original data be plotted? Boolean.
-visualise = TRUE
+visualise = FALSE
+
 # Should the Stan-model include the updating of the posteriors? If not, the
 # posteriors will not be fitted to the data! Takes on 1 (yes, should be fitted)
 # or 0 (no, should not be fitted).
@@ -43,7 +48,13 @@ if (class(inference) == "logical") inference = as.integer(inference)
 remove(list = ls()[!(ls() %in% list("region", "type", "visualise", "inference"))]) 
   # clearing the work space, except for the necessary control parameters
 source(paste0("R/01_DataManagement_", region, ".R"))
-source("R/02_PrepareModel.R", echo = T)
+
+# Source the right prepare model file
+if (type == "age") {
+  source("R/02_PrepareModel_Age.R", echo = T)
+} else if (type == "gender") {
+  source("R/02_PrepareModel_Gender.R", echo = T)
+}
 # Works with:
 #   Austria
 #   Spain
@@ -58,41 +69,34 @@ source("R/02_PrepareModel.R", echo = T)
 # ----------------------------------------------------------------------------#
 # preparing and running the model ####
 # ----------------------------------------------------------------------------#
-model_DSO = stan_model("Stan/all_regions_Stan_model.stan")
+model_DSO = stan_model(paste0("Stan/all_regions_Stan_", type, ",_model.stan"))
 
 # Sampling from the posterior distribution
-samples = sampling(model_DSO, data = data_list_model, iter = 1000,
-                       chains = 4, init= 0.5,
-                       control=list(max_treedepth=10,adapt_delta=0.8))
+samples = sampling(
+  model_DSO,
+  data = data_list_model,
+  iter = 300,
+  chains = 3,
+  init = 0.5,
+  warmup = 50,
+  control = list(max_treedepth = 10, adapt_delta = 0.8)
+)
 
 # Save the samples and the DSO object to RDS
-saveRDS(object = model_DSO, file = paste0("Posteriors/", region, "_DSO.Rds"))
-saveRDS(object = samples, file = paste0("Posteriors/", region, "_samples.Rds"))
+saveRDS(object = model_DSO, file = paste0("Posteriors/", 
+                                          region, "_DSO_", 
+                                          type, "_", 
+                                          as.Date.character(Sys.time()),
+                                          ".Rds"))
+
+saveRDS(object = samples, file = paste0("Posteriors/", 
+                                        region, "_samples_", 
+                                        type, "_", 
+                                        as.Date.character(Sys.time()),
+                                        ".Rds"))
 
 
-compartment_data <- summary(samples, pars = "compartment_data")$summary
-row.names(compartment_data) <- c()
-compartment_data <- compartment_data %>% as.data.frame() %>%
-  cbind(
-    date = seq(day_data, day_max, 1),
-    ageGroup = as.integer(rep(1:9, 46 * 6)),
-    compartment = rep(c(
-      rep("S", 9),
-      rep("E", 9),
-      rep("P", 9),
-      rep("I", 9),
-      rep("A", 9),
-      rep("C", 9)
-    ), 46),
-    .
-  ) %>%
-  arrange(date)
 
-compartment_data %>% group_by(date) %>%
-  summarise(mean = sum(mean), median = sum(`50%`)) %>% View()
 
-summary(samples, pars = "predicted_total_overall_deaths_tmax_by_age")$summary
 
-# This maybe is a way to load y from data
-y = rstan::extract(samples,"y")[[1]]
 

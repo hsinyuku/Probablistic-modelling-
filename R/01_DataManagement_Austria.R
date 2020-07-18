@@ -53,6 +53,18 @@ age_dist <- age_dist/sum(age_dist) # getting relative age distribution
 
 pop_t = 8.859e6  # (Source Eurostat 2019)
 
+# Gender distribution -----------------------------------------------------####
+# Gender distribution data for the year 2020 is collected under 
+# https://population.un.org/wpp/DataQuery/
+
+gender_dist <- read.csv2("data/all_region_pop_gender_dist.csv")
+colnames(gender_dist) <- c("location","sexRatioMto100F", "M", "F")
+gender_dist <- gender_dist %>% select(location, M, F) %>% 
+  pivot_longer(-location, names_to = "Sex", values_to = "Ratio") %>% 
+  filter(location == "Austria") %>% pull(Ratio)
+
+# ----------------------------------------------------------------------------#
+
 ### Confirmed cases (A) & deaths (B) are from different csv.:
 
 # dataset A: confirmed daily cases -------------------------------------------#
@@ -84,6 +96,23 @@ agedistr_deaths = read.table("data/Austria_deaths_age_dist.csv",sep=";",header=T
   group_by(age2) %>%
   summarise(n=sum(new_deaths)) %>%
   pull(n)
+
+# ----------------------------------------------------------------------------#
+
+# dataset B & D: gender distribution of all cases and deaths --------------####
+# This dataset is extracted from:
+# https://info.gesundheitsministerium.at/dashboard_GenTod.html?l=de
+# Percentage values are (Male, Female)
+gender_cases <- read.csv("data/Austria_cases_deaths_gender_dist.csv", sep = ";") %>% 
+  filter(status == "cases") %>% pull(value)
+gender_deaths <- read.csv("data/Austria_cases_deaths_gender_dist.csv", sep = ";") %>% 
+  filter(status == "deaths") %>% pull(value)
+
+genderdistr_cases = gender_cases * sum(incidence_cases)
+genderdistr_cases = round(genderdistr_cases, 0)
+
+genderdistr_deaths = gender_deaths * sum(incidence_deaths)
+genderdistr_deaths = round(genderdistr_deaths, 0)
 
 # ----------------------------------------------------------------------------#
 

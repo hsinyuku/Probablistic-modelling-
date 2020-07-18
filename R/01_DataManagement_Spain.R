@@ -58,6 +58,20 @@ age_dist = age_dist/sum(age_dist)
 
 pop_t = 46.94e6
 
+# ----------------------------------------------------------------------------#
+
+# Gender distribution -----------------------------------------------------####
+# Gender distribution data for the year 2020 is collected under 
+# https://population.un.org/wpp/DataQuery/
+
+gender_dist <- read.csv2("data/all_region_pop_gender_dist.csv")
+colnames(gender_dist) <- c("location","sexRatioMto100F", "M", "F")
+gender_dist <- gender_dist %>% select(location, M, F) %>% 
+  pivot_longer(-location, names_to = "Sex", values_to = "Ratio") %>% 
+  filter(location == "Spain") %>% pull(Ratio)
+
+# ----------------------------------------------------------------------------#
+
 # dataset A: confirmed daily cases --------------------------------------------
 #https://www.mscbs.gob.es/profesionales/saludPublica/ccayes/alertasActual/nCov-China/documentos/Actualizacion_89_COVID-19.pdf
 cases <- read_csv("data/Spain_cases_confirmed.csv", col_names = F) %>%
@@ -89,6 +103,18 @@ agedistr_cases  = pull(agedistr,cases)
 agedistr_deaths = pull(agedistr,deaths)
 # ----------------------------------------------------------------------------#
 
+# dataset B & D: gender distribution of all cases and deaths --------------####
+# This dataset is extracted from:
+# https://www.epicentro.iss.it/coronavirus/bollettino/Bollettino-sorveglianza-integrata-COVID-19_28-aprile-2020.pdf
+# Percentage values are (Male, Female)
+gender_cases <- read.csv("data/Spain_cases_deaths_gender_dist.csv", sep = ";") %>% 
+  filter(status == "cases") %>% pull(value)
+gender_deaths <- read.csv("data/Spain_cases_deaths_gender_dist.csv", sep = ";") %>% 
+  filter(status == "deaths") %>% pull(value)
+
+genderdistr_cases = gender_cases
+genderdistr_deaths = gender_deaths
+# ----------------------------------------------------------------------------#
 
 # ----------------------------------------------------------------------------#
 # fixed corrections and delays ####
