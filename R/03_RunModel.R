@@ -10,11 +10,12 @@
 # ----------------------------------------------------------------------------#
 # controls  ####
 # ----------------------------------------------------------------------------#
+remove(list = ls())
 source("setup.R")   # contains all other parameters
 # the following parameters all determine which parts of the code are executed
 # (or not). 
 # Data for which region should be simulated and/or fitted?
-region = "Switzerland"
+region = "Spain"
 if(region == "Baden-Württemberg") region = "BadenW"
 if (!(region %in% regions)) warning(
   "The region you specified is not a correct string.\nFunctions will not ",
@@ -30,6 +31,8 @@ visualise = TRUE
 # or 0 (no, should not be fitted).
 inference = 1
 if (class(inference) == "logical") inference = as.integer(inference)
+# Should some information be printed for debugging?
+doprint = 0
 # ----------------------------------------------------------------------------#
 
 
@@ -40,7 +43,8 @@ if (class(inference) == "logical") inference = as.integer(inference)
 # ----------------------------------------------------------------------------#
 # Cleaning the global environment so no data from other runs of the code can 
 # influence the current run.
-remove(list = ls()[!(ls() %in% list("region", "type", "visualise", "inference"))]) 
+remove(list = ls()[!(ls() %in% list("region", "type", "visualise", "inference",
+                                    "doprint"))]) 
   # clearing the work space, except for the necessary control parameters
 source(paste0("R/01_DataManagement_", region, ".R"))
 source("R/02_PrepareModel.R", echo = T)
@@ -59,10 +63,11 @@ source("R/02_PrepareModel.R", echo = T)
 # preparing and running the model ####
 # ----------------------------------------------------------------------------#
 model_DSO = stan_model("Stan/all_regions_Stan_model.stan")
+beepr::beep()
 
 # Sampling from the posterior distribution
-samples = sampling(model_DSO, data = data_list_model, iter = 1000,
-                       chains = 4, init= 0.5,
+samples = sampling(model_DSO, data = data_list_model, iter = 400,
+                       chains = 1, init= 0.5,
                        control=list(max_treedepth=10,adapt_delta=0.8))
 
 # Save the samples and the DSO object to RDS
