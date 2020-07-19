@@ -78,7 +78,6 @@ samples = sampling(
   iter = 300,
   chains = 3,
   init = 0.5,
-  warmup = 50,
   control = list(max_treedepth = 10, adapt_delta = 0.8)
 )
 
