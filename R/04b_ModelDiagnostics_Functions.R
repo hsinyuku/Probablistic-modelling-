@@ -268,13 +268,13 @@ plot_incidence_deaths = function(samples,data_list,col1="#FF3D7F",col2="#3FB8AF"
   S = data_list$S
   G = data_list$G
   tswitch = data_list$tswitch
-  S = data_list$S
   y = rstan::extract(samples,"y")[[1]]
+  
   data_incidence_deaths = data.frame(time=1:S,
                                      incidence=data_list$incidence_deaths)
   predicted_overall_incidence_deaths = rstan::summary(samples,"predicted_overall_incidence_deaths")[[1]] %>%
     as_tibble() %>%
-    mutate(time=1:(D+G),
+    mutate(time=1:(S+G),
            date=time+start_date) %>%
     left_join(data_incidence_deaths)
   predicted_overall_incidence_deaths_tmax = filter(predicted_overall_incidence_deaths,time<=S)
