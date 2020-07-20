@@ -6,157 +6,62 @@ functions { // write functions that can be used later on
     return(eta+(1-eta)/(1+exp(xi*(t-t1-nu))));
   }
   
-  // |_ compartmental model ----
-  real[] SEIR(
-    // arguments to the ODE-function
-    real t,
-    real[] y,
-    real[] theta, // theta is a list of all the parameters
-    real[] x_r,   // list of all real-valued fixed paremeters
-    int[] x_i     // list of all integer-valued fixed paremeters (only K)
-  ) {
-    // unpacking the parameters to the ODE from the initial arguments
-    int K = x_i[1]; // number of age groups
-    
-    real tswitch = x_r[1]; // time of control measures
-    real dydt[(6*K)];      // SEPIAR (ignoring R) then C 
-    real nI;               // total infectious
-
-    real beta;         // transmission rate
-    real eta;          // reduction in transmission rate after quarantine
-    real xi;           // slope of quarantine implementation
-    real nu;           // shift of quarantine implementation
-    real tau_1;        // infection to preclinical
-    real tau_2;        // preclinical to symptoms (tau_1+tau_2 = incubation)
-    real q_P;          // contribution of presymptomatics to transmission
-    real gt;           // generation time
-    real mu;           // infectious duration for symptomatics
-    real psi;          // probability of symptoms
-    real kappa;        // reduced transmissibility of preclinical and asymptomatics
-    real p_tswitch;    // switch function
-    real contact[K*K]; // contact matrix, first K values, corresponds to number 
-                       // of contact between age class 1 and other classes, etc
-    real f_inf[K];     // force of infection
-    real init[K*2];    // initial values
-    real age_dist[K];  // age distribution of the general population
-    real pi;           // number of cases at t0
-    
-    // Estimated parameters
-    beta = theta[1];
-    eta  = theta[2];
-    xi   = theta[3];
-    nu   = theta[4];
-    pi   = theta[5];
-    psi  = theta[6];
-
-    // Fixed real valued parameters
-    tau_1 = x_r[2];
-    tau_2 = x_r[3];
-    q_P   = x_r[4];
-    gt    = x_r[5];
-    
-    // Composite parameters
-    mu = (1-q_P)/(gt-1/tau_1-1/tau_2);
-    kappa = (q_P*tau_2*psi)/((1-q_P)*mu-(1-psi)*q_P*tau_2);
-    
-    // Contact matrix
-    contact = x_r[6:(5+K*K)];
-    
-    // Initial conditions
-    for(k in 1:K){
-      age_dist[k] = x_r[5+K*K + k];
-      init[k] = age_dist[k] * (1-pi);
-      init[K+k] = age_dist[k] * pi;
-    }
-    
-    // Total number of infectious people
-    p_tswitch = switch_eta(t,tswitch,eta,nu,xi);
-    
-    /*
-      Force of infection by age classes: 
-      beta * p_tswitch * sum((number of infected people by age + 
-      + kappa*number of preclinical by age + kappa*number of asympto) / 
-      (total number of people by age) * (number of contact by age))
-    */
-    for(k in 1:K) {
-      f_inf[k] = beta * p_tswitch * sum((to_vector(y[(3*K+1):(4*K)]) + 
-        kappa*to_vector(y[(2*K+1):(3*K)]) + 
-        kappa*to_vector(y[(4*K+1):(5*K)]))./ to_vector(age_dist) .*
-        to_vector(contact[(K*(k-1)+1):(k*K)])); 
-    }
-
-    // Compartments
-    for (k in 1:K) {
-      // S: susceptible
-      dydt[k] = - f_inf[k] * (y[k]+init[k]); 
-      // E: incubating (not yet infectious)
-      dydt[K+k] = f_inf[k] * (y[k]+init[k]) - tau_1 * (y[K+k]+init[K+k]);
-      // P: presymptomatic (incubating and infectious)
-      dydt[2*K+k] = tau_1 * (y[K+k]+init[K+k]) - tau_2 * y[2*K+k];
-      // I: symptomatic
-      dydt[3*K+k] = psi * tau_2 * y[2*K+k] - mu * y[3*K+k];
-      // A: asymptomatic
-      dydt[4*K+k] = (1-psi) * tau_2 * y[2*K+k] - mu * y[4*K+k];
-      // C: cumulative number of infections by date of disease onset
-      dydt[5*K+k] = psi * tau_2 * y[2*K+k];
-    }
-    return(dydt);
-  }
-  
   // Notice I defined real [,]. It is because the output for this function is
   // a two-dimensional array of size S * 6K, so the return expression has to 
   // match the return type.
   real[,] SEIR_dts(
-  int S,
-  real[] y_init,
-  real[] theta,
-  real[] x_r,
-  int[] x_i) {
-    
-    // Define free & fix parameters
-    int K = x_i[1];         // number of age groups
-    real beta;              // transmission rate
-    real eta;               // reduction in transmission rate after quarantine
-    real xi;                // slope of quarantine implementation
-    real nu;                // shift of quarantine implementation
-    real tswitch = x_r[1];  // time of control measures
-    real tau_1 = x_r[2];    // infection to preclinical
-    real tau_2 = x_r[3];    // preclinical to symptoms (tau_1+tau_2 = incubation)
-    real q_P = x_r[4];      // contribution of presymptomatics to transmission
-    real gt = x_r[5];       // generation time
-    real mu;                // infectious duration for symptomatics
-    real psi;               // probability of symptoms
-    real kappa;             // reduced transmissibility of preclinical and asymptomatics
-    real p_tswitch;         // switch function
-    real contact[K*K];      // contact matrix, first K values, corresponds to number 
-                            // of contact between age class 1 and other classes, etc
-    real f_inf[K];          // force of infection
-    real init[K*6];         // initial values
-    real age_dist[K];       // age distribution of the general population
-    real pi;                // number of cases at t0
-    
+    int S,
+    real[] y_init,
+    real[] theta,
+    real[] x_r,
+    int[] x_i) {
+    // data and structure
+    int K = x_i[1];     // number of age groups
+    real contact[K*K];  // contact matrix, first K values, corresponds to number 
+                        // of contact between age class 1 and other classes, etc
+    real age_dist[K];   // age distribution of the general population
+    real init[K*6];     // initial values
+    // parameters related to forcing function
+    real eta = theta[2];   // reduction in transmission rate after quarantine
+    real xi = theta[3];    // slope of quarantine implementation
+    real nu = theta[4];    // shift of quarantine implementation
+    real tswitch = x_r[1]; // time of control measures
+    // parameters related to transmission directly (without force of infection)
+    real beta = theta[1]; // transmission rate
+    real p_tswitch;       // switch function
+    real f_inf[K];        // force of infection
+    real tau_1 = x_r[2];  // infection to preclinical
+    real tau_2 = x_r[3];  // preclinical to symptoms (tau_1+tau_2 = incubation)
+    real q_P = x_r[4];    // contribution of presymptomatics to transmission
+    real gt = x_r[5];     // generation time
+    real mu;              // infectious duration for symptomatics
+    real psi = theta[6];  // probability of symptoms
+    real kappa;           // reduced transmissibility of preclinical and asymptomatics
+    real pi = theta[5];   // number of cases at t0
     // Define the compartments storage
     real y[S, (6*K)];
-    
-    // Estimated parameters
-    beta = theta[1];
-    eta  = theta[2];
-    xi   = theta[3];
-    nu   = theta[4];
-    pi   = theta[5];
-    psi  = theta[6];
-    
-    // Composite parameters
-    mu = (1-q_P)/(gt-1/tau_1-1/tau_2);
+    /*
+    HOW TO ACCESS VALUES INSIDE y
+    y is an array that holds real-values numbers. It has S rows and 6*K columns.
+    The data for each compartment and age group on a day t are stored in row
+    t (Stan begins indexing at 1).
+    Data inside rows is grouped by compartments. The first compartment with all
+    age groups inside it can thus be accessed using y[t, 1:K]. More generally,
+    to access all age groups inside compartment k (where K is the number of age
+    groups), the index is y[t, ((k-1)*K+1):K*k]. For example, to access the 
+    second compartment, the index is y[t, 10:18] (for 9 age groups).
+    */
+    // further transmission parameters
+    mu   = (1-q_P)/(gt-1/tau_1-1/tau_2);
     kappa = (q_P*tau_2*psi)/((1-q_P)*mu-(1-psi)*q_P*tau_2);
     
-    // Contact matrix
-    contact = x_r[6:(5+K*K)];
-
-    // Input age groups
-    for(k in 1:K){
-      age_dist[k] = x_r[5+K*K + k];
-    }
+    // initialising values
+      // filling the contact matrix
+     contact = x_r[6:(5+K*K)];
+     // Input age groups
+     for(k in 1:K){
+       age_dist[k] = x_r[5+K*K + k];
+     }
     
     // Initial p_tswitch (on day 1)
     p_tswitch = switch_eta(1,tswitch,eta,nu,xi);
