@@ -19,11 +19,11 @@
   type = "Age"
   
   # Data for which region should be simulated and/or fitted?
-  region = "Spain"
+  region = "Baden-Württemberg"
   
   # How many chains and iterations should be run?
   chains = 1
-  iterations = 100
+  iterations = 800
   
   # Common or individual etas for groups (only work with Age model)
   ind_eta = FALSE
@@ -50,6 +50,12 @@
 # sourcing other scripts ####
 # ----------------------------------------------------------------------------#
 {
+  if(region == "Baden-Württemberg") region <-  "BadenW"
+  if (!(region %in% regions)) warning(
+    "The region you specified is not a correct string.\nFunctions will not ",
+    "work! Please change the string. \nCheck the regions-object for ",
+    "the correct spelling of the regions.")
+  
   source(paste0("R/01_DataManagement_", region, ".R"))
   
   # Source the right prepare model file
@@ -60,12 +66,6 @@
   }
   # checking controls --------------------------------------------------------#
   type = stringr::str_to_title(type)
-  
-  if(region == "Baden-Württemberg") region = "BadenW"
-  if (!(region %in% regions)) warning(
-    "The region you specified is not a correct string.\nFunctions will not ",
-    "work! Please change the string. \nCheck the regions-object for ",
-    "the correct spelling of the regions.")
   
   # inference must be in integer, not a boolean
   if (class(inference) == "logical") inference = as.integer(inference)
@@ -85,6 +85,7 @@
   remove(list = ls()[!(ls() %in% list("region", "type", "visualise", "inference",
                                       "doprint", "iterations","data_list_model",
                                       "chains", "solver", "ind_eta"))]) 
+}
 # ----------------------------------------------------------------------------#
   
   
