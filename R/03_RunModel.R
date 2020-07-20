@@ -22,11 +22,11 @@
   region = "Spain"
   
   # How many chains and iterations should be run?
-  chains = 4
-  iterations = 1000
+  chains = 1
+  iterations = 100
   
-  # Common or indiviual etas for groups (only work with Age model)
-  ind_eta = T
+  # Common or individual etas for groups (only work with Age model)
+  ind_eta = FALSE
   
   # Should the original data be plotted? Boolean.
   visualise = FALSE
@@ -53,9 +53,9 @@
   source(paste0("R/01_DataManagement_", region, ".R"))
   
   # Source the right prepare model file
-  if (type == "age") {
+  if (type == "Age") {
     source("R/02_PrepareModel_Age.R", echo = T)
-  } else if (type == "gender") {
+  } else if (type == "Gender") {
     source("R/02_PrepareModel_Gender.R", echo = T) 
   }
   # checking controls --------------------------------------------------------#
@@ -85,7 +85,6 @@
   remove(list = ls()[!(ls() %in% list("region", "type", "visualise", "inference",
                                       "doprint", "iterations","data_list_model",
                                       "chains", "solver", "ind_eta"))]) 
-}
 # ----------------------------------------------------------------------------#
   
   
@@ -100,8 +99,8 @@ model_DSO = stan_model(paste0("Stan/",type, "_", solver,"_", ind_eta,".stan"))
 samples = sampling(
   model_DSO,
   data = data_list_model,
-  iter = 300,
-  chains = 3,
+  iter = iterations,
+  chains = chains,
   init = 0.5,
   control = list(max_treedepth = 10, adapt_delta = 0.8)
 )

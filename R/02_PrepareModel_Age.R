@@ -175,10 +175,9 @@ data_list_model = {list(
   # Fixed parameters -----------------------#
   contact           = contact_matrix,
   p_q_P             = q_P,
-  p_incubation      = 1/tau_2 + 1/tau_1,
-  p_preclinical     = 1/tau_2,
+  tau_1             = tau_1,
+  tau_2             = tau_2,
   p_generation_time = gt,
-  p_children_trans  = p_children_trans,
   # Fixed corrections ----------------------#
   p_report_80plus      = p_report_80plus,
   p_underreport_deaths = p_underreport_deaths,
