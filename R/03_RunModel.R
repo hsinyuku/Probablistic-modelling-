@@ -35,6 +35,9 @@ library(stringr)
   
   # Should some information be printed for debugging?
   doprint = 0
+  
+  # What solver (RK45 vs. DTS) should be used?
+  solver = "RK45"
 }
 # ----------------------------------------------------------------------------#
 
@@ -67,7 +70,7 @@ library(stringr)
   
   remove(list = ls()[!(ls() %in% list("region", "type", "visualise", "inference",
                                       "doprint", "iterations","data_list_model",
-                                      "chains"))]) 
+                                      "chains", "solver"))]) 
 }
 # ----------------------------------------------------------------------------#
 
@@ -79,7 +82,7 @@ library(stringr)
 # specify the number of chains and iterations to run
 
 
-model_DSO = stan_model(paste0("Stan/all_regions_Stan_", type, ",_model.stan"))
+model_DSO = stan_model(paste0("Stan/", type, "_", solver, ".stan"))
 
 # Sampling from the posterior distribution
 samples = sampling(
