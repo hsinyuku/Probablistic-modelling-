@@ -94,34 +94,24 @@ if(visualise) {
 # fixed corrections and delays ####
 # ----------------------------------------------------------------------------#
 # Fixed corrections ----------------------#
-p_report_80plus      = 1 # this if 1 for every region
 p_underreport_deaths = p_underreport_deaths
 p_underreport_cases  = p_underreport_cases
 p_children_trans     = 1 # this is 1 for every region
 # Fixed delays ---------------------------#
-G       = 60
 # ----------------------------------------------------------------------------#
 
 
 # ----------------------------------------------------------------------------#
 # so-called controls ####
 # ----------------------------------------------------------------------------#
-t0        = 0
-S         = as.numeric(day_max-day_start)
-t_data    = as.numeric(day_data-day_start)
-ts        = t_data:S
-D         = as.numeric(day_max - day_data+1)
-tswitch   = as.numeric(day_quarantine - day_start)
-inference = inference
-doprint   = 0
-# ----------------------------------------------------------------------------#
-
-
-# ----------------------------------------------------------------------------#
-# mising structure parameters ####
-# ----------------------------------------------------------------------------#
-t0 = 0
-K  = 9 
+S       = as.numeric(day_max - day_data) + 1 
+  # number of days covered by the period of data collection
+ts      = 1:S
+  # vector counting from 1 to the number of days covered by the period of 
+  # data collection
+tswitch = as.numeric(day_quarantine - day_data) + 1
+K       = 9 
+G       = 60 # fixed delay between symptom onset and death
 # ----------------------------------------------------------------------------#
 
 
@@ -149,15 +139,12 @@ data_list_model = {list(
   K        = K,        # number of age groups
   age_dist = age_dist, # age distribution
   pop_t    = pop_t,    # total population
-  t0       = t0,        # start time in days
   # Controls -------------------------------#
-  t_data    = t_data,
   tswitch   = tswitch,
   S         = S,         # days between day_max and day_start
   ts        = ts,
   inference = inference,
   doprint   = doprint,
-  D         = D,        # days between day_max and day_start, but +1 (not clear why)
   # Data to fit ----------------------------#
   incidence_cases  = incidence_cases,  # cases per day
   incidence_deaths = incidence_deaths, # deaths per day
@@ -176,12 +163,11 @@ data_list_model = {list(
   # Fixed parameters -----------------------#
   contact           = contact_matrix,
   p_q_P             = q_P,
-  p_incubation      = 1/tau_2 + 1/tau_1,
-  p_preclinical     = 1/tau_2,
+  tau_1           = tau_1,
+  tau_2            = tau_2,
   p_generation_time = gt,
-  p_children_trans  = p_children_trans,
   # Fixed corrections ----------------------#
-  p_report_80plus      = p_report_80plus,
+  p_report_80plus      = 1,
   p_underreport_deaths = p_underreport_deaths,
   p_underreport_cases  = p_underreport_cases,
   # Fixed delays ---------------------------#
