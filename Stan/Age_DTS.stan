@@ -41,15 +41,15 @@ functions { // write functions that can be used later on
     // Define the compartments storage
     real y[S, (6*K)];
     /*
-    HOW TO ACCESS VALUES INSIDE y
-    y is an array that holds real-values numbers. It has S rows and 6*K columns.
-    The data for each compartment and age group on a day t are stored in row
-    t (Stan begins indexing at 1).
-    Data inside rows is grouped by compartments. The first compartment with all
-    age groups inside it can thus be accessed using y[t, 1:K]. More generally,
-    to access all age groups inside compartment k (where K is the number of age
-    groups), the index is y[t, ((k-1)*K+1):K*k]. For example, to access the 
-    second compartment, the index is y[t, 10:18] (for 9 age groups).
+      HOW TO ACCESS VALUES INSIDE y
+      y is an array that holds real-values numbers. It has S rows and 6*K columns.
+      The data for each compartment and age group on a day t are stored in row
+      t (Stan begins indexing at 1).
+      Data inside rows is grouped by compartments. The first compartment with all
+      age groups inside it can thus be accessed using y[t, 1:K]. More generally,
+      to access all age groups inside compartment k (where K is the number of age
+      groups), the index is y[t, ((k-1)*K+1):K*k]. For example, to access the 
+      second compartment, the index is y[t, 10:18] (for 9 age groups).
     */
     // further transmission parameters
     mu   = (1-q_P)/(gt-1/tau_1-1/tau_2);
@@ -57,36 +57,21 @@ functions { // write functions that can be used later on
     
     // initialising values
       // filling the contact matrix
-     contact = x_r[6:(5+K*K)];
-     // Input age groups
-     for(k in 1:K){
-       age_dist[k] = x_r[5+K*K + k];
-     }
+      contact = x_r[6:(5+K*K)];
+      // Input age groups
+      for(k in 1:K){
+        age_dist[k] = x_r[5+K*K + k];
+      }
     
-    // Calculate initial compartment data
-    for (k in 1:K){
-        y[1, k] = y_init[k];
-        y[1, K+k] = y_init[k];
-        y[1, 2*K+k] = y_init[k];
-        y[1, 3*K+k] = y_init[k];
-        y[1, 4*K+k] = y_init[k];
-        y[1, 5*K+k] = y_init[k];
-    }
-    /*
-    // Initial p_tswitch (on day 1)
-    p_tswitch = switch_eta(1,tswitch,eta,nu,xi);
-    
-
-    
-    
-    // Initial force of infection
-    for(k in 1:K) {
-      f_inf[k] = beta * p_tswitch * sum((to_vector(y[1, (3*K+1):(4*K)]) + 
-        kappa*to_vector(y[1, (2*K+1):(3*K)]) + 
-        kappa*to_vector(y[1, (4*K+1):(5*K)]))./ to_vector(age_dist) .*
-        to_vector(contact[(K*(k-1)+1):(k*K)])); 
-    }
-    */
+      // Calculate initial compartment data
+      for (k in 1:K){
+          y[1, k] = y_init[k];
+          y[1, K+k] = y_init[k];
+          y[1, 2*K+k] = y_init[k];
+          y[1, 3*K+k] = y_init[k];
+          y[1, 4*K+k] = y_init[k];
+          y[1, 5*K+k] = y_init[k];
+      }
     
     // Discrete Time Solver
     for (t in 1:(S-1)){
