@@ -15,6 +15,13 @@
 
 region <- "Spain"
 
+type <- "age"
+
+visualise <- FALSE 
+
+inference <- 1
+
+doprint <- 0
 # ----------------------------------------------------------------------------#
 # sourcing other scripts ####
 # ----------------------------------------------------------------------------#
@@ -22,7 +29,7 @@ region <- "Spain"
 # errors in on of the files to be sourced 
 source("setup.R")
 source(paste0("R/01_DataManagement_", region, ".R"))
-source("R/02_PrepareModel.R", echo = T)
+source(paste0("R/02_PrepareModel_", type, ".R"), echo = T)
 source("R/04b_ModelDiagnostics_Functions.R") # for visualizations
 theme_set(theme_bw())
 
@@ -102,6 +109,8 @@ icfr_by_age <- data.frame(ageGroup = seq(1,9,1),
 write.csv2(icfr_by_age, paste0("Posteriors/",region, " - iCFR.csv"))
 
 
+# Analysis of the compartments ----------------------------------------------- #
+
 summary(samples, "compartment.data")$summary
 
 # Take out the daily values of the compartments to visualize SEPIAR model
@@ -110,7 +119,7 @@ compartment_data <- summary(samples, pars = "compartment_data")$summary
 row.names(compartment_data) <- c()
 compartment_data <- compartment_data %>% as.data.frame() %>%
   cbind(
-    date = seq(day_data, day_max, 1),
+    date = rep(seq(day_data, day_max, 1), each= 6*K),
     ageGroup = as.integer(rep(1:9, 46 * 6)),
     compartment = rep(c(
       rep("S", 9),
@@ -120,9 +129,34 @@ compartment_data <- compartment_data %>% as.data.frame() %>%
       rep("A", 9),
       rep("C", 9)
     ), 46),
+    compartmentNo = rep(c(
+      rep(1, 9),
+      rep(2, 9),
+      rep(3, 9),
+      rep(4, 9),
+      rep(5, 9),
+      rep(6, 9)
+    ), 46),
     .
   ) %>%
-  arrange(date)
+  arrange(date, compartmentNo, ageGroup)
 
 compartment_data %>% group_by(date) %>%
   summarise(mean = sum(mean), median = sum(`50%`)) %>% View()
+
+# Check compartment S throughout the time line
+compartment_data %>% filter(compartment == "S") %>% 
+  group_by(date) %>% 
+  summarise(mean = sum(mean)) %>% 
+  plot(mean, type = "l")
+
+# Check compartment E throughout the time line
+compartment_data %>% filter(compartment == "E") %>% 
+  group_by(date) %>% 
+  summarise(mean = sum(mean)) %>% 
+  plot(mean, type = "l")
+
+# Look at other compartments on t = 1
+compartment_data %>% filter(date == "2020-03-02", !(compartment %in% c("S","E")))
+
+# ---------------------------------------------------------------------------- #
