@@ -63,6 +63,7 @@ if (type == "age") {
 #   Hubei
 #   Switzerland
 #   Lombardy
+remove(list = ls()[!(ls() %in% list("model_DSO", "data_list_model"))])
 # ----------------------------------------------------------------------------#
 
 
