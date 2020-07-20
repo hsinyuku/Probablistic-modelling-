@@ -15,6 +15,7 @@ source("setup.R")   # contains all other parameters
 # the following parameters all determine which parts of the code are executed
 # (or not). 
 # Data for which region should be simulated and/or fitted?
+type = "age"
 region = "Spain"
 if(region == "Baden-Württemberg") region = "BadenW"
 if (!(region %in% regions)) warning(
