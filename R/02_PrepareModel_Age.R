@@ -139,6 +139,7 @@ data_list_model = {list(
   K        = K,        # number of age groups
   age_dist = age_dist, # age distribution
   pop_t    = pop_t,    # total population
+  contact  = contact_matrix,
   # Controls -------------------------------#
   tswitch   = tswitch,
   S         = S,         # days between day_max and day_start
