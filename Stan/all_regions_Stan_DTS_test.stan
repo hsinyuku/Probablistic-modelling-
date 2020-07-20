@@ -1,15 +1,11 @@
-real[] SEIR_dts(
+// Notice I defined real [,]. It is because the output for this function is
+  // a two-dimensional array of size S * 6K, so the return expression has to 
+  // match the return type.
+  real[,] SEIR_dts(
   int S,
-  real[] y,
   real[] theta,
   real[] x_r,
-  int[] x_i)
-) {
-  
-
-  
-    // Define the compartments storage
-    real y[S, (6*K)];
+  int[] x_i) {
     
     // Define free & fix parameters
     int K = x_i[1];         // number of age groups
@@ -32,6 +28,9 @@ real[] SEIR_dts(
     real init[K*2];         // initial values
     real age_dist[K];       // age distribution of the general population
     real pi;                // number of cases at t0
+    
+    // Define the compartments storage
+    real y[S, (6*K)];
     
     // Estimated parameters
     beta = theta[1];
@@ -59,6 +58,18 @@ real[] SEIR_dts(
       y[1, 5*K+k] = 0;
     }
     
+    // Initial p_tswitch (on day 1)
+    p_tswitch = switch_eta(1,tswitch,eta,nu,xi);
+    
+    // Initial force of infection
+    for(k in 1:K) {
+      f_inf[k] = beta * p_tswitch * sum((to_vector(y[1, (3*K+1):(4*K)]) + 
+        kappa*to_vector(y[1, (2*K+1):(3*K)]) + 
+        kappa*to_vector(y[1, (4*K+1):(5*K)]))./ to_vector(age_dist) .*
+        to_vector(contact[(K*(k-1)+1):(k*K)])); 
+    }
+    
+    // Discrete Time Solver
     for (t in 1:(S-1)){
       // Total number of infectious people (time dependent)
       p_tswitch = switch_eta(t,tswitch,eta,nu,xi);
@@ -69,10 +80,10 @@ real[] SEIR_dts(
         + kappa*number of preclinical by age + kappa*number of asympto) / 
         (total number of people by age) * (number of contact by age))
       */
-      for(k in 1:K) {
-        f_inf[k] = beta * p_tswitch * sum((to_vector(y[(3*K+1):(4*K)]) + 
-          kappa*to_vector(y[(2*K+1):(3*K)]) + 
-          kappa*to_vector(y[(4*K+1):(5*K)]))./ to_vector(age_dist) .*
+      for (k in 1:K) {
+        f_inf[k] = beta * p_tswitch * sum((to_vector(y[t, (3*K+1):(4*K)]) + 
+          kappa*to_vector(y[t, (2*K+1):(3*K)]) + 
+          kappa*to_vector(y[t, (4*K+1):(5*K)]))./ to_vector(age_dist) .*
           to_vector(contact[(K*(k-1)+1):(k*K)])); 
       }
       
@@ -92,7 +103,6 @@ real[] SEIR_dts(
         y[t+1, 5*K+k] = psi * tau_2 * y[t, 2*K+k];
       }
   
-
     }
-  
-}
+    return y[];
+  }

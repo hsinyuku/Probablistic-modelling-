@@ -158,23 +158,21 @@ functions { // write functions that can be used later on
       age_dist[k] = x_r[5+K*K + k];
     }
     
+    // Calculate initial compartment data
+    for (k in 1:K){
+        y[1, k] = y_init[k];
+        y[1, K+k] = y_init[k];
+        y[1, 2*K+k] = y_init[k];
+        y[1, 3*K+k] = y_init[k];
+        y[1, 4*K+k] = y_init[k];
+        y[1, 5*K+k] = y_init[k];
+    }
+    /*
     // Initial p_tswitch (on day 1)
     p_tswitch = switch_eta(1,tswitch,eta,nu,xi);
     
-    for (k in 1:K){
-      for (compartment in 1:6){
-        y[1, k*compartment] = y_init[compartment] * age_dist[k];
-      
-      /*
-        y[1, k] = y_init[k] * age_dist[k];
-        y[1, K+k] = y_init[k] * age_dist[k];
-        y[1, 2*K+k] = y_init[k] * age_dist[k];
-        y[1, 3*K+k] = y_init[k] * age_dist[k];
-        y[1, 4*K+k] = y_init[k] * age_dist[k];
-        y[1, 5*K+k] = y_init[k] * age_dist[k];
-      */
-      }
-    }
+
+    
     
     // Initial force of infection
     for(k in 1:K) {
@@ -183,6 +181,7 @@ functions { // write functions that can be used later on
         kappa*to_vector(y[1, (4*K+1):(5*K)]))./ to_vector(age_dist) .*
         to_vector(contact[(K*(k-1)+1):(k*K)])); 
     }
+    */
     
     // Discrete Time Solver
     for (t in 1:(S-1)){
@@ -205,19 +204,18 @@ functions { // write functions that can be used later on
       // Compartments
       for (k in 1:K) {
         // S: susceptible
-        y[t+1, k] = - f_inf[k] * (y[t, k]); 
+        y[t+1, k] = (y[t, k]) - f_inf[k] * (y[t, k]); 
         // E: incubating (not yet infectious)
-        y[t+1, K+k] = f_inf[k] * (y[t, k]) - tau_1 * (y[t, K+k]);
+        y[t+1, K+k] = (y[t, K+k]) + f_inf[k] * (y[t, k]) - tau_1 * (y[t, K+k]);
         // P: presymptomatic (incubating and infectious)
-        y[t+1, 2*K+k] = tau_1 * (y[t, K+k]) - tau_2 * y[t, 2*K+k];
+        y[t+1, 2*K+k] = (y[t, 2*K+k]) + tau_1 * (y[t, K+k]) - tau_2 * y[t, 2*K+k];
         // I: symptomatic
-        y[t+1, 3*K+k] = psi * tau_2 * y[t, 2*K+k] - mu * y[t, 3*K+k];
+        y[t+1, 3*K+k] = (y[t, 3*K+k]) + psi * tau_2 * y[t, 2*K+k] - mu * y[t, 3*K+k];
         // A: asymptomatic
-        y[t+1, 4*K+k] = (1-psi) * tau_2 * y[t, 2*K+k] - mu * y[t, 4*K+k];
+        y[t+1, 4*K+k] = (y[t, 4*K+k]) + (1-psi) * tau_2 * y[t, 2*K+k] - mu * y[t, 4*K+k];
         // C: cumulative number of infections by date of disease onset
-        y[t+1, 5*K+k] = psi * tau_2 * y[t, 2*K+k];
+        y[t+1, 5*K+k] = (y[t, 5*K+k]) + psi * tau_2 * y[t, 2*K+k];
       }
-  
     }
     return y[];
   }
@@ -232,16 +230,13 @@ data {
   int pop_t;          // total population
   real tswitch;       // time of introduction of control measures
   // |_ Controls ----
-  real t0; //starting time
-  int  t_data; //time of first data
   int  S; // 
   real ts[S]; // time bins
   int  inference; // 0: simulating from priors; 1: fit to data
   int  doprint;
   // |_ Data to fit ----
-  int D; // number of days with reported incidence
-  int incidence_cases[D]; // overal incidence for W weeks
-  int incidence_deaths[D]; // overal incidence for W weeks
+  int incidence_cases[S]; // overal incidence for W weeks
+  int incidence_deaths[S]; // overal incidence for W weeks
   int agedistr_cases[K]; // number of cases at tmax for the K age classes
   int agedistr_deaths[K]; // mortality at tmax for the K age classes
   // |_ Parameters for Priors ----
@@ -257,10 +252,10 @@ data {
   // |_ Fixed values ----
   real contact[K*K]; // contact matrix
   real p_q_P; // proportion of transmission that is caused by presymptomatics
-  real p_incubation; // incubation period
-  real p_preclinical; // preclinical period (part of the incubation with possible transmission)
   real p_generation_time; 
-  real p_children_trans; // relative transmissibility in children 1-10
+  real tau_1;
+  real tau_2;
+
   // |_ Fixed corrections ----
   real p_report_80plus; // fixed ascertainment proportion for ages 80+
   real p_underreport_deaths; // correction for deaths reported later
@@ -273,22 +268,17 @@ data {
 
 // ------------------
 transformed data {
-  real tau_1 = 1.0 / (p_incubation - p_preclinical); // WHAT THE HELL IS THIS?
-  real tau_2 = 1.0 / p_preclinical;
   real q_P = p_q_P;
   real gt = p_generation_time;
   real x_r[5+K*K+K]; // 5 parameters + K*K contact matrix parameters + K age_dist parameters
   int  x_i[1] = {K};
   real init[K*6] = rep_array(0.0, K*6); // initial values
-  real contact2[K*K] = contact;
-  for(i in 1:(2*K)) contact2[i] = contact[i] * p_children_trans; 
-    // apply lower transmissibility in children
   x_r[1] = tswitch;
   x_r[2] = tau_1;
   x_r[3] = tau_2;
   x_r[4] = q_P;
   x_r[5] = gt;
-  x_r[6:(5+K*K)] = contact2;
+  x_r[6:(5+K*K)] = contact;
   for(k in 1:K) {
     x_r[5+K*K+k] = age_dist[k];
   }
@@ -312,6 +302,7 @@ parameters{
 // ------------------
 transformed parameters {
   vector[K] rho;
+  vector[K] age_dist_init;
   real xi = xi_raw+0.5;
   // change of format for integrate_ode_rk45
   real theta[6]; // vector of parameters
@@ -324,8 +315,8 @@ transformed parameters {
   real<lower=0,upper=1> y_init[K*6]; // the initial states of the compartments
   
   // outcomes
-  vector[D] output_incidence_cases; // overall case incidence by day
-  vector[D] output_incidence_deaths; // overal mortality incidence by day 
+  vector[S] output_incidence_cases; // overall case incidence by day
+  vector[S] output_incidence_deaths; // overal mortality incidence by day 
   
   simplex[K] output_agedistr_cases; // final age distribution of cases
   simplex[K] output_agedistr_deaths; // final age distribution of deaths
@@ -338,17 +329,18 @@ transformed parameters {
   // change of format for integrate_ode_rk45
   theta[1:6] = {beta,eta,xi,nu,pi,psi};
   
+  age_dist_init = age_dist;
     
-    // Initial conditions of the compartments
-    for(k in 1:K){
-      y_init[k] = 1-pi;
-      y_init[K+k] = pi;
-      y_init[2*K+k] = 0;
-      y_init[3*K+k] = 0;
-      y_init[4*K+k] = 0;
-      y_init[5*K+k] = 0;
-    }
-  
+  // Initial conditions of the compartments
+  for(k in 1:K){
+    y_init[k] = (1-pi) * age_dist[k];
+    y_init[K+k] = pi * age_dist[k];
+    y_init[2*K+k] = 0 * age_dist[k];
+    y_init[3*K+k] = 0 * age_dist[k];
+    y_init[4*K+k] = 0 * age_dist[k];
+    y_init[5*K+k] = 0 * age_dist[k];
+  }
+
   //|_ DTS solver ----
   y = SEIR_dts(S, y_init, theta, x_r, x_i);
   
@@ -385,17 +377,18 @@ transformed parameters {
   
   
   // Compute outcomes
-  for(i in t_data:S){
-    output_incidence_cases[i-t_data+1] = sum(comp_diffC[i].*rho)*p_underreport_cases;
+  for(i in 1:S){
+    output_incidence_cases[i] = sum(comp_diffC[i].*rho)*p_underreport_cases;
       // R_t: total number of new reported infections per day of symptom onset
       // not a percentage, but a count
-    output_incidence_deaths[i-t_data+1] = sum(comp_diffM[i])*p_underreport_deaths;
+    output_incidence_deaths[i] = sum(comp_diffM[i])*p_underreport_deaths;
   }
   
   output_agedistr_cases = (comp_C[S,].*rho) ./ sum(comp_C[S,].*rho);
     // D_k^{cases}: age distribution of all reported cases over the modeled
     // period; not a percentage, but a count
   output_agedistr_deaths = (comp_M[S,]) ./ sum(comp_M[S,]);
+  
 }
 
 
@@ -425,11 +418,10 @@ model {
     print("comp_diffM[5,]: ",comp_diffM[5,]);
   }
   
-  
   // |_ Likelihood ----
 
   if (inference!=0) {
-    for(i in 1:D) { // repeat for every day in the model
+    for(i in 1:S) { // repeat for every day in the model
       target += neg_binomial_2_lpmf( incidence_cases[i] | 
           output_incidence_cases[i], output_incidence_cases[i]/phi[1]);
       target += neg_binomial_2_lpmf( incidence_deaths[i] | 
@@ -445,6 +437,8 @@ model {
 
 // ------------------
 generated quantities{
+  real compartment_data[S, K*6];
+
   real avg_rho = sum(age_dist .* rho);
   real beta2 = beta*eta;
   real mu = (1-q_P)/(gt-1/tau_1-1/tau_2);
@@ -455,7 +449,7 @@ generated quantities{
   real predicted_overall_incidence_all_cases[S]; 
   int  predicted_reported_incidence_deaths[S+G];
   real predicted_overall_incidence_deaths[S+G];
-  real compartment_data[S, K*6];
+
   
   int predicted_comp_reported_diffC[S,K];
   vector[K] predicted_comp_overall_diffC[S];
@@ -487,6 +481,8 @@ generated quantities{
   real cfr_C_all; //cfr by age classes, correction of underreporting and asymptomatics, no correction of time lag
   real cfr_D_all; //cfr by age classes, correction of underreporting and asymptomatics, correction of time lag
   
+  compartment_data = y;
+  
   for(i in 1:S){
     predicted_reported_incidence_symptomatic_cases[i] =
       neg_binomial_2_rng(sum(comp_diffC[i].*rho) * p_underreport_cases,
@@ -499,7 +495,6 @@ generated quantities{
         p_underreport_cases / avg_rho / psi;
   }
 
-  compartment_data = y;
   
   for(i in 1:(S+G)) {
     predicted_reported_incidence_deaths[i] = neg_binomial_2_rng(sum(comp_diffM[i])*p_underreport_deaths, sum(comp_diffM[i])*p_underreport_deaths/phi[2]);
@@ -572,5 +567,4 @@ generated quantities{
   
   cfr_C_all = predicted_total_overall_deaths_tmax / predicted_total_overall_all_cases;
   cfr_D_all = predicted_total_overall_deaths_delay / predicted_total_overall_all_cases;
-
 }

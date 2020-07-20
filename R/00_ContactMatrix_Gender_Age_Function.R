@@ -60,7 +60,7 @@ contact_matrix_gender_age <- function (region, type, n = 1,
   
   # Return the correct contact matrix according to the selected type
   
-  if (type == "gender") {
+  if (tolower(type) == "gender") {
     N <- NULL
     population <- NULL
     weight <- NULL
@@ -191,7 +191,7 @@ contact_matrix_gender_age <- function (region, type, n = 1,
     return(c(t(weighted.matrix)))
   }
   
-  if (type == "age"){
+  if (tolower(type) == "age"){
     m <- contact_matrix(survey = survey,
                         age.limits=c(0,10,20,30,40,50,60,70,80),
                         symmetric = TRUE)
