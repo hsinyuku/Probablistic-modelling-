@@ -179,7 +179,8 @@ parameters{
   real<lower=0,upper=1> beta; // base transmission rate
   real<lower=0,upper=1> eta; // reduction in transmission rate after quarantine measures
   vector<lower=0,upper=1> [K] epsilon; // age-dependent mortality probability
-  vector<lower=0,upper=1> [K] rho; // age-dependent reporting probability
+  vector<lower=0,upper=1> [K-1] raw_rho; // age-dependent reporting probability
+    // declared as raw_rho because the K-th rho is fixed to 1x
   real<lower=0, upper=1> pi; // number of cases at t0
   real<lower=0> phi[2]; // variance parameters
   real<lower=0,upper=1> xi_raw; // slope of quarantine implementation
@@ -190,6 +191,7 @@ parameters{
 
 // ------------------
 transformed parameters {
+  vector[K] rho;
   real xi = xi_raw+0.5;
   // change of format for integrate_ode_rk45
   real theta[6]; // vector of parameters
@@ -204,6 +206,12 @@ transformed parameters {
   simplex[K] output_agedistr_cases; // final age distribution of cases
   simplex[K] output_agedistr_deaths; // final age distribution of deaths
 
+  // transformed parameters
+  for(i in 1:(K-1)){
+    rho[i] = raw_rho[i]*p_report_80plus;
+  }
+  rho[K] = p_report_80plus; // fixed ascertainment proportion for ages 80+
+  
   // change of format for integrate_ode_rk45
   theta[1:6] = {beta,eta,xi,nu,pi,psi};
   
@@ -255,7 +263,7 @@ model {
   beta   ~ beta(p_beta[1],p_beta[2]);
   eta    ~ beta(p_eta[1],p_eta[2]);
   for(k in 1:K) epsilon[k] ~ beta(p_epsilon[1],p_epsilon[2]);
-  for(k in 1:(K-1)) rho[k] ~ beta(p_rho[1],p_rho[2]);
+  for(k in 1:(K-1)) raw_rho[k] ~ beta(p_rho[1],p_rho[2]);
   pi     ~ beta(p_pi[1],p_pi[2]);
   phi    ~ exponential(p_phi);
   xi_raw ~ beta(p_xi[1],p_xi[2]); 
