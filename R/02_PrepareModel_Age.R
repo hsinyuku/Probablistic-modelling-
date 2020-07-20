@@ -77,7 +77,6 @@ kappa = (q_P*tau_2*psi)/((1-q_P)*mu-(1-psi)*q_P*tau_2)
 # Contact matrix ####
 # ----------------------------------------------------------------------------#
 # select the appropriate contact matrix with regard to region and type
-source("R/00_ContactMatrix_Gender_Age_Function.R")
 contact_matrix <- contact_matrix_gender_age(type = type, region = region)
 
 # visualising the contact matrix

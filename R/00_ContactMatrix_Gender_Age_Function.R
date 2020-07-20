@@ -13,8 +13,6 @@
 # ----------------------------------------------------------------------------#
 # sourcing other scripts ####
 # ----------------------------------------------------------------------------#
-# this line is an attempt at making the code execution stop when there are 
-# errors in on of the files to be sourced
 source("setup.R")
 
 # Contact matrix function, selecting desired region and type
@@ -23,9 +21,7 @@ contact_matrix_gender_age <- function (region, type, n = 1,
                                    split = FALSE, weights = c(), 
                                    weigh.dayofweek = FALSE, 
                                    sample.all.age.groups = FALSE, 
-                                   quiet = FALSE, ...) 
-  
-{
+                                   quiet = FALSE, ...) {
   # Load the correct survey according to the selected region
   if(region == "Hubei"){
     
@@ -60,7 +56,7 @@ contact_matrix_gender_age <- function (region, type, n = 1,
   
   # Return the correct contact matrix according to the selected type
   
-  if (tolower(type) == "gender") {
+  if (type == "Gender") {
     N <- NULL
     population <- NULL
     weight <- NULL
@@ -191,7 +187,7 @@ contact_matrix_gender_age <- function (region, type, n = 1,
     return(c(t(weighted.matrix)))
   }
   
-  if (tolower(type) == "age"){
+  if (type == "Age"){
     m <- contact_matrix(survey = survey,
                         age.limits=c(0,10,20,30,40,50,60,70,80),
                         symmetric = TRUE)
