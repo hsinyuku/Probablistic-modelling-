@@ -16,14 +16,14 @@ library(stringr)
   source("setup.R")   # contains all other parameters
   
   # Which type of data should be simulated / fitted?
-  type = "Age"
+  type = "Gender"
   
   # Data for which region should be simulated and/or fitted?
   region = "Spain"
   
   # How many chains and iterations should be run?
   chains = 1
-  iterations = 200
+  iterations = 20
   
   # Should the original data be plotted? Boolean.
   visualise = FALSE
@@ -38,7 +38,7 @@ library(stringr)
   
   # Should the original version (using the non-stiff ODE-solver RK45) or the
   # DTS (discrete time system) version be used?
-  solver = "DTS"
+  solver = "RK45"
 }
 # ----------------------------------------------------------------------------#
 
@@ -81,8 +81,6 @@ library(stringr)
 # ----------------------------------------------------------------------------#
 
 # specify the number of chains and iterations to run
-
-
 model_DSO = stan_model(paste0("Stan/",type, "_", solver, ".stan"))
 
 # Sampling from the posterior distribution
