@@ -16,14 +16,17 @@ library(stringr)
   source("setup.R")   # contains all other parameters
   
   # Which type of data should be simulated / fitted?
-  type = "Gender"
+  type = "Age"
   
   # Data for which region should be simulated and/or fitted?
   region = "Spain"
   
   # How many chains and iterations should be run?
-  chains = 1
-  iterations = 20
+  chains = 4
+  iterations = 1000
+  
+  # Common or indiviual etas for groups (only work with Age model)
+  ind_eta = T
   
   # Should the original data be plotted? Boolean.
   visualise = FALSE
@@ -64,6 +67,10 @@ library(stringr)
     "Inference must be either 1 or 0!"
   )
   
+  if (ind_eta == T){
+    ind_eta <- "VaryingEta"
+  } else {ind_eta <- "CommonEta"}
+  
   source(paste0("R/01_DataManagement_", region, ".R"))
   
   # Source the prepare model file --------------------------------------------#
@@ -81,7 +88,7 @@ library(stringr)
 # ----------------------------------------------------------------------------#
 
 # specify the number of chains and iterations to run
-model_DSO = stan_model(paste0("Stan/",type, "_", solver, ".stan"))
+model_DSO = stan_model(paste0("Stan/",type, "_", solver,"_", ind_eta,".stan"))
 
 # Sampling from the posterior distribution
 samples = sampling(
@@ -96,14 +103,14 @@ samples = sampling(
 # Save the samples and the DSO object to RDS
 saveRDS(object = model_DSO, 
         file = paste0("Posteriors/", 
-                      paste(region, "DSO", type, "iter", iterations, "chains",
-                            chains, as.Date.character(Sys.time()), sep = "_"),
+                      paste(region, type, ind_eta, "DSO",
+                            as.Date.character(Sys.time()), sep = "_"),
                       ".Rds")
         )
 
 saveRDS(object = samples,
         file = paste0("Posteriors/", 
-                      paste(region, "samples", type, "iter", iterations, "chains",
-                            chains, as.Date.character(Sys.time()), sep = "_"),
+                      paste(region, type, ind_eta, iterations, "iter", chains, "chains",
+                            as.Date.character(Sys.time()), sep = "_"),
                       ".Rds")
         )
