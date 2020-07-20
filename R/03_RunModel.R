@@ -10,17 +10,12 @@
 # ----------------------------------------------------------------------------#
 # controls  ####
 # ----------------------------------------------------------------------------#
+remove(list = ls())
 source("setup.R")   # contains all other parameters
 # the following parameters all determine which parts of the code are executed
 # (or not). 
 # Data for which region should be simulated and/or fitted?
-region = "Bavaria"
-
-# Should the data be differentiated according to age groups or gender? Takes
-# either "age" or "gender"
-type = "gender"
-
-# ----------------------------------------------------------------------------#
+region = "Spain"
 if(region == "Baden-Württemberg") region = "BadenW"
 if (!(region %in% regions)) warning(
   "The region you specified is not a correct string.\nFunctions will not ",
@@ -35,6 +30,8 @@ visualise = FALSE
 # or 0 (no, should not be fitted).
 inference = 1
 if (class(inference) == "logical") inference = as.integer(inference)
+# Should some information be printed for debugging?
+doprint = 0
 # ----------------------------------------------------------------------------#
 
 
@@ -45,7 +42,8 @@ if (class(inference) == "logical") inference = as.integer(inference)
 # ----------------------------------------------------------------------------#
 # Cleaning the global environment so no data from other runs of the code can 
 # influence the current run.
-remove(list = ls()[!(ls() %in% list("region", "type", "visualise", "inference"))]) 
+remove(list = ls()[!(ls() %in% list("region", "type", "visualise", "inference",
+                                    "doprint"))]) 
   # clearing the work space, except for the necessary control parameters
 source(paste0("R/01_DataManagement_", region, ".R"))
 

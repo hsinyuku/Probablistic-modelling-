@@ -33,8 +33,8 @@ age_class = function(x, min_age, age_range, max_age) {
 
 # Dates -----------------------------------------------------------------------
 {
-  day_start = as.Date("2020-03-01")
   day_data = as.Date("2020-03-02")
+  # day_start = as.Date("2020-03-01")
   day_max = as.Date("2020-04-16")
     # 10 days before last day of data about number of new symptomatic cases
   day_quarantine = as.Date("2020-03-09")
