@@ -11,6 +11,9 @@
 # controls  ####
 # ----------------------------------------------------------------------------#
 {
+  # do this on Lukas' machine:
+  # Sys.setenv(LOCAL_CPPFLAGS = '-march=corei7 -mtune=corei7')
+  
   remove(list = ls())
   source("setup.R")   # contains all other parameters
   source("R/00_ContactMatrix_Gender_Age_Function.R")
@@ -45,7 +48,7 @@
   
   # How many cores do you want to use? Can be an integer from 0 to the number
   # of cores on your machine, or "all".
-  use_cores = "all"
+  use_cores = 4
 }
 # ----------------------------------------------------------------------------#
 
@@ -83,11 +86,12 @@
   
   source(paste0("R/01_DataManagement_", region, ".R"))
   
-  if (use_cores == "all") use_cores <- getOption("mc.cores", 1L)
-  else if (as.integer(use_cores) > getOption("mc.cores", 1L)) {
+  if (use_cores == "all") use_cores <- parallel::detectCores()
+  else if (as.integer(use_cores) > parallel::detectCores()) {
     warning("You don't have that many cores! Change use_cores:")
   }
   else use_cores <- as.integer(use_cores)
+  options(mc.cores = parallel::detectCores())
   
   # Source the prepare model file --------------------------------------------#
   source(paste0("R/02_PrepareModel_", type, ".R"))
@@ -104,7 +108,11 @@
 # ----------------------------------------------------------------------------#
 
 # specify the number of chains and iterations to run
-model_DSO = stan_model(paste0("Stan/",type, "_", solver,"_", ind_eta,".stan"))
+{
+  model_DSO = stan_model(paste0("Stan/",type, "_", solver,"_", ind_eta,".stan"))
+  beepr::beep(10)
+}
+
 
 # Sampling from the posterior distribution
 samples = sampling(
@@ -128,7 +136,6 @@ saveRDS(object = model_DSO,
 saveRDS(object = samples,
         file = paste0("Posteriors/", 
                       paste(region, type, ind_eta, iterations, "iter", chains, 
-                            "chains",
-                            as.Date.character(Sys.time()), sep = "_"),
+                            "chains", as.Date.character(Sys.time()), sep = "_"),
                       ".Rds")
         )

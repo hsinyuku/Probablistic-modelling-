@@ -16,6 +16,7 @@
 library(tidyverse)
 library(lubridate)
 library(rstan)
+rstan_options(auto_write = TRUE)
 library(tictoc) # to compare some runtimes
 library(socialmixr)
 library(data.table) # for contact matrix
