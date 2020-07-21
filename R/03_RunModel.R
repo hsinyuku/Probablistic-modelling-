@@ -127,7 +127,8 @@ saveRDS(object = model_DSO,
 
 saveRDS(object = samples,
         file = paste0("Posteriors/", 
-                      paste(region, type, ind_eta, iterations, "iter", chains, "chains",
+                      paste(region, type, ind_eta, iterations, "iter", chains, 
+                            "chains",
                             as.Date.character(Sys.time()), sep = "_"),
                       ".Rds")
         )
