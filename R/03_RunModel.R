@@ -42,6 +42,10 @@
   # Should the original version (using the non-stiff ODE-solver RK45) or the
   # DTS (discrete time system) version be used?
   solver = "RK45"
+  
+  # How many cores do you want to use? Can be an integer from 0 to the number
+  # of cores on your machine, or "all".
+  use_cores = "all"
 }
 # ----------------------------------------------------------------------------#
 
@@ -79,12 +83,18 @@
   
   source(paste0("R/01_DataManagement_", region, ".R"))
   
+  if (use_cores == "all") use_cores <- getOption("mc.cores", 1L)
+  else if (as.integer(use_cores) > getOption("mc.cores", 1L)) {
+    warning("You don't have that many cores! Change use_cores:")
+  }
+  else use_cores <- as.integer(use_cores)
+  
   # Source the prepare model file --------------------------------------------#
   source(paste0("R/02_PrepareModel_", type, ".R"))
   
   remove(list = ls()[!(ls() %in% list("region", "type", "visualise", "inference",
                                       "doprint", "iterations","data_list_model",
-                                      "chains", "solver", "ind_eta"))]) 
+                                      "chains", "solver", "ind_eta", "use_cores"))]) 
 }
 # ----------------------------------------------------------------------------#
   
@@ -103,7 +113,8 @@ samples = sampling(
   iter = iterations,
   chains = chains,
   init = 0.5,
-  control = list(max_treedepth = 10, adapt_delta = 0.8)
+  control = list(max_treedepth = 10, adapt_delta = 0.8),
+  cores = use_cores
 )
 
 # Save the samples and the DSO object to RDS
