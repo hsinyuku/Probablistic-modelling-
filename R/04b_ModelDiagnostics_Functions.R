@@ -4,6 +4,22 @@
 # This script provides functions to plot out model diagnostics.
 # ----------------------------------------------------------------------------#
 
+# Function to save plots
+# necessary parts of the name is taken directly from the list with the
+# controls, but can also be specified manually
+save_gg <- function(plot, name, region = controls["region"],
+                    ind_eta = controls["ind_eta"],
+                    chains = controls["chains"],
+                    iterations = controls["iterations"], 
+                    type = controls["type"],
+                    width = 10, height = 6){
+  file = paste0("Figures/", region, "_", type, "_", ind_eta, "_", iterations,
+                "iteratoins_", chains, "chains.png")
+  ggsave(file, units = "in",
+         width = width, height = height)
+  print(paste0("Saved plot to ", file))
+}
+
 
 # general functions
 qsum = function(x) c(`50%`=median(x),quantile(x,c(0.025,0.975)))
