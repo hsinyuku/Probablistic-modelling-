@@ -26,12 +26,14 @@
 # Load the saved posterior samples in the data (obviously without sampling
 # them every time).
 samples <-  readRDS(file = paste0("Posteriors/Spain_Samples_200718.Rds"))
-sampler_params <- get_sampler_params(fit, inc_warmup = FALSE)
+sampler_params <- get_sampler_params(samples, inc_warmup = TRUE)
   # sampler_params returns a list with one entry per chain
 controls["chains"] <- length(sampler_params)
   # length of the list is number of chains
-controls["iterations"] <- nrow(sampler_params[[3]])
+controls["iterations"] <- nrow(sampler_params[[1]])
   # each row in each element of the list is one iteration without warmup
+controls["warmup"] <- controls$iterations -
+  nrow(get_sampler_params(samples, inc_warmup = FALSE)[[1]])
 
 # Gather all parameters in theta
 pars <- c("beta", "epsilon","rho","pi","psi", "eta")
@@ -41,6 +43,7 @@ pars <- c("beta", "epsilon","rho","pi","psi", "eta")
 # model inspection ####
 # ----------------------------------------------------------------------------#
 {
+  f("For 4 separating chains, {controls[iterations]} iterations / chain")
   title = paste0("Posterior Density Plots (", controls["region"], ")")
   subtitle = ("For 4 separating chains, 1000 iterations / chain")
   plot <- stan_dens(samples, pars = pars, separate_chains = T, nrow = 3) +

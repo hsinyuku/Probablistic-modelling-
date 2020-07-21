@@ -116,6 +116,23 @@ check_controls <- function() {
   options(mc.cores = parallel::detectCores())
 }
   
+
+# this function should be able to provide python-like fstring-functionality. -#
+# Probably really slow, but will do the trick for things like plot caption. --#
+f <- function(fstring) {
+  replaceRegExp <- "\\{[[:alnum:]\\_\\]\\[]+\\}"
+  fstring2val <- function(fstring) {
+    objectName <- str_sub(fstring, 2, -2)
+    if(str_detect(objectName, "\\[[[:alnum:]\\_]+\\]")) {
+      listName = str_extract(objectName, "[[:alnum:]\\_]+(?=\\[)")
+      listElement = str_sub(str_extract(objectName, "\\[[[:alnum:]\\_]+\\]"), 2, -2)
+      return(get(listName)[listElement])
+    } else {
+      return(get(objectName))
+    }
+  }
+  str_replace_all(fstring, replaceRegExp, fstring2val)
+}
 # ----------------------------------------------------------------------------#
 
 
