@@ -65,6 +65,45 @@ remove_except <- function(element_list) {
   print("Removed the following objects:")
   print(delete_objects)
 }
+
+# function to check the controls, i.e. the objects that control the flow of --#
+# the code (which should be run) ---------------------------------------------#
+check_controls <- function() {
+  # Checking region; accessing the object directly in the global envrionment,
+  # because otherwise the if-else checks on the local object region, which
+  # is not changed by the first line
+  if(region == "Baden-Wuerttemberg") {
+    region <<- "BadenW"
+  }
+  if (!(region %in% regions)) {
+   print(region)
+   warning("The region you specified is not a correct string. Functions will ",
+           "not work! Please change the string. Check the regions-object for ",
+           "the correct spelling of the regions.")
+   return(0)
+  }
+  # Checking type: Age or Gender?
+  type <<- stringr::str_to_title(type)
+    # <<- will assign type in the global environment
+  # inference must be integer, not a boolean
+  if (class(inference) == "logical") inference = as.integer(inference)
+  if (!(inference %in% c(0, 1))) {
+    warning("Inference must be either 1 or 0!")
+    return(0)
+  } 
+  # ind_eta: should the model with varying eta be run?
+  if (ind_eta == T) ind_eta <<- "VaryingEta"
+  else ind_eta <<- "CommonEta"
+  # use_cores: how many cores should be used?
+  if (use_cores == "all") use_cores <<- parallel::detectCores()
+  else if (as.integer(use_cores) > parallel::detectCores()) {
+    warning("You don't have that many cores! Change use_cores:")
+    return(0)
+  }
+  else use_cores <<- as.integer(use_cores)
+  options(mc.cores = parallel::detectCores())
+}
+  
 # ----------------------------------------------------------------------------#
 
 

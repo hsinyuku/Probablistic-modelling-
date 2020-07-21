@@ -15,14 +15,14 @@
   # Sys.setenv(LOCAL_CPPFLAGS = '-march=corei7 -mtune=corei7')
   
   remove(list = ls())
-  source("setup.R")   # contains all other parameters
-  source("R/00_ContactMatrix_Gender_Age_Function.R")
+  
+  # Data for which region should be simulated and/or fitted?
+  region = "Baden-Wuerttemberg" # DO NOT WRITE BADEN-WÜRTTEMBERG HERE!
+    # The umlaut seems to somehow crash everything.
   
   # Which type of data should be simulated / fitted?
   type = "Age"
   
-  # Data for which region should be simulated and/or fitted?
-  region = "Baden-Württemberg"
   
   # How many chains and iterations should be run?
   chains = 1
@@ -57,48 +57,21 @@
 # sourcing other scripts ####
 # ----------------------------------------------------------------------------#
 {
-  if(region == "Baden-Württemberg") region <-  "BadenW"
-  if (!(region %in% regions)) warning(
-    "The region you specified is not a correct string.\nFunctions will not ",
-    "work! Please change the string. \nCheck the regions-object for ",
-    "the correct spelling of the regions.")
+  source("setup.R")
+  source("R/00_ContactMatrix_Gender_Age_Function.R")
+  
+  if(check_controls() == 0) {
+    warning("There was some error within the controls! Check  ",
+            "messages to see where exactly.")
+    stop()
+  }
   
   source(paste0("R/01_DataManagement_", region, ".R"))
-  
-  # Source the right prepare model file
-  if (type == "Age") {
-    source("R/02_PrepareModel_Age.R", echo = T)
-  } else if (type == "Gender") {
-    source("R/02_PrepareModel_Gender.R", echo = T) 
-  }
-  # checking controls --------------------------------------------------------#
-  type = stringr::str_to_title(type)
-  
-  # inference must be in integer, not a boolean
-  if (class(inference) == "logical") inference = as.integer(inference)
-  if (!(inference %in% c(0, 1))) warning(
-    "Inference must be either 1 or 0!"
-  )
-  
-  if (ind_eta == T){
-    ind_eta <- "VaryingEta"
-  } else {ind_eta <- "CommonEta"}
-  
-  source(paste0("R/01_DataManagement_", region, ".R"))
-  
-  if (use_cores == "all") use_cores <- parallel::detectCores()
-  else if (as.integer(use_cores) > parallel::detectCores()) {
-    warning("You don't have that many cores! Change use_cores:")
-  }
-  else use_cores <- as.integer(use_cores)
-  options(mc.cores = parallel::detectCores())
-  
-  # Source the prepare model file --------------------------------------------#
   source(paste0("R/02_PrepareModel_", type, ".R"))
   
-  remove_except(list("region", "type", "visualise", "inference", "doprint",
-                     "iterations","data_list_model", "chains", "solver",
-                     "ind_eta", "use_cores"))
+  #remove_except(list("region", "type", "visualise", "inference", "doprint",
+  #                   "iterations","data_list_model", "chains", "solver",
+  #                   "ind_eta", "use_cores"))
 }
 # ----------------------------------------------------------------------------#
   

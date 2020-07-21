@@ -13,7 +13,6 @@
 # ----------------------------------------------------------------------------#
 # sourcing other scripts ####
 # ----------------------------------------------------------------------------#
-source("setup.R")
 
 # Contact matrix function, selecting desired region and type
 contact_matrix_gender_age <- function (region, type, n = 1, 
