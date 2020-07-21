@@ -43,9 +43,9 @@ pars <- c("beta", "epsilon","rho","pi","psi", "eta")
 # model inspection ####
 # ----------------------------------------------------------------------------#
 {
-  f("For 4 separating chains, {controls[iterations]} iterations / chain")
-  title = paste0("Posterior Density Plots (", controls["region"], ")")
-  subtitle = ("For 4 separating chains, 1000 iterations / chain")
+  subtitle = f(paste0("For {controls[chains]} chains and ",
+               "{controls[iterations]} iterations per chain."))
+  title = f(paste0("Posterior Density Plots ({controls[region]})" ))
   plot <- stan_dens(samples, pars = pars, separate_chains = T, nrow = 3) +
     labs(title = title, subtitle = subtitle) +
     scale_x_continuous(breaks = c(0, 0.5, 1), labels = c("0", ".5", "1"))

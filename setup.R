@@ -121,17 +121,32 @@ check_controls <- function() {
 # Probably really slow, but will do the trick for things like plot caption. --#
 f <- function(fstring) {
   replaceRegExp <- "\\{[[:alnum:]\\_\\]\\[]+\\}"
+    # the pattern we are looking for is any variable, surrounded by curly 
+    # brackets; variable names can contain letters, digits, and _ (but not 
+    # other special characters)
   fstring2val <- function(fstring) {
+    # writing a function to use in str_replace_all(); one object name (enclosed)
+    # by curly brackets) at a time will be passed to this
     objectName <- str_sub(fstring, 2, -2)
+      # remove the surrounding brackets, so the object's name remains
     if(str_detect(objectName, "\\[[[:alnum:]\\_]+\\]")) {
+      # function should be able to call objects from lists, which have to be
+      # indexed using [[]] and quotation marks. To deal with this, we separate
+      # the two parts: the list name and the element name.
       listName = str_extract(objectName, "[[:alnum:]\\_]+(?=\\[)")
+        # this is the name of the list to be accessed
       listElement = str_sub(str_extract(objectName, "\\[[[:alnum:]\\_]+\\]"), 2, -2)
+        # this is the name of the element inside the list to be accessed
       return(get(listName)[listElement])
+      # glue it together and call get()
     } else {
+      # if the string passed was not a list, accessing is much simpler:
       return(get(objectName))
     }
   }
-  str_replace_all(fstring, replaceRegExp, fstring2val)
+  # finally, search for all objects in the fstring (surrounded by curly
+  # brackets), then replace them one be one.
+  return(str_replace_all(fstring, replaceRegExp, fstring2val))
 }
 # ----------------------------------------------------------------------------#
 
