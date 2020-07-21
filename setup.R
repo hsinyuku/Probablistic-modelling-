@@ -53,6 +53,18 @@ get_par_lnorm = function(m, s) {
   sigma = sqrt(log((s/m)^2+1))
   return(list(mu=mu, sigma=sigma))
 }
+
+# function to delete all objects in the global environment, with exceptions---#
+remove_except <- function(element_list) {
+  # element_list must be a list of strings!
+  objects <- ls(name = globalenv())
+  indices <- objects %in% element_list
+  delete_objects <- objects[!indices]
+  keep_objects <- objects[indices]
+  remove(list = delete_objects, pos = globalenv())
+  print("Removed the following objects:")
+  print(delete_objects)
+}
 # ----------------------------------------------------------------------------#
 
 
