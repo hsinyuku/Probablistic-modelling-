@@ -4,7 +4,11 @@
 # This script provides functions to plot out model diagnostics.
 # ----------------------------------------------------------------------------#
 
-# Function to save plots
+# ----------------------------------------------------------------------------#
+# functions already translated ####
+# ----------------------------------------------------------------------------#
+
+# Function to save plots -----------------------------------------------------#
 # necessary parts of the name is taken directly from the list with the
 # controls, but can also be specified manually
 save_gg <- function(plot, name, region = controls["region"],
@@ -19,9 +23,11 @@ save_gg <- function(plot, name, region = controls["region"],
          width = width, height = height)
   print(paste0("Saved plot to ", file))
 }
+# ----------------------------------------------------------------------------#
 
-
-# general functions
+# ----------------------------------------------------------------------------#
+# functions not yet translated ####
+# ----------------------------------------------------------------------------#
 qsum = function(x) c(`50%`=median(x),quantile(x,c(0.025,0.975)))
 inv_logit = function(x) exp(x)/(1+exp(x))
 logit = function(x) log(x/(1-x))

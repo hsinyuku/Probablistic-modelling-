@@ -15,7 +15,6 @@ type = "Age"
 # sourcing other scripts ####
 # ----------------------------------------------------------------------------#
 {
-  remove(list = ls())
   source("setup.R")
   source(paste0("R/01_DataManagement_", region, ".R"))
   source(paste0("R/02_PrepareModel_", type, ".R"), echo = T)
@@ -46,17 +45,14 @@ pars <- c("beta", "epsilon","rho","pi","psi", "eta")
 stan_dens(samples, pars = pars, separate_chains = T, nrow = 3) +
   labs(title = paste0("Posterior Density Plots (",region,")"), 
        subtitle = ("For 4 separating chains, 1000 iterations / chain")) +
-  scale_x_continuous(breaks = c(0, 0.5, 1), labels = c("0", ".5", "1")) %>% 
-  save_gg(plot = ., name = "Posterior Density", region, width = 10, height = 3.5)
-
+  scale_x_continuous(breaks = c(0, 0.5, 1), labels = c("0", ".5", "1"))
 
 # Plot simulated cases (all, symptomatic, reported) vs real cases
 plot_incidence_cases(samples = samples,
                      data_list = data_list_model, # sourced from 02_
                      start_date = day_data,
                      end_date = day_max,
-                     region = region) %>% 
-  save_gg(plot = ., name = "Incidence Cases Timeline", region, width = 6, height = 3)
+                     region = "Spain") 
 
 # Plot simulated deaths & residual deaths vs real deaths
 plot_incidence_deaths(samples = samples,

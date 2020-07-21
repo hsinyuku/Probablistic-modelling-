@@ -22,26 +22,31 @@
   source("R/04b_ModelDiagnostics_Functions.R") # for visualizations
 }
 #theme_set(theme_bw())
-
-# Load the saved posterior samples in the data (obviously without sampling
-# them every time).
-samples <-  readRDS(file = paste0("Posteriors/Spain_Samples_200718.Rds"))
-sampler_params <- get_sampler_params(samples, inc_warmup = TRUE)
+{
+  # Load the saved posterior samples in the data (obviously without sampling
+  # them every time).
+  samples <-  readRDS(file = paste0("Posteriors/Spain_Samples_200718.Rds"))
+  sampler_params <- get_sampler_params(samples, inc_warmup = TRUE)
   # sampler_params returns a list with one entry per chain
-controls["chains"] <- length(sampler_params)
+  controls["chains"] <- length(sampler_params)
   # length of the list is number of chains
-controls["iterations"] <- nrow(sampler_params[[1]])
+  controls["iterations"] <- nrow(sampler_params[[1]])
   # each row in each element of the list is one iteration without warmup
-controls["warmup"] <- controls$iterations -
-  nrow(get_sampler_params(samples, inc_warmup = FALSE)[[1]])
+  controls["warmup"] <- controls$iterations -
+    nrow(get_sampler_params(samples, inc_warmup = FALSE)[[1]])
+}
 
 # Gather all parameters in theta
 pars <- c("beta", "epsilon","rho","pi","psi", "eta")
 # ----------------------------------------------------------------------------#
 
+
 # ----------------------------------------------------------------------------#
 # model inspection ####
 # ----------------------------------------------------------------------------#
+
+# # Plot the parameter posteriors and overlaying the chains to check for -----#
+# consistence ----------------------------------------------------------------#
 {
   subtitle = f(paste0("For {controls[chains]} chains and ",
                "{controls[iterations]} iterations per chain."))
@@ -49,7 +54,15 @@ pars <- c("beta", "epsilon","rho","pi","psi", "eta")
   plot <- stan_dens(samples, pars = pars, separate_chains = T, nrow = 3) +
     labs(title = title, subtitle = subtitle) +
     scale_x_continuous(breaks = c(0, 0.5, 1), labels = c("0", ".5", "1"))
-  if (controls["savePlots"]) {
+  if (controls[["savePlots"]]) {
     save_gg(plot = plot, name = "Posterior Density")
   }
+  plot
 }
+
+# Plot simulated cases (all, symptomatic, reported) vs real cases ------------#
+plot_incidence_cases(samples = samples,
+                     data_list = data_list_model,
+                     start_date = day_data,
+                     end_date = day_max,
+                     region = controls["region"]) 
