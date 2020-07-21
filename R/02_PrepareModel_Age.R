@@ -25,7 +25,7 @@ gamma = plnorm((1:60) + 0.5,linton_pars$mu,linton_pars$sigma) -
 gamma = gamma/sum(gamma)
 
 # visualising I, discretised and real
-if(visualise) {
+if(controls[["visualise"]]) {
   ggplot() +
     geom_col(data = tibble(x = 1:60, y = gamma),
              aes(x = x, y = y), fill = "grey", alpha = 0.5, col = "grey") +
@@ -77,10 +77,11 @@ kappa = (q_P*tau_2*psi)/((1-q_P)*mu-(1-psi)*q_P*tau_2)
 # Contact matrix ####
 # ----------------------------------------------------------------------------#
 # select the appropriate contact matrix with regard to region and type
-contact_matrix <- contact_matrix_gender_age(type = type, region = region)
+contact_matrix <- contact_matrix_gender_age(type = controls["type"],
+                                            region = controls["region"])
 
 # visualising the contact matrix
-if(visualise) {
+if(controls[["visualise"]]) {
   tibble(contacts = contact_matrix) %>%
     mutate(age1 = rep(1:9,9), age2 = rep(1:9,each=9)) %>%
     ggplot() +
@@ -105,25 +106,14 @@ G       = 60
 # ----------------------------------------------------------------------------#
 # so-called controls ####
 # ----------------------------------------------------------------------------#
-t0        = 0
-S         = as.numeric(day_max-day_start)
-t_data    = as.numeric(day_data-day_start)
-ts        = t_data:S
-D         = as.numeric(day_max - day_data+1)
-tswitch   = as.numeric(day_quarantine - day_start)
-inference = inference
-doprint   = 0
+S         = as.numeric(day_max-day_data) + 1
+ts        = 1:S
+tswitch   = as.numeric(day_quarantine - day_data) + 1
+K         = 2
 # ----------------------------------------------------------------------------#
 
 
 # ----------------------------------------------------------------------------#
-# mising structure parameters ####
-# ----------------------------------------------------------------------------#
-t0 = 0
-K  = 9 
-# ----------------------------------------------------------------------------#
-
-
 # other free parameters ####
 # ----------------------------------------------------------------------------#
 {
@@ -150,13 +140,11 @@ data_list_model = {list(
   pop_t    = pop_t,    # total population
   contact  = contact_matrix,
   # Controls -------------------------------#
-  t_data    = t_data,
   tswitch   = tswitch,
   S         = S,         # days between day_max and day_start
   ts        = ts,
-  inference = inference,
-  doprint   = doprint,
-  D         = D,        # days between day_max and day_start, but +1 (not clear why)
+  inference = controls[["inference"]],
+  doprint   = controls[["doprint"]],
   # Data to fit ----------------------------#
   incidence_cases  = incidence_cases,  # cases per day
   incidence_deaths = incidence_deaths, # deaths per day

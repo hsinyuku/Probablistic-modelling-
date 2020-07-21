@@ -66,41 +66,53 @@ remove_except <- function(element_list) {
   print(delete_objects)
 }
 
+# function to initiate controls
+init_controls <- function(objectValuePairs) {
+  controls <<- objectValuePairs
+}
+
 # function to check the controls, i.e. the objects that control the flow of --#
 # the code (which should be run) ---------------------------------------------#
 check_controls <- function() {
-  # Checking region; accessing the object directly in the global envrionment,
+  if(!exists("controls")) {
+    warning("Controls have not been initialised yet.")
+    return(0)
+  }
+  # Checking region; accessing the object directly in the global environment,
   # because otherwise the if-else checks on the local object region, which
   # is not changed by the first line
-  if(region == "Baden-Wuerttemberg") {
-    region <<- "BadenW"
+  if(controls["region"] == "Baden-Wuerttemberg") {
+    controls["region"] <<- "BadenW"
   }
-  if (!(region %in% regions)) {
-   print(region)
+  if (!(controls["region"] %in% regions)) {
+   print(controls["region"])
    warning("The region you specified is not a correct string. Functions will ",
            "not work! Please change the string. Check the regions-object for ",
            "the correct spelling of the regions.")
    return(0)
   }
   # Checking type: Age or Gender?
-  type <<- stringr::str_to_title(type)
+  type <<- stringr::str_to_title(controls["type"])
     # <<- will assign type in the global environment
   # inference must be integer, not a boolean
-  if (class(inference) == "logical") inference = as.integer(inference)
-  if (!(inference %in% c(0, 1))) {
+  if (class(controls["inference"]) == "logical") {
+    controls["inference"] = as.integer(controls["inference"])
+  } 
+  if (!(controls["inference"] %in% c(0, 1))) {
     warning("Inference must be either 1 or 0!")
     return(0)
   } 
   # ind_eta: should the model with varying eta be run?
-  if (ind_eta == T) ind_eta <<- "VaryingEta"
-  else ind_eta <<- "CommonEta"
+  if (controls["ind_eta"] == T) controls["ind_eta"] <<- "VaryingEta"
+  else controls["ind_eta"] <<- "CommonEta"
   # use_cores: how many cores should be used?
-  if (use_cores == "all") use_cores <<- parallel::detectCores()
-  else if (as.integer(use_cores) > parallel::detectCores()) {
+  if (controls["use_cores"] == "all")  {
+    controls["use_cores"] <<- parallel::detectCores()
+  } else if (as.integer(controls["use_cores"]) > parallel::detectCores()) {
     warning("You don't have that many cores! Change use_cores:")
     return(0)
   }
-  else use_cores <<- as.integer(use_cores)
+  else controls["use_cores"] <<- as.integer(controls["use_cores"])
   options(mc.cores = parallel::detectCores())
 }
   
