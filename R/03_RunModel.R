@@ -19,11 +19,14 @@ library(stringr)
   type = "Age"
   
   # Data for which region should be simulated and/or fitted?
-  region = "Spain"
+  region = "Lombardy"
   
   # How many chains and iterations should be run?
   chains = 4
   iterations = 1000
+  
+  # Parallel sampling: how many cores? (should be equal to chains)
+  cores = 4
   
   # Common or indiviual etas for groups (only work with Age model)
   ind_eta = T
@@ -78,7 +81,7 @@ library(stringr)
   
   remove(list = ls()[!(ls() %in% list("region", "type", "visualise", "inference",
                                       "doprint", "iterations","data_list_model",
-                                      "chains", "solver"))]) 
+                                      "chains", "solver", "ind_eta", "cores"))]) 
 }
 # ----------------------------------------------------------------------------#
 
@@ -97,7 +100,8 @@ samples = sampling(
   iter = iterations,
   chains = chains,
   init = 0.5,
-  control = list(max_treedepth = 10, adapt_delta = 0.8)
+  control = list(max_treedepth = 10, adapt_delta = 0.8),
+  cores = cores
 )
 
 # Save the samples and the DSO object to RDS
