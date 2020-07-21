@@ -69,9 +69,9 @@
   source(paste0("R/01_DataManagement_", region, ".R"))
   source(paste0("R/02_PrepareModel_", type, ".R"))
   
-  #remove_except(list("region", "type", "visualise", "inference", "doprint",
-  #                   "iterations","data_list_model", "chains", "solver",
-  #                   "ind_eta", "use_cores"))
+  remove_except(list("region", "type", "visualise", "inference", "doprint",
+                    "iterations","data_list_model", "chains", "solver",
+                    "ind_eta", "use_cores"))
 }
 # ----------------------------------------------------------------------------#
   
