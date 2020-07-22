@@ -1,0 +1,238 @@
+# ----------------------------------------------------------------------------#
+# ModelDiagnostics_Plotting.R
+# 
+# This script provides functions to plot out model diagnostics.
+# 
+# Note: the functions work with so-called side-effects. That means that many
+# of their arguments are not explicitly provided when called, but directly
+# taken from the global environment. That means that, in order for the
+# functions to work at all, the objects data_list_model, controls, and some
+# StanFit-object (here, usually called sampler) have to be loaded.
+# ----------------------------------------------------------------------------#
+
+
+Sys.setlocale("LC_TIME", "English") # this is necessary to get English date
+# labels in the plots
+
+# ----------------------------------------------------------------------------#
+# functions already translated ####
+# ----------------------------------------------------------------------------#
+
+# Function to save plots -----------------------------------------------------#
+# necessary parts of the name is taken directly from the list with the
+# controls, but can also be specified manually
+save_gg <- function(plot, name, region = controls["region"],
+                    ind_eta = controls["ind_eta"],
+                    chains = controls["chains"],
+                    iterations = controls["iterations"], 
+                    type = controls["type"],
+                    width = 10, height = 6){
+  file = paste0("Figures/", region, "_", type, "_", ind_eta, "_", iterations,
+                "iteratoins_", chains, "chains.png")
+  ggsave(file, units = "in",
+         width = width, height = height)
+  print(paste0("Saved plot to ", file))
+}
+
+# function to extract values from parameters as tibble -----------------------#
+extractValue <- function(name, printStat = c("2.5%", "97.5%", "50%")) {
+  rstan::summary(samples, name)[[1]] %>%
+    as_tibble() %>% mutate(metric = name) %>% 
+    select(metric, printStat)
+}
+
+# plotting simulated vs. real cases and deaths -------------------------------#
+plot_SimVsReal_Time <- function(metric, day_max, day_data,
+                                AllCasesFill = "#00B2EE",
+                                SymptCasesFill = "#66CD00",
+                                RepCasesFill = "#008B8B",
+                                SimDeaths = "#B22222", 
+                                ResDeaths = "#FFD700") {
+  # extracting values from data_list_model for easier referencing
+  daysTotal = data_list_model$S
+  # Generate a table with all the necessary data. Real reported symptomatic
+  # cases have their own column; for the predicted data, different statistics
+  # (median, mean, quantiles) are in the stat and the value columns (long data).
+  if (metric == "cases") {
+    dates <- as_date(day_data:day_max)
+    estimatedData <- rbind(
+      cbind(extractValue("predicted_reported_incidence_symptomatic_cases"), dates),
+      cbind(extractValue("predicted_overall_incidence_symptomatic_cases"), dates),
+      cbind(extractValue("predicted_overall_incidence_all_cases"), dates))  %>% 
+      # the releveling is necessary to control which metric gets printed over
+      # which metric ("order in which they are printed")
+      mutate(metric = factor(metric),
+             metric = fct_recode(metric,
+                                 All = "predicted_overall_incidence_all_cases",
+                                 Symptomatic = "predicted_overall_incidence_symptomatic_cases",
+                                 Reported = "predicted_reported_incidence_symptomatic_cases"))
+    realData  <- 
+      tibble(date = dates,
+             incidence = data_list_model$incidence_cases)
+  } else if (metric == "deaths") {
+    estimatedData <- 
+      extractValue("predicted_overall_incidence_deaths", 
+                   as_date(day_data:(day_max+data_list_model$G))) %>% 
+      mutate(metric = case_when(date <= day_max ~ "Simulated Deaths",
+                                date >= day_max ~ "Residual Deaths"),
+             metric = fct_relevel(metric, "Simulated Deaths")) 
+    
+    realData <- 
+      tibble(date = as_date(day_data:day_max),
+             incidence=data_list_model$incidence_deaths)
+  }
+  
+  # Plotting the data
+  plot <- ggplot(estimatedData, aes(x = date)) +
+    geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`, fill = metric),
+                alpha = 1) +
+    geom_line(aes(y = `50%`, linetype = metric)) +
+    geom_point(data = realData, 
+               aes(y = incidence), shape = 21, fill = "white")
+  # Styling the plot - common stylings
+  plot <- plot +
+    scale_x_date(labels = scales::label_date(format = "%b %d"))
+  # some stylings differ between cases and deaths:
+  if (metric == "cases") {
+    plot <- plot +
+      coord_cartesian(xlim=c(day_data, day_max)) +
+      labs(x = "Date (days)",
+           y = "Cases",
+           fill =  "Simulated Data \n(Median, 95% CI)",
+           linetype = "Simulated Data \n(Median, 95% CI)") +
+      scale_y_continuous(expand = expansion(mult=c(0,.05)),
+                         labels = scales::label_number(scale = 1/1000,
+                                                       accuracy = 0.1,
+                                                       suffix = " K")) +
+      geom_vline(xintercept = data_list_model$tswitch + day_data, linetype=2) +
+      scale_fill_manual(values = c(AllCasesFill, SymptCasesFill,
+                                   RepCasesFill))
+  } else if (metric == "deaths") {
+    plot <- plot +
+      coord_cartesian(xlim = c(day_data, day_max + data_list_model$G)) +
+      labs(x = "Date (days)", y = "Deaths per day", 
+           fill = "Simulated Data \n(Median, 95% CI)",
+           linetype = "Simulated Data \n(Median, 95% CI)") +
+      geom_vline(xintercept = day_max + 0.5, linetype=2) +
+      scale_y_continuous(expand = expansion(mult=c(0,.05))) +
+      scale_fill_manual(values = c(ResDeaths, SimDeaths))
+  }
+  return(plot)
+}
+
+# plotting deaths and cases per age group ------------------------------------#
+plot_SimVsReal_Group <- function(metric, AllCasesFill = "#00B2EE",
+                                 SymptCasesFill = "#66CD00",
+                                 RepCasesFill = "#008B8B",
+                                 SimDeaths = "#B22222", 
+                                 ResDeaths = "#FFD700") {
+  # Preparing the real (reported) data
+  if(controls$type == "Age") {
+    groupLabels <- c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59",
+                     "60-69", "70-79", "80+")
+    realData <- tibble(n = data_list_model[[f("agedistr_{metric}")]],
+                       group = groupLabels)
+  } else if(controls$type == "Gender") {
+      
+  }
+  # Preparing the simulated data
+  if(metric == "cases") {
+    estimatedData <- rbind(
+      extractValue("predicted_total_reported_symptomatic_cases_by_age"),
+      extractValue("predicted_total_overall_symptomatic_cases_by_age"),
+      extractValue("predicted_total_overall_all_cases_by_age")) %>% 
+      mutate(group = rep(groupLabels, 3),
+             metric = factor(metric),
+             metric = fct_recode(
+               metric,
+               All = "predicted_total_overall_all_cases_by_age",
+               `Symptomatic Cases` = "predicted_total_overall_symptomatic_cases_by_age",
+               `Reported Cases` = "predicted_total_reported_symptomatic_cases_by_age"))
+  } else if (metric == "deaths") {
+    estimatedData <- rbind(
+      extractValue("predicted_total_overall_deaths_tmax_by_age"),
+      extractValue("predicted_total_overall_deaths_delay_by_age")) %>% 
+      mutate(group = rep(groupLabels, 2),
+             metric = factor(metric),
+             metric = fct_recode(
+               metric,
+               `Reported Deaths` = "predicted_total_overall_deaths_tmax_by_age",
+               `Projected Deaths` = "predicted_total_overall_deaths_delay_by_age"
+             ))
+  }
+  plot <- ggplot() +
+    geom_col(data = realData, aes(y = n, x = group), fill = "white",
+             col = "black") +
+    geom_pointrange(data = estimatedData,
+                    aes(x = group, ymin = `2.5%`, y = `50%`, ymax = `97.5%`,
+                        col = metric))
+  # Common styling for all plots
+  plot <- plot + 
+    labs(col = "Simulated Data") +
+    scale_y_continuous(labels = scales::label_number(scale = 1/1000,
+                                                     accuracy = 0.1,
+                                                     suffix = " K"),
+                       expand = expansion(mult=c(0,.05)))
+  # Styling for Age vs. for Gender
+  if(controls$type == "Age") {
+    plot <- plot + 
+      labs(x = "Age Group") +
+      theme(axis.text.x=element_text(angle=45,hjust=1))
+  } else if(controls$type == "Gender") {
+    
+  }
+  if(metric == "cases") {
+    plot <- plot +
+      labs(y = "Number of total cases") +
+      scale_fill_manual(values = c(AllCasesFill, SymptCasesFill,
+                                   RepCasesFill))
+  } else if(metric == "deaths") {
+    plot <- plot + 
+      labs(y = "Number of deaths") +
+      scale_fill_manual(values = c(ResDeaths, SimDeaths))
+  }
+  return(plot)
+}
+
+# plotting ascertainment ratio rho per age group -----------------------------#
+plot_ascertainment <- function(AscRateFill = "#") {
+  rhoData <- summary(samples, "rho")$summary %>% as_tibble()
+  rhoData <- rhoData %>% mutate(ageGroup = rep(c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+")))
+  
+  ggplot(rhoData, aes(x = ageGroup, y = `50%`)) +
+    geom_col(width = 0.5, alpha = 0.7, fill = AscRateFill) +
+    geom_errorbar(aes(ymin = `2.5%`, ymax = `97.5%`), width = 0.5) +
+    labs(x = "Age group", y = "Ascertainment Rate (%) with 95% CI",
+         caption = paste0("Ascertainment Rate (%): proportion of symptomatic",
+                          "individuals per age group seeking care.\n",
+                          "Note: $\\rho$ is fixed to 1 for age roup 80+.")) +
+    theme(axis.text.x=element_text(angle=45,hjust=1)) +
+    scale_y_continuous(labels = scales::label_percent())
+}
+
+# Plot the reduction in transmissibility for different age groups ------------#
+plot_eta <- function(TransRedFill = "#8FCB9B") {
+  eta_age <-
+    summary(samples, "eta")$summary %>% as_tibble() %>%
+    mutate(ageGroup = rep(
+      c(
+        "0-9",
+        "10-19",
+        "20-29",
+        "30-39",
+        "40-49",
+        "50-59",
+        "60-69",
+        "70-79",
+        "80+"
+      )
+    ))
+  ggplot(eta_age, aes(x = ageGroup, y = `50%`)) +
+    geom_col(fill = TransRedFill, width = 0.5) +
+    labs(x = "Age group", y = "Reduction in transmissibility per age group, %",
+         caption = paste0("$\\eta$ is the reduction in transmissibility, for",
+                          " each age group, after the control measures are",
+                          "fully effective.")) +
+    theme(axis.text.x=element_text(angle=45,hjust=1)) +
+    scale_y_continuous(labels = scales::label_percent())
+}

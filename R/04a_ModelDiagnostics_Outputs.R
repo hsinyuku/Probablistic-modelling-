@@ -9,19 +9,19 @@
 # ----------------------------------------------------------------------------#
 # sourcing other scripts, setting controls ####
 # ----------------------------------------------------------------------------#
-# this line is an attempt at making the code execution stop when there are 
-# errors in on of the files to be sourced
 {
   remove(list = ls())
   source("setup.R")
   source("R/00_ContactMatrix_Gender_Age_Function.R")
-  init_controls(list(region = "Spain", type = "Gender", visualise = FALSE,
+  init_controls(list(region = "Spain", type = "Age", visualise = FALSE,
                      savePlots = FALSE))
   source(paste0("R/01_DataManagement_", controls["region"], ".R"))
   source(paste0("R/02_PrepareModel_", controls["type"], ".R"))
-  source("R/04b_ModelDiagnostics_Functions.R") # for visualizations
+  remove_except(list("controls", "data_list_model", "day_data", "day_max"))
+  source("setup.R") # adding necessary functions back in
+  source("R/99_NEWPLOTS.R") # for visualizations
 }
-#theme_set(theme_bw())
+theme_set(theme_bw())
 {
   # Load the saved posterior samples in the data (obviously without sampling
   # them every time).
@@ -35,19 +35,18 @@
   controls["warmup"] <- controls$iterations -
     nrow(get_sampler_params(samples, inc_warmup = FALSE)[[1]])
 }
-
-# Gather all parameters in theta
-pars <- c("beta", "epsilon","rho","pi","psi", "eta")
 # ----------------------------------------------------------------------------#
 
 
 # ----------------------------------------------------------------------------#
-# model inspection ####
+# simulated vs. real data ####
 # ----------------------------------------------------------------------------#
 
 # # Plot the parameter posteriors and overlaying the chains to check for -----#
 # consistence ----------------------------------------------------------------#
 {
+  # Gather all parameters in theta
+  pars <- c("beta", "epsilon","rho","pi","psi", "eta")
   subtitle = f(paste0("For {controls[chains]} chains and ",
                "{controls[iterations]} iterations per chain."))
   title = f(paste0("Posterior Density Plots ({controls[region]})" ))
@@ -58,11 +57,20 @@ pars <- c("beta", "epsilon","rho","pi","psi", "eta")
     save_gg(plot = plot, name = "Posterior Density")
   }
   plot
+  remove(pars, subtitle, title)
 }
 
 # Plot simulated cases (all, symptomatic, reported) vs real cases ------------#
-plot_incidence_cases(samples = samples,
-                     data_list = data_list_model,
-                     start_date = day_data,
-                     end_date = day_max,
-                     region = controls["region"]) 
+plot_SimVsReal("deaths", day_data = day_data, day_max = day_max)
+
+plot_SimVsReal_Group("cases")
+
+
+# ----------------------------------------------------------------------------#
+
+
+# ----------------------------------------------------------------------------#
+# final value of single parameters ####
+# ----------------------------------------------------------------------------#
+plot_ascertainment("#CC333F")
+# ----------------------------------------------------------------------------#

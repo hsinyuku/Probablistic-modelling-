@@ -1,28 +1,18 @@
-# ----------------------------------------------------------------------------#
-# ModelDiagnostics_Plotting.R
-# 
-# This script provides functions to plot out model diagnostics.
-# ----------------------------------------------------------------------------#
 
-# ----------------------------------------------------------------------------#
-# functions already translated ####
-# ----------------------------------------------------------------------------#
 
-# Function to save plots -----------------------------------------------------#
-# necessary parts of the name is taken directly from the list with the
-# controls, but can also be specified manually
-save_gg <- function(plot, name, region = controls["region"],
-                    ind_eta = controls["ind_eta"],
-                    chains = controls["chains"],
-                    iterations = controls["iterations"], 
-                    type = controls["type"],
-                    width = 10, height = 6){
-  file = paste0("Figures/", region, "_", type, "_", ind_eta, "_", iterations,
-                "iteratoins_", chains, "chains.png")
-  ggsave(file, units = "in",
-         width = width, height = height)
-  print(paste0("Saved plot to ", file))
-}
+#      +
+#     scale_y_continuous(expand=expand_scale(mult=c(0,.05)),
+#                        labels=function(x) paste0(x/1000,"K")) +
+#     
+#     geom_vline(xintercept=tswitch+start_date,linetype=2) +
+#     
+#     geom_vline(xintercept=S+start_date,linetype=2) +
+#     
+#     scale_fill_manual(name = "Sim. cases (CI)", values = c("col1" = col1, "col2" = col3, "col3" = col2), labels = c("All","Symptomatic","Reported")) +
+#     scale_linetype_manual(name = "Sim. cases (Median)", values = c("dotted" = "longdash", "longdash" = "dotted", "solid" = "solid"), labels = c("All","Symptomatic","Reported")) +
+#     scale_shape_manual(name = "Real cases", values = c("21" = 21), labels = "Daily cases")
+# }
+
 # ----------------------------------------------------------------------------#
 
 # ----------------------------------------------------------------------------#
@@ -34,57 +24,57 @@ logit = function(x) log(x/(1-x))
 
 # plot functions
 
-plot_ascertainment <- function(samples,
-                                data_list,
-                                col1 = "#EDC951",
-                                col2 = "#EB6841",
-                                col3 = "#CC333F",
-                                region) {
+# plot_ascertainment <- function(samples,
+#                                 data_list,
+#                                 col1 = "#EDC951",
+#                                 col2 = "#EB6841",
+#                                 col3 = "#CC333F",
+#                                 region) {
+# 
+#   rhoData <- summary(samples, "rho")$summary %>% as_tibble()
+#   
+#   
+#   rhoData <- rhoData %>% mutate(ageGroup = rep(c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+")))
+#   
+#   ggplot(rhoData, aes(x = ageGroup, y = `50%`*100)) +
+#     geom_col(fill = col3, width = 0.5) +
+#     labs(x = "Age group", y = "Ascertainment Rate (%)",
+#          title = paste0("Ascertainment Rate (", region,")"),
+#          subtitle = "% of symptomatic individuals seeking care") +
+#     theme(axis.text.x=element_text(angle=45,hjust=1))
+# }
 
-  rhoData <- summary(samples, "rho")$summary %>% as_tibble()
-  
-  
-  rhoData <- rhoData %>% mutate(ageGroup = rep(c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+")))
-  
-  ggplot(rhoData, aes(x = ageGroup, y = `50%`*100)) +
-    geom_col(fill = col3, width = 0.5) +
-    labs(x = "Age group", y = "Ascertainment Rate (%)",
-         title = paste0("Ascertainment Rate (", region,")"),
-         subtitle = "% of symptomatic individuals seeking care") +
-    theme(axis.text.x=element_text(angle=45,hjust=1))
-}
-
-plot_eta <- function(samples,
-                     data_list,
-                     region) {
-  
-  
-  
-  eta_age <-
-    summary(samples, "eta")$summary %>% as_tibble() %>% mutate(ageGroup = rep(
-      c(
-        "0-9",
-        "10-19",
-        "20-29",
-        "30-39",
-        "40-49",
-        "50-59",
-        "60-69",
-        "70-79",
-        "80+"
-      )
-    ))
-  
-  ggplot(eta_age, aes(x = ageGroup, y = `50%`*100)) +
-    geom_col(fill = "#8FCB9B", width = 0.5) +
-    labs(x = "Age group", y = "Reduction in transmissibility (%)",
-         title = paste0("Reduction in transmissibility after applying control measures (", region,")"),
-         subtitle = "Among age groups") +
-    theme(axis.text.x=element_text(angle=45,hjust=1)) +
-    scale_y_continuous(limits = c(0,100))
-  
-   
-}
+# plot_eta <- function(samples,
+#                      data_list,
+#                      region) {
+#   
+#   
+#   
+#   eta_age <-
+#     summary(samples, "eta")$summary %>% as_tibble() %>% mutate(ageGroup = rep(
+#       c(
+#         "0-9",
+#         "10-19",
+#         "20-29",
+#         "30-39",
+#         "40-49",
+#         "50-59",
+#         "60-69",
+#         "70-79",
+#         "80+"
+#       )
+#     ))
+#   
+#   ggplot(eta_age, aes(x = ageGroup, y = `50%`*100)) +
+#     geom_col(fill = "#8FCB9B", width = 0.5) +
+#     labs(x = "Age group", y = "Reduction in transmissibility (%)",
+#          title = paste0("Reduction in transmissibility after applying control measures (", region,")"),
+#          subtitle = "Among age groups") +
+#     theme(axis.text.x=element_text(angle=45,hjust=1)) +
+#     scale_y_continuous(limits = c(0,100))
+#   
+#    
+# }
 
 plot_agedist_cases_perc <- function(samples,
                                     data_list,
@@ -147,75 +137,75 @@ plot_agedist_deaths_perc <- function(samples,
 }
 
 
-plot_incidence_cases = function(samples,
-                                data_list,
-                                col1 = "#EDC951",
-                                col2 = "#EB6841",
-                                col3 = "#CC333F",
-                                start_date,
-                                end_date,
-                                region) {
-  t0 = data_list$t0
-  S = data_list$S
-  G = data_list$G
-  tswitch = data_list$tswitch
-
-  data_incidence_cases <-
-    data.frame(time = 1:S,
-               incidence = data_list$incidence_cases) %>%
-    mutate(date = time + start_date)
-  
-  predicted_reported_incidence_symptomatic_cases = 
-    rstan::summary(samples,"predicted_reported_incidence_symptomatic_cases")[[1]] %>%
-    as_tibble() %>%
-    mutate(time=1:S,
-           date=time+start_date) %>%
-    left_join(data_incidence_cases)
-  
-  predicted_overall_incidence_symptomatic_cases = 
-    rstan::summary(samples,"predicted_overall_incidence_symptomatic_cases")[[1]] %>%
-    as_tibble() %>%
-    mutate(time=1:S,
-           date=time+start_date) %>%
-    left_join(data_incidence_cases)
-
-  predicted_overall_incidence_all_cases = rstan::summary(samples,"predicted_overall_incidence_all_cases")[[1]] %>%
-    as_tibble() %>%
-    mutate(time=1:S,
-           date=time+start_date) %>%
-    left_join(data_incidence_cases)
-
-  ggplot() +
-    
-    geom_ribbon(data = predicted_overall_incidence_all_cases, aes(x = date, ymin = `2.5%`, ymax = `97.5%`, fill = "col1"), alpha = 1) +
-    
-    geom_ribbon(data=predicted_overall_incidence_symptomatic_cases,aes(x=date,ymin=`2.5%`,ymax=`97.5%`,fill= "col2"),alpha=1) +
-    
-    geom_ribbon(data=predicted_reported_incidence_symptomatic_cases,aes(x=date,ymin=`2.5%`,ymax=`97.5%`,fill= "col3"),alpha=1) +
-    
-    geom_line(data=predicted_overall_incidence_all_cases,aes(x=date,y=`50%`,linetype = "dotted")) +
-    
-    geom_line(data=predicted_overall_incidence_symptomatic_cases,aes(x=date,y=`50%`,linetype = "longdash")) +
-    
-    geom_line(data=predicted_reported_incidence_symptomatic_cases,aes(x=date,y=`50%`, linetype = "solid")) +
-    
-    geom_point(data=data_incidence_cases,aes(x=date,y=incidence, shape = "21") ,fill="white") +
-    
-    coord_cartesian(xlim=c(start_date,end_date)) +
-    labs(title = paste0("Daily Real cases vs Simulated cases (",region,")"),
-         subtitle = "SIM: All cases, Symptomatic cases, Reported cases",
-         x = "Time",
-         y = "Cases") +
-    scale_y_continuous(expand=expand_scale(mult=c(0,.05)),
-                       labels=function(x) paste0(x/1000,"K")) +
-    
-    geom_vline(xintercept=tswitch+start_date,linetype=2) +
-    
-    geom_vline(xintercept=S+start_date,linetype=2) +
-
-    scale_fill_manual(name = "Sim. cases (CI)", values = c("col1" = col1, "col2" = col3, "col3" = col2), labels = c("All","Symptomatic","Reported")) +
-    scale_linetype_manual(name = "Sim. cases (Median)", values = c("dotted" = "longdash", "longdash" = "dotted", "solid" = "solid"), labels = c("All","Symptomatic","Reported")) +
-    scale_shape_manual(name = "Real cases", values = c("21" = 21), labels = "Daily cases")
+# plot_incidence_cases = function(samples,
+#                                 data_list,
+#                                 col1 = "#EDC951",
+#                                 col2 = "#EB6841",
+#                                 col3 = "#CC333F",
+#                                 start_date,
+#                                 end_date,
+#                                 region) {
+#   t0 = data_list$t0
+#   S = data_list$S
+#   G = data_list$G
+#   tswitch = data_list$tswitch
+# 
+#   data_incidence_cases <-
+#     data.frame(time = 1:S,
+#                incidence = data_list$incidence_cases) %>%
+#     mutate(date = time + start_date)
+#   
+#   predicted_reported_incidence_symptomatic_cases = 
+#     rstan::summary(samples,"predicted_reported_incidence_symptomatic_cases")[[1]] %>%
+#     as_tibble() %>%
+#     mutate(time=1:S,
+#            date=time+start_date) %>%
+#     left_join(data_incidence_cases)
+#   
+#   predicted_overall_incidence_symptomatic_cases = 
+#     rstan::summary(samples,"predicted_overall_incidence_symptomatic_cases")[[1]] %>%
+#     as_tibble() %>%
+#     mutate(time=1:S,
+#            date=time+start_date) %>%
+#     left_join(data_incidence_cases)
+# 
+#   predicted_overall_incidence_all_cases = rstan::summary(samples,"predicted_overall_incidence_all_cases")[[1]] %>%
+#     as_tibble() %>%
+#     mutate(time=1:S,
+#            date=time+start_date) %>%
+#     left_join(data_incidence_cases)
+# 
+#   ggplot() +
+#     
+#     geom_ribbon(data = predicted_overall_incidence_all_cases, aes(x = date, ymin = `2.5%`, ymax = `97.5%`, fill = "col1"), alpha = 1) +
+#     
+#     geom_ribbon(data=predicted_overall_incidence_symptomatic_cases,aes(x=date,ymin=`2.5%`,ymax=`97.5%`,fill= "col2"),alpha=1) +
+#     
+#     geom_ribbon(data=predicted_reported_incidence_symptomatic_cases,aes(x=date,ymin=`2.5%`,ymax=`97.5%`,fill= "col3"),alpha=1) +
+#     
+#     geom_line(data=predicted_overall_incidence_all_cases,aes(x=date,y=`50%`,linetype = "dotted")) +
+#     
+#     geom_line(data=predicted_overall_incidence_symptomatic_cases,aes(x=date,y=`50%`,linetype = "longdash")) +
+#     
+#     geom_line(data=predicted_reported_incidence_symptomatic_cases,aes(x=date,y=`50%`, linetype = "solid")) +
+#     
+#     geom_point(data=data_incidence_cases,aes(x=date,y=incidence, shape = "21") ,fill="white") +
+#     
+#     coord_cartesian(xlim=c(start_date,end_date)) +
+#     labs(title = paste0("Daily Real cases vs Simulated cases (",region,")"),
+#          subtitle = "SIM: All cases, Symptomatic cases, Reported cases",
+#          x = "Time",
+#          y = "Cases") +
+#     scale_y_continuous(expand=expand_scale(mult=c(0,.05)),
+#                        labels=function(x) paste0(x/1000,"K")) +
+#     
+#     geom_vline(xintercept=tswitch+start_date,linetype=2) +
+#     
+#     geom_vline(xintercept=S+start_date,linetype=2) +
+# 
+#     scale_fill_manual(name = "Sim. cases (CI)", values = c("col1" = col1, "col2" = col3, "col3" = col2), labels = c("All","Symptomatic","Reported")) +
+#     scale_linetype_manual(name = "Sim. cases (Median)", values = c("dotted" = "longdash", "longdash" = "dotted", "solid" = "solid"), labels = c("All","Symptomatic","Reported")) +
+#     scale_shape_manual(name = "Real cases", values = c("21" = 21), labels = "Daily cases")
 }
 
 
@@ -285,126 +275,44 @@ plot_agedist_cases = function(samples,data_list,col1="darkcyan",col2="chartreuse
     theme(axis.text.x=element_text(angle=45,hjust=1))
 }
 
-plot_incidence_deaths = function(samples,data_list,col1="#FF3D7F",col2="#3FB8AF",col3="darkorange",start_date,end_date) {
-  t0 = data_list$t0
-  S = data_list$S
-  G = data_list$G
-  tswitch = data_list$tswitch
-  y = rstan::extract(samples,"y")[[1]]
-  
-  data_incidence_deaths = data.frame(time=1:S,
-                                     incidence=data_list$incidence_deaths)
-  predicted_overall_incidence_deaths = rstan::summary(samples,"predicted_overall_incidence_deaths")[[1]] %>%
-    as_tibble() %>%
-    mutate(time=1:(S+G),
-           date=time+start_date) %>%
-    left_join(data_incidence_deaths)
-  predicted_overall_incidence_deaths_tmax = filter(predicted_overall_incidence_deaths,time<=S)
-  
-  ggplot() +
-    geom_ribbon(data=predicted_overall_incidence_deaths,aes(x=date,ymin=`2.5%`,ymax=`97.5%`,fill="col2"),alpha=1) +
-    
-    geom_ribbon(data=predicted_overall_incidence_deaths_tmax,aes(x=date,ymin=`2.5%`,ymax=`97.5%`,fill="col1"),alpha=1) +
-
-    geom_point(data=predicted_overall_incidence_deaths,aes(x=date,y=incidence, shape="21"),fill="white") +
-    
-    geom_line(data=predicted_overall_incidence_deaths,aes(x=date,y=`50%`, linetype = "dotted")) +
-    
-    geom_line(data=predicted_overall_incidence_deaths_tmax,aes(x=date,y=`50%`, linetype = "solid")) +
-    
-    coord_cartesian(xlim=c(start_date,end_date + G)) +
-    
-    labs(x="Time",y="Deaths per day", title = "Daily Real deaths VS. Simulated deaths") +
-    
-    scale_y_continuous(expand=expand_scale(mult=c(0,.05))) +
-    geom_vline(xintercept=tswitch+start_date,linetype=2) +
-    geom_vline(xintercept=S+start_date,linetype=2) +
-    scale_fill_manual(name = "Sim. deaths (CI)", values = c("col1" = col1, "col2" = col2), labels = c("Deaths"," Residual deaths")) +
-    scale_linetype_manual(name = "Sim. deaths (Median)", values = c("dotted" = "dotted", "solid" = "solid"), labels = c("Residual deaths", "Deaths")) +
-    scale_shape_manual(name = "Real deaths", values = c("21" = 21), labels = "Daily deaths")
+# plot_incidence_deaths = function(samples,data_list,col1="#FF3D7F",col2="#3FB8AF",col3="darkorange",start_date,end_date) {
+#   t0 = data_list$t0
+#   S = data_list$S
+#   G = data_list$G
+#   tswitch = data_list$tswitch
+#   y = rstan::extract(samples,"y")[[1]]
+#   
+#   data_incidence_deaths = data.frame(time=1:S,
+#                                      incidence=data_list$incidence_deaths)
+#   predicted_overall_incidence_deaths = rstan::summary(samples,"predicted_overall_incidence_deaths")[[1]] %>%
+#     as_tibble() %>%
+#     mutate(time=1:(S+G),
+#            date=time+start_date) %>%
+#     left_join(data_incidence_deaths)
+#   predicted_overall_incidence_deaths_tmax = filter(predicted_overall_incidence_deaths,time<=S)
+#   
+#   ggplot() +
+#     geom_ribbon(data=predicted_overall_incidence_deaths,aes(x=date,ymin=`2.5%`,ymax=`97.5%`,fill="col2"),alpha=1) +
+#     
+#     geom_ribbon(data=predicted_overall_incidence_deaths_tmax,aes(x=date,ymin=`2.5%`,ymax=`97.5%`,fill="col1"),alpha=1) +
+# 
+#     geom_point(data=predicted_overall_incidence_deaths,aes(x=date,y=incidence, shape="21"),fill="white") +
+#     
+#     geom_line(data=predicted_overall_incidence_deaths,aes(x=date,y=`50%`, linetype = "dotted")) +
+#     
+#     geom_line(data=predicted_overall_incidence_deaths_tmax,aes(x=date,y=`50%`, linetype = "solid")) +
+#     
+#     coord_cartesian(xlim=c(start_date,end_date + G)) +
+#     
+#     labs(x="Time",y="Deaths per day", title = "Daily Real deaths VS. Simulated deaths") +
+#     
+#     scale_y_continuous(expand=expand_scale(mult=c(0,.05))) +
+#     geom_vline(xintercept=tswitch+start_date,linetype=2) +
+#     geom_vline(xintercept=S+start_date,linetype=2) +
+#     scale_fill_manual(name = "Sim. deaths (CI)", values = c("col1" = col1, "col2" = col2), labels = c("Deaths"," Residual deaths")) +
+#     scale_linetype_manual(name = "Sim. deaths (Median)", values = c("dotted" = "dotted", "solid" = "solid"), labels = c("Residual deaths", "Deaths")) +
+#     scale_shape_manual(name = "Real deaths", values = c("21" = 21), labels = "Daily deaths")
 }
-
-
-
-
-plot_incidence_cases = function(samples,
-                                data_list,
-                                col1 = "#EDC951",
-                                col2 = "#EB6841",
-                                col3 = "#CC333F",
-                                start_date,
-                                end_date,
-                                region) {
-  t0 = data_list$t0
-  S = data_list$S
-  G = data_list$G
-  tswitch = data_list$tswitch
-  
-  data_incidence_cases <-
-    data.frame(time = 1:S,
-               incidence = data_list$incidence_cases) %>%
-    mutate(date = time + start_date)
-  
-  predicted_reported_incidence_symptomatic_cases = 
-    rstan::summary(samples,"predicted_reported_incidence_symptomatic_cases")[[1]] %>%
-    as_tibble() %>%
-    mutate(time=1:S,
-           date=time+start_date) %>%
-    left_join(data_incidence_cases)
-  
-  predicted_overall_incidence_symptomatic_cases = 
-    rstan::summary(samples,"predicted_overall_incidence_symptomatic_cases")[[1]] %>%
-    as_tibble() %>%
-    mutate(time=1:S,
-           date=time+start_date) %>%
-    left_join(data_incidence_cases)
-  
-  predicted_overall_incidence_all_cases = rstan::summary(samples,"predicted_overall_incidence_all_cases")[[1]] %>%
-    as_tibble() %>%
-    mutate(time=1:S,
-           date=time+start_date) %>%
-    left_join(data_incidence_cases)
-  
-  ggplot() +
-    
-    geom_ribbon(data = predicted_overall_incidence_all_cases, aes(x = date, ymin = `2.5%`, ymax = `97.5%`, fill = "col1"), alpha = 1) +
-    
-    geom_ribbon(data=predicted_overall_incidence_symptomatic_cases,aes(x=date,ymin=`2.5%`,ymax=`97.5%`,fill= "col2"),alpha=1) +
-    
-    geom_ribbon(data=predicted_reported_incidence_symptomatic_cases,aes(x=date,ymin=`2.5%`,ymax=`97.5%`,fill= "col3"),alpha=1) +
-    
-    geom_line(data=predicted_overall_incidence_all_cases,aes(x=date,y=`50%`,linetype = "dotted")) +
-    
-    geom_line(data=predicted_overall_incidence_symptomatic_cases,aes(x=date,y=`50%`,linetype = "longdash")) +
-    
-    geom_line(data=predicted_reported_incidence_symptomatic_cases,aes(x=date,y=`50%`, linetype = "solid")) +
-    
-    geom_point(data=data_incidence_cases,aes(x=date,y=incidence, shape = "21") ,fill="white") +
-    
-    coord_cartesian(xlim=c(start_date,end_date)) +
-    labs(title = paste0("Daily Real cases vs Simulated cases (",region,")"),
-         subtitle = "SIM: All cases, Symptomatic cases, Reported cases",
-         x = "Time",
-         y = "Cases") +
-    scale_y_continuous(expand=expand_scale(mult=c(0,.05)),
-                       labels=function(x) paste0(x/1000,"K")) +
-    
-    geom_vline(xintercept=tswitch+start_date,linetype=2) +
-    
-    geom_vline(xintercept=S+start_date,linetype=2) +
-    
-    scale_fill_manual(name = "Sim. cases (CI)", values = c("col1" = col1, "col2" = col3, "col3" = col2), labels = c("All","Symptomatic","Reported")) +
-    scale_linetype_manual(name = "Sim. cases (Median)", values = c("dotted" = "longdash", "longdash" = "dotted", "solid" = "solid"), labels = c("All","Symptomatic","Reported")) +
-    scale_shape_manual(name = "Real cases", values = c("21" = 21), labels = "Daily cases")
-}
-
-
-
-
-
-
-
-
 
 plot_total_deaths = function(samples,data_list,col1="firebrick",col2="gold",col3="darkorange",start_date,end_date) {
   t0 = data_list$t0
@@ -569,30 +477,30 @@ plot_agedist_cfr= function(samples,data_list,col1,col2,col3,insert=c(.7,7,.35,.9
     annotate("segment",x=3.5,xend=mean(insert[1:2]),y=.037,yend=insert[3]*1.2,colour="grey30",linetype=2) 
 }
 
-plot_incidence_deaths2 = function(samples,data_list,col1="firebrick",col2="gold",col3="darkorange",start_date,end_date) {
-  t0 = data_list$t0
-  S = data_list$S
-  D = data_list$D
-  G = data_list$G
-  tswitch = data_list$tswitch
-  S = data_list$S
-  y = rstan::extract(samples,"y")[[1]]
-  data_incidence_deaths = data.frame(time=1:D,incidence=data_list$incidence_deaths)
-  predicted_overall_incidence_deaths = rstan::summary(samples,"predicted_overall_incidence_deaths")[[1]] %>%
-    as_tibble() %>%
-    mutate(time=1:(D+G),
-           date=time+start_date) %>%
-    left_join(data_incidence_deaths)
-  predicted_overall_incidence_deaths_tmax = filter(predicted_overall_incidence_deaths,time<=D)
-  ggplot() +
-    geom_ribbon(data=predicted_overall_incidence_deaths,aes(x=date,ymin=`2.5%`,ymax=`97.5%`),fill=col2,alpha=1) +
-    geom_line(data=predicted_overall_incidence_deaths,aes(x=date,y=`50%`),linetype=3) +
-    geom_ribbon(data=predicted_overall_incidence_deaths_tmax,aes(x=date,ymin=`2.5%`,ymax=`97.5%`),fill=col1,alpha=1) +
-    geom_line(data=predicted_overall_incidence_deaths_tmax,aes(x=date,y=`50%`)) +
-    geom_point(data=predicted_overall_incidence_deaths,aes(x=date,y=incidence),shape=21,fill="white") +
-    coord_cartesian(xlim=c(start_date,end_date)) +
-    labs(x="Time",y="Deaths per day") +
-    scale_y_continuous(expand=expand_scale(mult=c(0,.05))) +
-    geom_vline(xintercept=tswitch+start_date,linetype=2) +
-    geom_vline(xintercept=S+start_date,linetype=2) 
-}
+# plot_incidence_deaths2 = function(samples,data_list,col1="firebrick",col2="gold",col3="darkorange",start_date,end_date) {
+#   t0 = data_list$t0
+#   S = data_list$S
+#   D = data_list$D
+#   G = data_list$G
+#   tswitch = data_list$tswitch
+#   S = data_list$S
+#   y = rstan::extract(samples,"y")[[1]]
+#   data_incidence_deaths = data.frame(time=1:D,incidence=data_list$incidence_deaths)
+#   predicted_overall_incidence_deaths = rstan::summary(samples,"predicted_overall_incidence_deaths")[[1]] %>%
+#     as_tibble() %>%
+#     mutate(time=1:(D+G),
+#            date=time+start_date) %>%
+#     left_join(data_incidence_deaths)
+#   predicted_overall_incidence_deaths_tmax = filter(predicted_overall_incidence_deaths,time<=D)
+#   ggplot() +
+#     geom_ribbon(data=predicted_overall_incidence_deaths,aes(x=date,ymin=`2.5%`,ymax=`97.5%`),fill=col2,alpha=1) +
+#     geom_line(data=predicted_overall_incidence_deaths,aes(x=date,y=`50%`),linetype=3) +
+#     geom_ribbon(data=predicted_overall_incidence_deaths_tmax,aes(x=date,ymin=`2.5%`,ymax=`97.5%`),fill=col1,alpha=1) +
+#     geom_line(data=predicted_overall_incidence_deaths_tmax,aes(x=date,y=`50%`)) +
+#     geom_point(data=predicted_overall_incidence_deaths,aes(x=date,y=incidence),shape=21,fill="white") +
+#     coord_cartesian(xlim=c(start_date,end_date)) +
+#     labs(x="Time",y="Deaths per day") +
+#     scale_y_continuous(expand=expand_scale(mult=c(0,.05))) +
+#     geom_vline(xintercept=tswitch+start_date,linetype=2) +
+#     geom_vline(xintercept=S+start_date,linetype=2) 
+# }
