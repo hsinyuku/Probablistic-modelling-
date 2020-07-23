@@ -53,6 +53,107 @@ get_par_lnorm = function(m, s) {
   sigma = sqrt(log((s/m)^2+1))
   return(list(mu=mu, sigma=sigma))
 }
+
+# function to delete all objects in the global environment, with exceptions---#
+remove_except <- function(element_list) {
+  # element_list must be a list of strings!
+  objects <- ls(name = globalenv())
+  indices <- objects %in% element_list
+  delete_objects <- objects[!indices]
+  keep_objects <- objects[indices]
+  remove(list = delete_objects, pos = globalenv())
+  print("Removed the following objects:")
+  print(delete_objects)
+}
+
+# function to initiate controls
+init_controls <- function(objectValuePairs) {
+  controls <<- objectValuePairs
+}
+
+# function to check the controls, i.e. the objects that control the flow of --#
+# the code (which should be run) ---------------------------------------------#
+check_controls <- function() {
+  if(!exists("controls")) {
+    warning("Controls have not been initialised yet.")
+    return(0)
+  }
+  # Checking region; accessing the object directly in the global environment,
+  # because otherwise the if-else checks on the local object region, which
+  # is not changed by the first line
+  if(controls["region"] == "Baden-Wuerttemberg") {
+    controls$region <<- "BadenW"
+  }
+  if (!(controls$region %in% regions)) {
+   print(controls$region)
+   warning("The region you specified is not a correct string. Functions will ",
+           "not work! Please change the string. Check the regions-object for ",
+           "the correct spelling of the regions.")
+   return(0)
+  }
+  # Checking type: Age or Gender?
+  type <<- stringr::str_to_title(controls$type)
+    # <<- will assign type in the global environment
+  # inference must be integer, not a boolean
+  if (class(controls$inference) == "logical") {
+    controls$inference <<- as.integer(controls$inference)
+  } 
+  if (!(controls$inference %in% c(0, 1))) {
+    warning("Inference must be either 1 or 0!")
+    return(0)
+  } 
+  # ind_eta: should the model with varying eta be run?
+  if (controls$ind_eta == T) {
+    controls$ind_eta <<- "VaryingEta"
+    }  else {
+    controls$ind_eta <<- "CommonEta"
+  }
+    
+  # use_cores: how many cores should be used?
+  if (controls$use_cores == "all")  {
+    controls$use_cores <<- parallel::detectCores()
+  } else if (as.integer(controls$use_cores) > parallel::detectCores()) {
+    warning("You don't have that many cores! Change use_cores:")
+    return(0)
+  }
+  else controls$use_cores <<- as.integer(controls$use_cores)
+  options(mc.cores = parallel::detectCores())
+}
+  
+
+# this function should be able to provide python-like fstring-functionality. -#
+# Probably really slow, but will do the trick for things like plot caption. --#
+# CAN NOT BE USED INSIDE FUNCTION, MUST BE CALLED DIRECTLY FROM THE GLOBAL
+# ENVIRONMENT
+f <- function(fstring) {
+  replaceRegExp <- "\\{[[:alnum:]\\_\\]\\[]+\\}"
+    # the pattern we are looking for is any variable, surrounded by curly 
+    # brackets; variable names can contain letters, digits, and _ (but not 
+    # other special characters)
+  fstring2val <- function(fstring) {
+    # writing a function to use in str_replace_all(); one object name (enclosed)
+    # by curly brackets) at a time will be passed to this
+    objectName <- str_sub(fstring, 2, -2)
+      # remove the surrounding brackets, so the object's name remains
+    if(str_detect(objectName, "\\[[[:alnum:]\\_]+\\]")) {
+      # function should be able to call objects from lists, which have to be
+      # indexed using [[]] and quotation marks. To deal with this, we separate
+      # the two parts: the list name and the element name.
+      listName = str_extract(objectName, "[[:alnum:]\\_]+(?=\\[)")
+        # this is the name of the list to be accessed
+      listElement = str_sub(str_extract(objectName, "\\[[[:alnum:]\\_]+\\]"), 2, -2)
+        # this is the name of the element inside the list to be accessed
+      return(get(listName)[listElement])
+      # glue it together and call get()
+    } else {
+      # if the string passed was not a list, accessing is much simpler:
+      return(get(objectName))
+    }
+  }
+  # finally, search for all objects in the fstring (surrounded by curly
+  # brackets), then replace them one be one.
+  return(str_replace_all(fstring, replaceRegExp, fstring2val))
+}
 # ----------------------------------------------------------------------------#
 
 

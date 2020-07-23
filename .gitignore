@@ -40,4 +40,6 @@ vignettes/*.pdf
 
 # no links to other files
 *.lnk 
+
+# don't sync large posteriors
 Posteriors/spain_samples1000.Rds

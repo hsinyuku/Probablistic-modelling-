@@ -2,36 +2,33 @@
 # ModelDiagnostics.R
 # 
 # This idea of this file is to run model diagnostics. Functions for this file
-# come from the script 04a_ModelDiagnostics_Plotting_Functions
-# ----------------------------------------------------------------------------#
-#
-#
-# ----------------------------------------------------------------------------#
-# Entering region name ####
+# come from the script 04a_ModelDiagnostics_Plotting_Functions.
+# This script should be able to run on its own. Therefore, we need to provide
+# certain control variables.
 # ----------------------------------------------------------------------------#
 
-# I'm intending to write only one diagnostic script for all regions. Please
-# replace the region variable with the name of the regions you want.
+region = "Spain"
 
-region <- "Spain"
+type = "Age"
 
-type <- "age"
-
-visualise <- FALSE 
-
-inference <- 1
-
-doprint <- 0
 # ----------------------------------------------------------------------------#
 # sourcing other scripts ####
 # ----------------------------------------------------------------------------#
-# this line is an attempt at making the code execution stop when there are 
-# errors in on of the files to be sourced 
-source("setup.R")
-source(paste0("R/01_DataManagement_", region, ".R"))
-source(paste0("R/02_PrepareModel_", type, ".R"), echo = T)
-source("R/04b_ModelDiagnostics_Functions.R") # for visualizations
-theme_set(theme_bw())
+{
+  source("setup.R")
+  source(paste0("R/01_DataManagement_", region, ".R"))
+  source(paste0("R/02_PrepareModel_", type, ".R"), echo = T)
+  source("R/04b_ModelDiagnostics_Functions.R") # for visualizations
+  theme_set(theme_bw())
+}
+# ----------------------------------------------------------------------------#
+
+
+# ----------------------------------------------------------------------------#
+# Defining control variables ####
+# ----------------------------------------------------------------------------#
+
+# ----------------------------------------------------------------------------#
 
 # Load the saved posterior samples in the data. I don't want to source
 # 03_RunModel file here as it would force the whole sampling process to repeat
@@ -43,29 +40,19 @@ samples <-  readRDS(file = paste0("Posteriors/",region, "_Samples_200718.Rds"))
 pars <- c("beta", "epsilon","rho","pi","psi", "eta")
 
 
-# Function to save plots
-save_gg <- function(plot, name, region, width = 10, height = 6){
-  ggsave(paste0("Figures/", region, " - ", name, ".png"), units = "in",
-         width = width, height = height)
-  # warning(paste0("Saved plot to ", paste0("Figures/", region, " - ", name, ".png")))
-}
-
 # Plot the parameter posteriors and overlaying the chains to check for
 # consistence
-stan_dens(samples, pars = pars, separate_chains = T, nrow = 3, ) +
+stan_dens(samples, pars = pars, separate_chains = T, nrow = 3) +
   labs(title = paste0("Posterior Density Plots (",region,")"), 
        subtitle = ("For 4 separating chains, 1000 iterations / chain")) +
-  scale_x_continuous(breaks = c(0, 0.5, 1), labels = c("0", ".5", "1")) %>% 
-  save_gg(plot = ., name = "Posterior Density", region, width = 10, height = 3.5)
-
+  scale_x_continuous(breaks = c(0, 0.5, 1), labels = c("0", ".5", "1"))
 
 # Plot simulated cases (all, symptomatic, reported) vs real cases
 plot_incidence_cases(samples = samples,
                      data_list = data_list_model, # sourced from 02_
                      start_date = day_data,
                      end_date = day_max,
-                     region = region) %>% 
-  save_gg(plot = ., name = "Incidence Cases Timeline", region, width = 6, height = 3)
+                     region = "Spain") 
 
 # Plot simulated deaths & residual deaths vs real deaths
 plot_incidence_deaths(samples = samples,
