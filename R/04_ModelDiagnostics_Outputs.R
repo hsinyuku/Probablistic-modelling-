@@ -12,7 +12,7 @@
 {
   remove(list = ls())
   source("setup.R")
-  source("R/00_ContactMatrix_Gender_Age_Function.R")
+  source("R/99_ContactMatrix_Gender_Age_Function.R")
   # specify here which posterior file you want to load!
   init_controls(list(region = "Bavaria",
                      type = "age",
@@ -128,5 +128,18 @@ plot_ascertainment("#CC333F")
 
 # plot parameter traces ------------------------------------------------------#
 stan_trace(samples, pars=c("beta", "epsilon","rho","pi","psi", "eta"))
+
+# ----------------------------------------------------------------------------#
+
+
+# ----------------------------------------------------------------------------#
+# fatality ratios ####
+# ----------------------------------------------------------------------------#
+
+# plot CFR, sCFR and IFR -----------------------------------------------------#
+# definition time: CFR is calculated as deaths / cases (per group), and can be
+# calculated from both the simulated data and the real data
+# calculate CFR from real data:
+
 
 # ----------------------------------------------------------------------------#
