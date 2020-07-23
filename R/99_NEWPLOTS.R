@@ -357,5 +357,39 @@ plot_Real_Time <- function(metric, day_start, day_max,
   return(plot)
 }
   
-
+# plot the proportion of reported cases / deaths per group -------------------#
+plot_Real_GroupProp <- function(GenPopFill = "white",
+                                RepCasesFill = "#008B8B",
+                                SimDeaths = "#B22222") {
+  if(controls$type == "age") {
+    data <- tibble(group = c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59",
+                             "60-69", "70-79", "80+"),
+                   agedist = data_list_model$age_dist)
+    ylabtitle <- "Age Group"
+  } else if (controls$type == "gender") {
+    data <- tibble(group = c("male", "female"))
+    ylabtitle <- "Gender"
+  }
+  data <- cbind(data,
+                deaths = data_list_model$agedistr_deaths,
+                cases = data_list_model$agedistr_cases) %>% 
+    mutate_at(.vars = c("deaths", "cases"), .funs = function(x) x / sum(x)) %>%
+    rename(`General Population` = agedist,
+           `Reported Cases` = cases,
+           `Reported Deaths` = deaths) %>% 
+    pivot_longer(cols = -group)
+  plot <- ggplot(data, aes(y = group, x = value, fill = name)) +
+    geom_col(col = "black") +
+    facet_wrap(facets = vars(name), nrow = 1) +
+    scale_x_continuous(expand = expansion(mult=c(0,.05)),
+                       labels = scales::label_percent(),
+                       name = NULL) +
+    theme(axis.text.x=element_text(angle=45,hjust=1)) +
+    coord_cartesian(xlim = c(0, 0.65)) +
+    scale_fill_manual(values = c(GenPopFill, RepCasesFill, SimDeaths),
+                      guide = FALSE)+ 
+    labs(y = ylabtitle)
+  return(plot)
+}
   
+

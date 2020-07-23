@@ -39,7 +39,7 @@ theme_set(theme_bw())
 
 
 # ----------------------------------------------------------------------------#
-# simulated vs. real data ####
+# real data ####
 # ----------------------------------------------------------------------------#
 
 # numbers of cases /deaths per day -------------------------------------------#
@@ -47,6 +47,10 @@ plot_Real_Time("deaths", day_data, day_max)
 plot_Real_Time("cases", day_data, day_max) 
 
 # proportion of reported cases / deaths per group ----------------------------#
+plot_Real_GroupProp()
+  # note: every distribution adds up to one, so the cols height indicate
+  # how many of all cases occurred in this age group / gender
+
 
 # ----------------------------------------------------------------------------#
 
