@@ -42,6 +42,18 @@ theme_set(theme_bw())
 # simulated vs. real data ####
 # ----------------------------------------------------------------------------#
 
+# numbers of cases /deaths per day -------------------------------------------#
+plot_Real_Time("deaths", day_data, day_max)
+plot_Real_Time("cases", day_data, day_max) 
+
+# proportion of reported cases / deaths per group ----------------------------#
+
+# ----------------------------------------------------------------------------#
+
+# ----------------------------------------------------------------------------#
+# simulated vs. real data ####
+# ----------------------------------------------------------------------------#
+
 # # Plot the parameter posteriors and overlaying the chains to check for -----#
 # consistence ----------------------------------------------------------------#
 {
@@ -74,7 +86,13 @@ plot_SimVsReal_Total("deaths")
 
 
 # ----------------------------------------------------------------------------#
-# final value of single parameters ####
+# parameter values ####
 # ----------------------------------------------------------------------------#
+
+# plot ascertainment rate per group ------------------------------------------#
 plot_ascertainment("#CC333F")
+
+# plot parameter traces ------------------------------------------------------#
+stan_trace(samples, pars=theta)
+
 # ----------------------------------------------------------------------------#

@@ -325,3 +325,37 @@ plot_eta <- function(TransRedFill = "#8FCB9B") {
     theme(axis.text.x=element_text(angle=45,hjust=1)) +
     scale_y_continuous(labels = scales::label_percent())
 }
+
+# plot the number of reported cases / deaths per day -------------------------#
+plot_Real_Time <- function(metric, day_start, day_max,
+                           RepCasesFill = "#008B8B",
+                           SimDeaths = "#B22222") {
+  day_start = day_start
+  day_max = day_max
+  data <- tibble(date = as_date(day_data:day_max))
+  if(metric == "cases") {
+    data <- cbind(data, n = data_list_model$incidence_cases)
+  } else if(metric == "deaths") {
+    data <- cbind(data, n = data_list_model$incidence_cases)
+  }
+  plot <- ggplot(data, aes(x = date, y = n)) +
+    labs(x = "Date (days)")
+  if(metric == "cases") {
+    plot <- plot +
+      geom_col(col = "black", fill = RepCasesFill) +
+      scale_y_continuous(expand = expansion(mult=c(0,.05)),
+                         labels = scales::label_number(scale = 1/1000,
+                                                       accuracy = 0.1,
+                                                       suffix = " K"),
+                         name = "Number of cases")
+  } else if (metric == "deaths") {
+    plot <- plot +
+      geom_col(col = "black", fill = SimDeaths) +
+      scale_y_continuous(expand = expansion(mult=c(0,.05)),
+                         name = "Number of deaths")
+  }
+  return(plot)
+}
+  
+
+  

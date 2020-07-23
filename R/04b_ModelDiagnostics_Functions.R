@@ -210,31 +210,31 @@ plot_agedist_deaths_perc <- function(samples,
 
 
 
-plot_total_cases = function(samples,data_list,col1="darkcyan",col2="chartreuse3",col3="deepskyblue2") {
-  t0 = data_list$t0
-  S = data_list$S
-  D = data_list$D
-  G = data_list$G
-  tswitch = data_list$tswitch
-  S = data_list$S
-  y = rstan::extract(samples,"y")[[1]]
-  data_incidence_cases = data.frame(time=1:D,incidence=data_list$incidence_cases)
-  totals = rstan::summary(samples,c("predicted_total_reported_symptomatic_cases","predicted_total_overall_symptomatic_cases","predicted_total_overall_all_cases"))[[1]] %>%
-    as_tibble() %>%
-    mutate(type=c("predicted_total_reported_symptomatic_cases","predicted_total_overall_symptomatic_cases","predicted_total_overall_all_cases"),
-           type2=c("R","S","A"),
-           type3="") %>%
-    mutate(type2=factor(type2,levels=c("R","S","A")))
-  ggplot(totals) +
-    annotate("col",x=1,y=sum(data_incidence_cases$incidence),colour="black",fill="white",width=.4) +
-    geom_pointrange(aes(x=type3,ymin=`2.5%`,y=`50%`,ymax=`97.5%`,colour=type),stat="identity",
-                 position=position_dodge(-0.3)) +
-    scale_colour_manual(values=c(col3,col2,col1),guide=FALSE) +
-    scale_y_continuous(expand=expand_scale(mult=c(0,.05)),limits=c(0,max(totals$`97.5%`)),
-                       labels=function(x) paste0(x/1000,"K")) +
-    scale_x_discrete(expand=expand_scale(add=.4)) +
-    labs(x="",y="Total cases") 
-}
+# plot_total_cases = function(samples,data_list,col1="darkcyan",col2="chartreuse3",col3="deepskyblue2") {
+#   t0 = data_list$t0
+#   S = data_list$S
+#   D = data_list$D
+#   G = data_list$G
+#   tswitch = data_list$tswitch
+#   S = data_list$S
+#   y = rstan::extract(samples,"y")[[1]]
+#   data_incidence_cases = data.frame(time=1:D,incidence=data_list$incidence_cases)
+#   totals = rstan::summary(samples,c("predicted_total_reported_symptomatic_cases","predicted_total_overall_symptomatic_cases","predicted_total_overall_all_cases"))[[1]] %>%
+#     as_tibble() %>%
+#     mutate(type=c("predicted_total_reported_symptomatic_cases","predicted_total_overall_symptomatic_cases","predicted_total_overall_all_cases"),
+#            type2=c("R","S","A"),
+#            type3="") %>%
+#     mutate(type2=factor(type2,levels=c("R","S","A")))
+#   ggplot(totals) +
+#     annotate("col",x=1,y=sum(data_incidence_cases$incidence),colour="black",fill="white",width=.4) +
+#     geom_pointrange(aes(x=type3,ymin=`2.5%`,y=`50%`,ymax=`97.5%`,colour=type),stat="identity",
+#                  position=position_dodge(-0.3)) +
+#     scale_colour_manual(values=c(col3,col2,col1),guide=FALSE) +
+#     scale_y_continuous(expand=expand_scale(mult=c(0,.05)),limits=c(0,max(totals$`97.5%`)),
+#                        labels=function(x) paste0(x/1000,"K")) +
+#     scale_x_discrete(expand=expand_scale(add=.4)) +
+#     labs(x="",y="Total cases") 
+# }
 
 # plot_agedist_cases = function(samples,data_list,col1="darkcyan",col2="chartreuse3",col3="deepskyblue2") {
 #   t0 = data_list$t0
@@ -314,30 +314,30 @@ plot_total_cases = function(samples,data_list,col1="darkcyan",col2="chartreuse3"
 #     scale_shape_manual(name = "Real deaths", values = c("21" = 21), labels = "Daily deaths")
 }
 
-plot_total_deaths = function(samples,data_list,col1="firebrick",col2="gold",col3="darkorange",start_date,end_date) {
-  t0 = data_list$t0
-  S = data_list$S
-  D = data_list$D
-  G = data_list$G
-  tswitch = data_list$tswitch
-  S = data_list$S
-  y = rstan::extract(samples,"y")[[1]]
-  data_incidence_deaths = data.frame(time=1:D,incidence=data_list$incidence_deaths)
-  totals = rstan::summary(samples,c("predicted_total_overall_deaths_tmax","predicted_total_overall_deaths_delay"))[[1]] %>%
-    as_tibble() %>%
-    mutate(type=c("predicted_total_reported_symptomatic_cases","predicted_total_overall_symptomatic_cases"),
-           type2=c("R","A"),
-           type3="") %>%
-    mutate(type2=factor(type2,levels=c("R","A")))
-  ggplot(totals) +
-    annotate("col",x=1,y=sum(data_incidence_deaths$incidence),colour="black",fill="white",width=.4) +
-    geom_pointrange(aes(x=type3,ymin=`2.5%`,y=`50%`,ymax=`97.5%`,colour=type),stat="identity",
-                 position=position_dodge(-0.3)) +
-    scale_colour_manual(values=c(col3,col1),guide=FALSE) +
-    scale_y_continuous(expand=expand_scale(mult=c(0,.05))) +
-    scale_x_discrete(expand=expand_scale(add=.5)) +
-    labs(x="",y="Total deaths") 
-}
+# plot_total_deaths = function(samples,data_list,col1="firebrick",col2="gold",col3="darkorange",start_date,end_date) {
+#   t0 = data_list$t0
+#   S = data_list$S
+#   D = data_list$D
+#   G = data_list$G
+#   tswitch = data_list$tswitch
+#   S = data_list$S
+#   y = rstan::extract(samples,"y")[[1]]
+#   data_incidence_deaths = data.frame(time=1:D,incidence=data_list$incidence_deaths)
+#   totals = rstan::summary(samples,c("predicted_total_overall_deaths_tmax","predicted_total_overall_deaths_delay"))[[1]] %>%
+#     as_tibble() %>%
+#     mutate(type=c("predicted_total_reported_symptomatic_cases","predicted_total_overall_symptomatic_cases"),
+#            type2=c("R","A"),
+#            type3="") %>%
+#     mutate(type2=factor(type2,levels=c("R","A")))
+#   ggplot(totals) +
+#     annotate("col",x=1,y=sum(data_incidence_deaths$incidence),colour="black",fill="white",width=.4) +
+#     geom_pointrange(aes(x=type3,ymin=`2.5%`,y=`50%`,ymax=`97.5%`,colour=type),stat="identity",
+#                  position=position_dodge(-0.3)) +
+#     scale_colour_manual(values=c(col3,col1),guide=FALSE) +
+#     scale_y_continuous(expand=expand_scale(mult=c(0,.05))) +
+#     scale_x_discrete(expand=expand_scale(add=.5)) +
+#     labs(x="",y="Total deaths") 
+# }
 
 
 
