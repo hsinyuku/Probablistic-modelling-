@@ -13,8 +13,24 @@
   remove(list = ls())
   source("setup.R")
   source("R/00_ContactMatrix_Gender_Age_Function.R")
-  init_controls(list(region = "Bavaria", type = "age", visualise = FALSE,
-                     savePlots = FALSE, ind_eta = "commonEta"))
+  # specify here which posterior file you want to load!
+  init_controls(list(region = "Bavaria",
+                     type = "age",
+                     visualise = FALSE,
+                     savePlots = FALSE,
+                     ind_eta = FALSE,
+                     chains = 4,
+                     iterations = 800,
+                     timestamp = "2020-07-21",
+                     # these controls don't do anything, but need to have some value
+                     inference = 1,
+                     use_cores = 1))
+  # this verifies your input to init_controls
+  if(check_controls() == 0) {
+    warning("There was some error within the controls! Check  ",
+            "messages to see where exactly.")
+    stop()
+  }
   source(paste0("R/01_DataManagement_", controls["region"], ".R"))
   source(paste0("R/02_PrepareModel_", controls["type"], ".R"))
   remove_except(list("controls", "data_list_model", "day_data", "day_max"))
@@ -25,6 +41,15 @@ theme_set(theme_bw())
 {
   # Load the saved posterior samples in the data (obviously without sampling
   # them every time).
+  postPath <- paste0("Posteriors/", paste(controls$region, 
+                                          str_to_title(controls$type),
+                                          controls$ind_eta,
+                                          controls$iterations, "iter",
+                                          controls$chains, "chains",
+                                          controls$timestamp,
+                                          sep = "_"),
+                     ".Rds")
+  file.exists(postPath)
   samples <-  readRDS(file = "Posteriors/Bavaria_Age_CommonEta_800_iter_4_chains_2020-07-21.Rds")
   sampler_params <- get_sampler_params(samples, inc_warmup = TRUE)
   # sampler_params returns a list with one entry per chain

@@ -82,37 +82,41 @@ check_controls <- function() {
   # because otherwise the if-else checks on the local object region, which
   # is not changed by the first line
   if(controls["region"] == "Baden-Wuerttemberg") {
-    controls["region"] <<- "BadenW"
+    controls$region <<- "BadenW"
   }
-  if (!(controls["region"] %in% regions)) {
-   print(controls["region"])
+  if (!(controls$region %in% regions)) {
+   print(controls$region)
    warning("The region you specified is not a correct string. Functions will ",
            "not work! Please change the string. Check the regions-object for ",
            "the correct spelling of the regions.")
    return(0)
   }
   # Checking type: Age or Gender?
-  type <<- stringr::str_to_title(controls["type"])
+  type <<- stringr::str_to_title(controls$type)
     # <<- will assign type in the global environment
   # inference must be integer, not a boolean
-  if (class(controls["inference"]) == "logical") {
-    controls["inference"] = as.integer(controls["inference"])
+  if (class(controls$inference) == "logical") {
+    controls$inference <<- as.integer(controls$inference)
   } 
-  if (!(controls["inference"] %in% c(0, 1))) {
+  if (!(controls$inference %in% c(0, 1))) {
     warning("Inference must be either 1 or 0!")
     return(0)
   } 
   # ind_eta: should the model with varying eta be run?
-  if (controls["ind_eta"] == T) controls["ind_eta"] <<- "VaryingEta"
-  else controls["ind_eta"] <<- "CommonEta"
+  if (controls$ind_eta == T) {
+    controls$ind_eta <<- "VaryingEta"
+    }  else {
+    controls$ind_eta <<- "CommonEta"
+  }
+    
   # use_cores: how many cores should be used?
-  if (controls["use_cores"] == "all")  {
-    controls["use_cores"] <<- parallel::detectCores()
-  } else if (as.integer(controls["use_cores"]) > parallel::detectCores()) {
+  if (controls$use_cores == "all")  {
+    controls$use_cores <<- parallel::detectCores()
+  } else if (as.integer(controls$use_cores) > parallel::detectCores()) {
     warning("You don't have that many cores! Change use_cores:")
     return(0)
   }
-  else controls["use_cores"] <<- as.integer(controls["use_cores"])
+  else controls$use_cores <<- as.integer(controls$use_cores)
   options(mc.cores = parallel::detectCores())
 }
   
