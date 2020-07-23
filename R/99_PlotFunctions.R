@@ -36,7 +36,7 @@ save_gg <- function(plot, name, region = controls["region"],
 
 # function to extract values from parameters as tibble -----------------------#
   extractValue <- function(name, printStat = c("2.5%", "97.5%", "50%")) {
-  rstan::summary(samples, name)[[1]] %>%
+  summary(samples, name)[[1]] %>%
     as_tibble() %>% mutate(metric = name) %>% 
     select(metric, printStat)
 }
@@ -394,3 +394,19 @@ plot_Real_GroupProp <- function(GenPopFill = "white",
   
 # plot the fatality ratios per group -----------------------------------------#
 
+# calculate CFR per day from real data:
+tibble(date = as_date(day_data:day_max),
+       dailyCases = data_list_model$incidence_cases,
+       dailyDeaths = data_list_model$incidence_deaths) %>% 
+  mutate(realCFR = dailyDeaths / dailyCases) %>% 
+  ggplot(aes(x = date, y = realCFR)) + geom_col() +
+  caption("CFR, calculated from real data")
+# calculate CFR per group from real data:
+groupLabels <- c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59",
+                 "60-69", "70-79", "80+")
+tibble(group       = groupLabels,
+       dailyCases  = extractValue(),
+       dailyDeaths = data_list_model$incidence_deaths) %>% 
+  mutate(realCFR = dailyDeaths / dailyCases) %>% 
+  ggplot(aes(x = date, y = realCFR)) + geom_col() +
+  caption("CFR, calculated from real data")

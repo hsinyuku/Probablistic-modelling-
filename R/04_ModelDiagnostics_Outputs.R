@@ -139,7 +139,7 @@ stan_trace(samples, pars=c("beta", "epsilon","rho","pi","psi", "eta"))
 # plot CFR, sCFR and IFR -----------------------------------------------------#
 # definition time: CFR is calculated as deaths / cases (per group), and can be
 # calculated from both the simulated data and the real data
-# calculate CFR from real data:
+
 
 
 # ----------------------------------------------------------------------------#
