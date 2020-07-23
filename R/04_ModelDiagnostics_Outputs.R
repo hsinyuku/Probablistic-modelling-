@@ -54,7 +54,7 @@ theme_set(theme_bw())
                 "on this branch?). Remember that you have to download the ",
                 "posteriors manually from GDrive!"))
   }
-  samples <-  readRDS(file = "Posteriors/Bavaria_Age_CommonEta_800_iter_4_chains_2020-07-21.Rds")
+  samples <-  readRDS(file = postPath)
   sampler_params <- get_sampler_params(samples, inc_warmup = TRUE)
   # sampler_params returns a list with one entry per chain
   controls["chains"] <- length(sampler_params)
