@@ -60,7 +60,7 @@
 # ----------------------------------------------------------------------------#
 {
   source("setup.R")
-  source("R/00_ContactMatrix_Gender_Age_Function.R")
+  source("R/99_ContactMatrix_Gender_Age_Function.R")
   
   if(check_controls() == 0) {
     warning("There was some error within the controls! Check  ",
