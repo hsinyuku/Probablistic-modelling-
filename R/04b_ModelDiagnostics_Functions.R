@@ -236,44 +236,44 @@ plot_total_cases = function(samples,data_list,col1="darkcyan",col2="chartreuse3"
     labs(x="",y="Total cases") 
 }
 
-plot_agedist_cases = function(samples,data_list,col1="darkcyan",col2="chartreuse3",col3="deepskyblue2") {
-  t0 = data_list$t0
-  S = data_list$S
-  D = data_list$D
-  G = data_list$G
-  tswitch = data_list$tswitch
-  S = data_list$S
-  y = rstan::extract(samples,"y")[[1]]
-  cases_agedist = data_list$agedistr_cases / sum(data_list$agedistr_cases) * sum(data_list$incidence_cases)
-  deaths_agedist = data_list$agedistr_deaths / sum(data_list$agedistr_deaths) * sum(data_list$incidence_deaths)
-  agedist_data = data.frame(
-    age_group=c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+"),
-    genpop=data_list$age_dist,
-    cases=cases_agedist,
-    deaths=deaths_agedist,
-    totpop=data_list$pop_t,
-    age_group2=1:9)
-  pp = c("predicted_total_reported_symptomatic_cases_by_age",
-         "predicted_total_overall_symptomatic_cases_by_age",
-         "predicted_total_overall_all_cases_by_age")
-  pred = rstan::summary(samples,pp)[[1]] %>%
-    as_tibble() %>%
-    mutate(age_group=rep(c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+"),3),
-           type=rep(pp,each=9),
-           type2=rep(c("R","S","A"),each=9)) %>%
-    mutate(type2=factor(type2,levels=c("R","S","A"))) %>%
-    left_join(agedist_data) %>%
-    group_by(type) %>%
-    mutate(med_scale=`50%`/sum(`50%`),low_scale=`2.5%`/sum(`2.5%`),high_scale=`97.5%`/sum(`97.5%`))
-  ggplot(pred,aes(x=age_group)) +
-    geom_col(data=agedist_data,aes(y=cases),fill="white",colour="black") +
-    geom_pointrange(aes(ymin=`2.5%`,y=`50%`,ymax=`97.5%`,colour=type),stat="identity",position=position_dodge(-0.3)) +
-    scale_colour_manual(values=c(col3,col2,col1),guide=F) +
-    scale_y_continuous(expand=expand_scale(mult=c(0,.05)),
-                     labels=function(x) paste0(x/1000,"K")) +
-    labs(x="Age group",y="Total cases") +
-    theme(axis.text.x=element_text(angle=45,hjust=1))
-}
+# plot_agedist_cases = function(samples,data_list,col1="darkcyan",col2="chartreuse3",col3="deepskyblue2") {
+#   t0 = data_list$t0
+#   S = data_list$S
+#   D = data_list$D
+#   G = data_list$G
+#   tswitch = data_list$tswitch
+#   S = data_list$S
+#   y = rstan::extract(samples,"y")[[1]]
+#   cases_agedist = data_list$agedistr_cases / sum(data_list$agedistr_cases) * sum(data_list$incidence_cases)
+#   deaths_agedist = data_list$agedistr_deaths / sum(data_list$agedistr_deaths) * sum(data_list$incidence_deaths)
+#   agedist_data = data.frame(
+#     age_group=c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+"),
+#     genpop=data_list$age_dist,
+#     cases=cases_agedist,
+#     deaths=deaths_agedist,
+#     totpop=data_list$pop_t,
+#     age_group2=1:9)
+#   pp = c("predicted_total_reported_symptomatic_cases_by_age",
+#          "predicted_total_overall_symptomatic_cases_by_age",
+#          "predicted_total_overall_all_cases_by_age")
+#   pred = rstan::summary(samples,pp)[[1]] %>%
+#     as_tibble() %>%
+#     mutate(age_group=rep(c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+"),3),
+#            type=rep(pp,each=9),
+#            type2=rep(c("R","S","A"),each=9)) %>%
+#     mutate(type2=factor(type2,levels=c("R","S","A"))) %>%
+#     left_join(agedist_data) %>%
+#     group_by(type) %>%
+#     mutate(med_scale=`50%`/sum(`50%`),low_scale=`2.5%`/sum(`2.5%`),high_scale=`97.5%`/sum(`97.5%`))
+#   ggplot(pred,aes(x=age_group)) +
+#     geom_col(data=agedist_data,aes(y=cases),fill="white",colour="black") +
+#     geom_pointrange(aes(ymin=`2.5%`,y=`50%`,ymax=`97.5%`,colour=type),stat="identity",position=position_dodge(-0.3)) +
+#     scale_colour_manual(values=c(col3,col2,col1),guide=F) +
+#     scale_y_continuous(expand=expand_scale(mult=c(0,.05)),
+#                      labels=function(x) paste0(x/1000,"K")) +
+#     labs(x="Age group",y="Total cases") +
+#     theme(axis.text.x=element_text(angle=45,hjust=1))
+# }
 
 # plot_incidence_deaths = function(samples,data_list,col1="#FF3D7F",col2="#3FB8AF",col3="darkorange",start_date,end_date) {
 #   t0 = data_list$t0
@@ -345,43 +345,43 @@ plot_total_deaths = function(samples,data_list,col1="firebrick",col2="gold",col3
 
 
 
-plot_agedist_deaths = function(samples,data_list,col1="firebrick",col2="darkorange") {
-  t0 = data_list$t0
-  S = data_list$S
-  D = data_list$D
-  G = data_list$G
-  tswitch = data_list$tswitch
-  S = data_list$S
-  y = rstan::extract(samples,"y")[[1]]
-  cases_agedist = data_list$agedistr_cases / sum(data_list$agedistr_cases) * sum(data_list$incidence_cases)
-  deaths_agedist = data_list$agedistr_deaths / sum(data_list$agedistr_deaths) * sum(data_list$incidence_deaths)
-  agedist_data = data.frame(
-    age_group=c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+"),
-    genpop=data_list$age_dist,
-    cases=cases_agedist,
-    deaths=deaths_agedist,
-    totpop=data_list$pop_t,
-    age_group2=1:9)
-  pp = c("predicted_total_overall_deaths_tmax_by_age",
-         "predicted_total_overall_deaths_delay_by_age")
-  pred = rstan::summary(samples,pp)[[1]] %>%
-    as_tibble() %>%
-    mutate(age_group=rep(c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+"),2),
-           type=rep(pp,each=9),
-           type2=rep(c("R","A"),each=9)) %>%
-    mutate(type2=factor(type2,levels=c("R","A"))) %>%
-    left_join(agedist_data) %>%
-    group_by(type) %>%
-    mutate(med_scale=`50%`/sum(`50%`),low_scale=`2.5%`/sum(`2.5%`),high_scale=`97.5%`/sum(`97.5%`))
-  ggplot(pred,aes(x=age_group)) +
-    geom_col(data=agedist_data,aes(y=deaths),fill="white",colour="black") +
-    geom_pointrange(aes(ymin=`2.5%`,y=`50%`,ymax=`97.5%`,colour=type),stat="identity",position=position_dodge(-0.3)) +
-    scale_colour_manual(values=c(col2,col1),guide=F) +
-    scale_fill_manual(values=c(col2,col1),guide=F) +
-    scale_y_continuous(expand=expand_scale(mult=c(0,.05))) +
-    labs(x="Age group",y="Total deaths") +
-    theme(axis.text.x=element_text(angle=45,hjust=1))
-}
+# plot_agedist_deaths = function(samples,data_list,col1="firebrick",col2="darkorange") {
+#   t0 = data_list$t0
+#   S = data_list$S
+#   D = data_list$D
+#   G = data_list$G
+#   tswitch = data_list$tswitch
+#   S = data_list$S
+#   y = rstan::extract(samples,"y")[[1]]
+#   cases_agedist = data_list$agedistr_cases / sum(data_list$agedistr_cases) * sum(data_list$incidence_cases)
+#   deaths_agedist = data_list$agedistr_deaths / sum(data_list$agedistr_deaths) * sum(data_list$incidence_deaths)
+#   agedist_data = data.frame(
+#     age_group=c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+"),
+#     genpop=data_list$age_dist,
+#     cases=cases_agedist,
+#     deaths=deaths_agedist,
+#     totpop=data_list$pop_t,
+#     age_group2=1:9)
+#   pp = c("predicted_total_overall_deaths_tmax_by_age",
+#          "predicted_total_overall_deaths_delay_by_age")
+#   pred = rstan::summary(samples,pp)[[1]] %>%
+#     as_tibble() %>%
+#     mutate(age_group=rep(c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+"),2),
+#            type=rep(pp,each=9),
+#            type2=rep(c("R","A"),each=9)) %>%
+#     mutate(type2=factor(type2,levels=c("R","A"))) %>%
+#     left_join(agedist_data) %>%
+#     group_by(type) %>%
+#     mutate(med_scale=`50%`/sum(`50%`),low_scale=`2.5%`/sum(`2.5%`),high_scale=`97.5%`/sum(`97.5%`))
+#   ggplot(pred,aes(x=age_group)) +
+#     geom_col(data=agedist_data,aes(y=deaths),fill="white",colour="black") +
+#     geom_pointrange(aes(ymin=`2.5%`,y=`50%`,ymax=`97.5%`,colour=type),stat="identity",position=position_dodge(-0.3)) +
+#     scale_colour_manual(values=c(col2,col1),guide=F) +
+#     scale_fill_manual(values=c(col2,col1),guide=F) +
+#     scale_y_continuous(expand=expand_scale(mult=c(0,.05))) +
+#     labs(x="Age group",y="Total deaths") +
+#     theme(axis.text.x=element_text(angle=45,hjust=1))
+# }
 
 plot_cfr = function(samples,data_list,col1,col2,col3) {
   t0 = data_list$t0

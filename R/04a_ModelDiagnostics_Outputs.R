@@ -13,7 +13,7 @@
   remove(list = ls())
   source("setup.R")
   source("R/00_ContactMatrix_Gender_Age_Function.R")
-  init_controls(list(region = "Spain", type = "Age", visualise = FALSE,
+  init_controls(list(region = "Spain", type = "age", visualise = FALSE,
                      savePlots = FALSE))
   source(paste0("R/01_DataManagement_", controls["region"], ".R"))
   source(paste0("R/02_PrepareModel_", controls["type"], ".R"))
@@ -56,15 +56,19 @@ theme_set(theme_bw())
   if (controls[["savePlots"]]) {
     save_gg(plot = plot, name = "Posterior Density")
   }
-  plot
   remove(pars, subtitle, title)
+  plot
 }
 
 # Plot simulated cases (all, symptomatic, reported) vs real cases ------------#
-plot_SimVsReal("deaths", day_data = day_data, day_max = day_max)
+plot_SimVsReal_Time("deaths", day_data = day_data, day_max = day_max)
+plot_SimVsReal_Time("cases", day_data = day_data, day_max = day_max)
 
-plot_SimVsReal_Group("cases")
+plot_SimVsReal_Group(metric = "cases")
+plot_SimVsReal_Group(metric = "deaths")
 
+plot_SimVsReal_Total("cases")
+plot_SimVsReal_Total("deaths")
 
 # ----------------------------------------------------------------------------#
 

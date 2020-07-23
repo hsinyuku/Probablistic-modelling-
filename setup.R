@@ -119,6 +119,8 @@ check_controls <- function() {
 
 # this function should be able to provide python-like fstring-functionality. -#
 # Probably really slow, but will do the trick for things like plot caption. --#
+# CAN NOT BE USED INSIDE FUNCTION, MUST BE CALLED DIRECTLY FROM THE GLOBAL
+# ENVIRONMENT
 f <- function(fstring) {
   replaceRegExp <- "\\{[[:alnum:]\\_\\]\\[]+\\}"
     # the pattern we are looking for is any variable, surrounded by curly 

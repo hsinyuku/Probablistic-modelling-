@@ -41,7 +41,7 @@ extractValue <- function(name, printStat = c("2.5%", "97.5%", "50%")) {
     select(metric, printStat)
 }
 
-# plotting simulated vs. real cases and deaths -------------------------------#
+# plotting simulated vs. real cases and deaths over time ---------------------#
 plot_SimVsReal_Time <- function(metric, day_max, day_data,
                                 AllCasesFill = "#00B2EE",
                                 SymptCasesFill = "#66CD00",
@@ -56,27 +56,30 @@ plot_SimVsReal_Time <- function(metric, day_max, day_data,
   if (metric == "cases") {
     dates <- as_date(day_data:day_max)
     estimatedData <- rbind(
-      cbind(extractValue("predicted_reported_incidence_symptomatic_cases"), dates),
-      cbind(extractValue("predicted_overall_incidence_symptomatic_cases"), dates),
-      cbind(extractValue("predicted_overall_incidence_all_cases"), dates))  %>% 
+      cbind(extractValue("predicted_reported_incidence_symptomatic_cases"),
+            date = dates),
+      cbind(extractValue("predicted_overall_incidence_symptomatic_cases"),
+            date = dates),
+      cbind(extractValue("predicted_overall_incidence_all_cases"),
+            date = dates))  %>% 
       # the releveling is necessary to control which metric gets printed over
       # which metric ("order in which they are printed")
       mutate(metric = factor(metric),
-             metric = fct_recode(metric,
-                                 All = "predicted_overall_incidence_all_cases",
-                                 Symptomatic = "predicted_overall_incidence_symptomatic_cases",
-                                 Reported = "predicted_reported_incidence_symptomatic_cases"))
+             metric = fct_recode(
+               metric,
+               All = "predicted_overall_incidence_all_cases",
+               Symptomatic = "predicted_overall_incidence_symptomatic_cases",
+               Reported = "predicted_reported_incidence_symptomatic_cases"))
     realData  <- 
       tibble(date = dates,
              incidence = data_list_model$incidence_cases)
   } else if (metric == "deaths") {
     estimatedData <- 
-      extractValue("predicted_overall_incidence_deaths", 
-                   as_date(day_data:(day_max+data_list_model$G))) %>% 
+      cbind(extractValue("predicted_overall_incidence_deaths"), 
+            date = as_date(day_data:(day_max+data_list_model$G))) %>% 
       mutate(metric = case_when(date <= day_max ~ "Simulated Deaths",
                                 date >= day_max ~ "Residual Deaths"),
              metric = fct_relevel(metric, "Simulated Deaths")) 
-    
     realData <- 
       tibble(date = as_date(day_data:day_max),
              incidence=data_list_model$incidence_deaths)
@@ -120,20 +123,34 @@ plot_SimVsReal_Time <- function(metric, day_max, day_data,
   return(plot)
 }
 
-# plotting deaths and cases per age group ------------------------------------#
+# plotting simulated vs. real deaths and cases per age group -----------------#
 plot_SimVsReal_Group <- function(metric, AllCasesFill = "#00B2EE",
                                  SymptCasesFill = "#66CD00",
                                  RepCasesFill = "#008B8B",
                                  SimDeaths = "#B22222", 
                                  ResDeaths = "#FFD700") {
   # Preparing the real (reported) data
-  if(controls$type == "Age") {
+  if(controls$type == "age") {
     groupLabels <- c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59",
                      "60-69", "70-79", "80+")
-    realData <- tibble(n = data_list_model[[f("agedistr_{metric}")]],
-                       group = groupLabels)
-  } else if(controls$type == "Gender") {
+    if(metric == "deaths") {
+      realData <- tibble(n = data_list_model[["agedistr_deaths"]],
+                         group = groupLabels)
+    } else if (metric == "cases") {
+      realData <- tibble(n = data_list_model[["agedistr_cases"]],
+                         group = groupLabels)
       
+    }
+  } else if(controls$type == "gender") {
+    groupLabels <- c("male", "female")
+    if(metric == "deaths") {
+      realData <- tibble(n = data_list_model[[f("genderdistr_deaths")]],
+                         group = groupLabels)
+    } else if (metric == "cases") {
+      realData <- tibble(n = data_list_model[[f("genderdistr_cases")]],
+                         group = groupLabels)
+      
+    }
   }
   # Preparing the simulated data
   if(metric == "cases") {
@@ -174,22 +191,94 @@ plot_SimVsReal_Group <- function(metric, AllCasesFill = "#00B2EE",
                                                      suffix = " K"),
                        expand = expansion(mult=c(0,.05)))
   # Styling for Age vs. for Gender
-  if(controls$type == "Age") {
+  if(controls$type == "age") {
     plot <- plot + 
       labs(x = "Age Group") +
       theme(axis.text.x=element_text(angle=45,hjust=1))
-  } else if(controls$type == "Gender") {
-    
+  } else if(controls$type == "gender") {
   }
   if(metric == "cases") {
+    print("applying styling for cases")
     plot <- plot +
       labs(y = "Number of total cases") +
-      scale_fill_manual(values = c(AllCasesFill, SymptCasesFill,
+      scale_colour_manual(values = c(AllCasesFill, SymptCasesFill,
                                    RepCasesFill))
   } else if(metric == "deaths") {
+    print("applying styling for deaths")
     plot <- plot + 
       labs(y = "Number of deaths") +
-      scale_fill_manual(values = c(ResDeaths, SimDeaths))
+      scale_colour_manual(values = c(ResDeaths, SimDeaths))
+  }
+  return(plot)
+}
+
+# plotting total deaths and cases --------------------------------------------#
+plot_SimVsReal_Total <- function(metric, AllCasesFill = "#00B2EE",
+                                 SymptCasesFill = "#66CD00",
+                                 RepCasesFill = "#008B8B",
+                                 SimDeaths = "#B22222", 
+                                 ResDeaths = "#FFD700") {
+  # as the total number of cases or deaths, the code currently just picks the
+  # greater one of two sums: age distribution and incidences.
+  accessString1 <- paste0(controls$type, "distr_", metric)
+  accessString2 <- paste0("incidence_", metric)
+  total <- max(sum(data_list_model[[accessString1]]),
+               sum(data_list_model[[accessString2]]))
+  if (metric == "cases") {
+    realData <- tibble(
+      n = total,
+      metric = "Reported cases")
+    estimatedData <- rbind(
+      extractValue("predicted_total_reported_symptomatic_cases"),
+      extractValue("predicted_total_overall_symptomatic_cases"),
+      extractValue("predicted_total_overall_all_cases"))  %>% 
+      # the releveling is necessary to control which metric gets printed over
+      # which metric ("order in which they are printed")
+      mutate(metric = factor(metric),
+             metric = fct_recode(
+               metric,
+               All = "predicted_total_reported_symptomatic_cases",
+               "Symptomatic Cases" = "predicted_total_overall_symptomatic_cases",
+               "Reported Cases" = "predicted_total_overall_all_cases"))
+  } else if (metric == "deaths") {
+    realData <- tibble(
+      n = total,
+      metric = "Reported deaths")
+    estimatedData <- 
+      rbind(extractValue("predicted_total_overall_deaths_tmax"),
+            extractValue("predicted_total_overall_deaths_delay")) %>% 
+      mutate(metric = factor(metric),
+             metric = fct_recode(
+               metric,
+               "Including Pro-\njected Deaths" = "predicted_total_overall_deaths_delay",
+               "Simulated Deaths" = "predicted_total_overall_deaths_tmax"))
+  }
+  plot <- ggplot() +
+    geom_col(data = realData, width = 0.5,
+             aes(x = 1, y = n), fill = "white", col = "black") +
+    geom_pointrange(data = estimatedData,
+                    aes(x = 1, ymin = `2.5%`, y = `50%`, ymax = `97.5%`,
+                        col = metric),
+                    position = position_dodge2(width = 0.1, padding = 0.2))
+  # some stylings
+  plot <- plot +
+    scale_x_continuous(breaks = NULL, labels = NULL, name = NULL) +
+    scale_y_continuous(expand = expansion(mult=c(0,.05)),
+                       labels = scales::label_number(scale = 1/1000,
+                                                     accuracy = 0.1,
+                                                     suffix = " K")) +
+    coord_cartesian(xlim = c(0.5, 1.5)) +
+    labs(col = "Simulated Data \n(Median, 95% CI)")
+  # some stylings differ between cases and deaths:
+  if (metric == "cases") {
+    plot <- plot +
+      labs(y = "Cases") +
+      scale_colour_manual(values = c(AllCasesFill, SymptCasesFill,
+                                   RepCasesFill))
+  } else if (metric == "deaths") {
+    plot <- plot +
+      labs(y = "Deaths") +
+      scale_colour_manual(values = c(ResDeaths, SimDeaths))
   }
   return(plot)
 }
