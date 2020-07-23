@@ -28,14 +28,14 @@ save_gg <- function(plot, name, region = controls["region"],
                     type = controls["type"],
                     width = 10, height = 6){
   file = paste0("Figures/", region, "_", type, "_", ind_eta, "_", iterations,
-                "iteratoins_", chains, "chains.png")
+                "iterations_", chains, "chains.png")
   ggsave(file, units = "in",
          width = width, height = height)
   print(paste0("Saved plot to ", file))
 }
 
 # function to extract values from parameters as tibble -----------------------#
-extractValue <- function(name, printStat = c("2.5%", "97.5%", "50%")) {
+  extractValue <- function(name, printStat = c("2.5%", "97.5%", "50%")) {
   rstan::summary(samples, name)[[1]] %>%
     as_tibble() %>% mutate(metric = name) %>% 
     select(metric, printStat)
@@ -336,7 +336,7 @@ plot_Real_Time <- function(metric, day_start, day_max,
   if(metric == "cases") {
     data <- cbind(data, n = data_list_model$incidence_cases)
   } else if(metric == "deaths") {
-    data <- cbind(data, n = data_list_model$incidence_cases)
+    data <- cbind(data, n = data_list_model$incidence_deaths)
   }
   plot <- ggplot(data, aes(x = date, y = n)) +
     labs(x = "Date (days)")
@@ -392,4 +392,5 @@ plot_Real_GroupProp <- function(GenPopFill = "white",
   return(plot)
 }
   
+# plot the fatality ratios per group -----------------------------------------#
 

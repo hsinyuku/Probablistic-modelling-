@@ -13,8 +13,8 @@
   remove(list = ls())
   source("setup.R")
   source("R/00_ContactMatrix_Gender_Age_Function.R")
-  init_controls(list(region = "Spain", type = "age", visualise = FALSE,
-                     savePlots = FALSE))
+  init_controls(list(region = "Bavaria", type = "age", visualise = FALSE,
+                     savePlots = FALSE, ind_eta = "commonEta"))
   source(paste0("R/01_DataManagement_", controls["region"], ".R"))
   source(paste0("R/02_PrepareModel_", controls["type"], ".R"))
   remove_except(list("controls", "data_list_model", "day_data", "day_max"))
@@ -25,7 +25,7 @@ theme_set(theme_bw())
 {
   # Load the saved posterior samples in the data (obviously without sampling
   # them every time).
-  samples <-  readRDS(file = paste0("Posteriors/Spain_Samples_200718.Rds"))
+  samples <-  readRDS(file = "Posteriors/Bavaria_Age_CommonEta_800_iter_4_chains_2020-07-21.Rds")
   sampler_params <- get_sampler_params(samples, inc_warmup = TRUE)
   # sampler_params returns a list with one entry per chain
   controls["chains"] <- length(sampler_params)
@@ -68,7 +68,8 @@ plot_Real_GroupProp()
   title = f(paste0("Posterior Density Plots ({controls[region]})" ))
   plot <- stan_dens(samples, pars = pars, separate_chains = T, nrow = 3) +
     labs(title = title, subtitle = subtitle) +
-    scale_x_continuous(breaks = c(0, 0.5, 1), labels = c("0", ".5", "1"))
+    scale_x_continuous(breaks = c(0, 0.5, 1), labels = c("0", ".5", "1")) +
+    coord_cartesian(xlim =c(0,1))
   if (controls[["savePlots"]]) {
     save_gg(plot = plot, name = "Posterior Density")
   }
@@ -97,6 +98,6 @@ plot_SimVsReal_Total("deaths")
 plot_ascertainment("#CC333F")
 
 # plot parameter traces ------------------------------------------------------#
-stan_trace(samples, pars=theta)
+stan_trace(samples, pars=c("beta", "epsilon","rho","pi","psi", "eta"))
 
 # ----------------------------------------------------------------------------#
