@@ -14,14 +14,14 @@
   source("setup.R")
   source("R/99_ContactMatrix_Gender_Age_Function.R")
   # specify here which posterior file you want to load!
-  init_controls(list(region = "Bavaria",
+  init_controls(list(region = "Spain",
                      type = "age",
                      visualise = FALSE,
                      savePlots = FALSE,
                      ind_eta = FALSE,
-                     chains = 4,
-                     iterations = 800,
-                     timestamp = "2020-07-21",
+                     chains = 3,
+                     iterations = 200,
+                     timestamp = "2020-07-18",
                      # these controls don't do anything, but need to have some value
                      inference = 1,
                      use_cores = 1))
@@ -54,7 +54,7 @@ theme_set(theme_bw())
                 "on this branch?). Remember that you have to download the ",
                 "posteriors manually from GDrive!"))
   }
-  samples <-  readRDS(file = "Posteriors/Bavaria_Age_CommonEta_800_iter_4_chains_2020-07-21.Rds")
+  samples <-  readRDS(file = postPath)
   sampler_params <- get_sampler_params(samples, inc_warmup = TRUE)
   # sampler_params returns a list with one entry per chain
   controls["chains"] <- length(sampler_params)
