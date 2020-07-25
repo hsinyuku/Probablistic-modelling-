@@ -14,14 +14,14 @@
   source("setup.R")
   source("R/99_ContactMatrix_Gender_Age_Function.R")
   # specify here which posterior file you want to load!
-  init_controls(list(region = "Bavaria",
+  init_controls(list(region = "Spain",
                      type = "age",
                      visualise = FALSE,
                      savePlots = FALSE,
                      ind_eta = FALSE,
-                     chains = 4,
-                     iterations = 800,
-                     timestamp = "2020-07-21",
+                     chains = 3,
+                     iterations = 200,
+                     timestamp = "2020-07-18",
                      # these controls don't do anything, but need to have some value
                      inference = 1,
                      use_cores = 1))
@@ -139,7 +139,11 @@ stan_trace(samples, pars=c("beta", "epsilon","rho","pi","psi", "eta"))
 # plot CFR, sCFR and IFR -----------------------------------------------------#
 # definition time: CFR is calculated as deaths / cases (per group), and can be
 # calculated from both the simulated data and the real data
-# calculate CFR from real data:
 
+plot_SimVsReal_CFRGroup() +
+  labs(caption = paste0("Note: simulated CFR differs from reported CFR in that",
+                        " it counts deaths corrected\nfor underreporting.")) +
+  theme(plot.caption.position = "plot",
+        plot.caption = element_text(hjust = 0))
 
 # ----------------------------------------------------------------------------#

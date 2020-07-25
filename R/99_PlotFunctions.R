@@ -34,9 +34,28 @@ save_gg <- function(plot, name, region = controls["region"],
   print(paste0("Saved plot to ", file))
 }
 
+# Functions for plot styling
+scale_x_labelsRotate <- function(Angle = 45, ...) {
+  theme(axis.text.x = element_text(angle = Angle, hjust=1, ...))
+}
+
+scale_y_percent <- function(labels = "percent", ...) {
+  scale_y_continuous(expand = expansion(mult=c(0,.05)),
+                     labels = scales::label_percent())
+}
+
+groupLabels <- function(group) {
+  if(group == "age")  {
+    groupLabels <- c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59",
+                     "60-69", "70-79", "80+")
+  } else if(group == "gender") {
+    groupLabels <- c("male", "female") }
+  return(groupLabels)
+}
+
 # function to extract values from parameters as tibble -----------------------#
   extractValue <- function(name, printStat = c("2.5%", "97.5%", "50%")) {
-  rstan::summary(samples, name)[[1]] %>%
+  summary(samples, name)[[1]] %>%
     as_tibble() %>% mutate(metric = name) %>% 
     select(metric, printStat)
 }
@@ -392,5 +411,128 @@ plot_Real_GroupProp <- function(GenPopFill = "white",
   return(plot)
 }
   
-# plot the fatality ratios per group -----------------------------------------#
+# plot CFRs -------------------------------------------------------------------
+
+# some nomenclature:
+# CFR = (reported symptomatic cases) / (reported deaths)
+#   (possibly per age group or per day)
+# sCFR = (symptomatic cases) / (deaths including delay)
+#   (possibly per age group or per day)
+# IFR = (cases) / (deaths including dealy)
+#   (possibly per age group or per day)
+
+# getting group CFR: real und simulated
+data_CFR_groups <- function() {
+  # this  function provides CFRs per group, together with extensive footnotes
+  # that explain where certain data come from
+  realData <- tibble(group       = groupLabels(controls$type),
+                     reportedCases  = data_list_model$agedistr_cases,
+                     reportedDeaths = data_list_model$agedistr_deaths) %>%
+    mutate(reportedCFR = reportedDeaths / reportedCases)
+  realData <- list(
+    reportedCases = list(
+      select(realData, group, reportedCases),
+      paste0(
+        "As per raw data (data_list_model$",
+        f("{controls[type]}distr_cases)."))),
+    reportedDeaths = list(
+      select(realData, group, reportedDeaths),
+      paste0(
+        "As per raw data (data_list_model$",
+        f("{controls[type]}distr_deaths)."))),
+    reportedCFR = list(
+      select(realData, group, reportedCFR),
+      paste0("Daily reported symptomatic cases, divided by daily",
+             "reported deaths"))
+  )
+  simData <- list(
+    `CFR (simulated)` = list(
+      tibble(extractValue("cfr_A_symptomatic_by_age"),
+            group = groupLabels(controls$type)) %>% 
+        mutate(metric = "CFR (simulated)"),
+      paste0(
+        "## CFR as per generated quantity `cfr_A_symptomatic_by_age`: ",
+        "(distribution of) CFR per age group: total deaths per age group",
+        " (corrected by underreporting, only including the modelling period",
+        " without delay, per age group) divided by reported symptomatic cases",
+        " per age group (not corrected for ascertainment and underreporting).",
+        " Difference to crude CFR: total deaths are counted instead of",
+        " reported deaths.")
+    ),
+    `sCFR (simulated)` = list(
+      tibble(extractValue("cfr_D_symptomatic_by_age"),
+            group = groupLabels(controls$type)) %>% 
+        mutate(metric = "sCFR (simulated)"),
+      paste0(
+        "## sCFR as per generated quantitiy `cfr_D_symptomatic_by_age`: ",
+        "(distribution of) CFR per age group: total deaths per age group ",
+        "(corrected by underreporting, including both the modelling period and",
+        "the delay) divided by symptomatic cases per age group (reported ",
+        "symptomatic cases, corrected for age-specific ascertainment and ",
+        "underreporting). ")
+    ),
+    `IFR (simulated)` = list(
+      tibble(extractValue("cfr_D_all_by_age"),
+            group = groupLabels(controls$type)) %>% 
+        mutate(metric = "IFR (simulated)"),
+      paste0(
+        "## IFR as per generated quantity `cfr_D_all_by_age`:",
+        "(distribution of) CFR per age group: total deaths per age group ",
+        "(corrected by underreporting, including both the modelling period and ",
+        "the delay) divided by cases per age group (reported symptomatic cases, ",
+        "corrected for age-specific ascertainment and underreporting)",
+        "UNCLEAR STATUS DUE TO (1-psi)"
+      )
+    )
+  )
+  return(append(realData, simData))
+}
+
+# calculate total CFR from real data:
+  # variant a: sum of cases over time, divided by sum of deaths over time
+  # variant b: sum of cases over groups, divided by sum of deaths over groups
+data_CFR_total <- function() {
+  real_CFRs <- 
+    list(`Reported cases (sum over time)`  = sum(data_list_model$incidence_cases),
+         `Reported deaths (sum over time)` = sum(data_list_model$incidence_deaths),
+         `Reported cases (sum over groups)` = sum(data_list_model$agedistr_cases),
+         `Reported deaths (sum over groups)` = sum(data_list_model$agedistr_deaths))
+    realCFRs$`CFR (sums over time)` = realCFRs[[2]] / realCFRs[[1]]
+    realCFRs$`CFR (sums over groups)` = realCFRs[[4]] / realCFRs[[3]]
+return(realCFRs)
+}
+
+# calculate CFR per day from real data:
+data_CFR_time <- function() {
+  return(tibble(date = as_date(day_data:day_max),
+         dailyCases = data_list_model$incidence_cases,
+         dailyDeaths = data_list_model$incidence_deaths) %>% 
+    mutate(realCFR = dailyDeaths / dailyCases))
+}
+
+plot_SimVsReal_CFRGroup <- function() {
+  realData <- data_CFR_groups()$reportedCFR[[1]]
+  simData <- bind_rows(
+    lapply(data_CFR_groups()[c("CFR (simulated)",
+                               "sCFR (simulated)",
+                               "IFR (simulated)")], function(x) x[[1]])) %>% 
+    mutate(metric = forcats::fct_relevel(metric,
+      "CFR (simulated)", "sCFR (simulated)", "IFR (simulated)"
+    ))
+  ggplot() +
+    geom_col(data = realData,
+             aes(x = group, y = reportedCFR, fill = "white"), col = "black") +
+    geom_pointrange(data = simData,
+                    aes(x = group, col = metric,
+                        ymin = `2.5%`, y = `50%`, ymax = `97.5%`),
+                    position = position_dodge(width = 0.5)) +
+    labs(x = "Age Group", y = NULL,
+         col = "Simulated Data \n(Median, 95% CI)",
+         fill = "test") +
+    scale_x_labelsRotate() + scale_y_percent() +
+    scale_fill_manual(name = "Reported Data", values = "white",
+                      labels = "CFR (reported)")
+}
+
+
 
