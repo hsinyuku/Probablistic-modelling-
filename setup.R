@@ -103,10 +103,10 @@ check_controls <- function() {
     return(0)
   } 
   # ind_eta: should the model with varying eta be run?
-  if (controls$ind_eta == T) {
-    controls$ind_eta <<- "VaryingEta"
-    }  else {
+  if (controls$ind_eta == F | controls$ind_eta == "CommonEta") {
     controls$ind_eta <<- "CommonEta"
+    }  else {
+      controls$ind_eta <<- "VaryingEta"
   }
     
   # use_cores: how many cores should be used?
@@ -153,6 +153,53 @@ f <- function(fstring) {
   # finally, search for all objects in the fstring (surrounded by curly
   # brackets), then replace them one be one.
   return(str_replace_all(fstring, replaceRegExp, fstring2val))
+}
+
+# this function allows to check the controls-object
+inspectPosterior <- function(posteriorName, visualise = F, savePlots = F) {
+  posteriorControls <- str_split(
+    str_sub(posteriorName, 1, str_locate(posteriorName, "\\.")[1]-1), "_")[[1]]
+  # specify here which posterior file you want to load!
+  init_controls(list(region = posteriorControls[1],
+                     type = posteriorControls[2],
+                     ind_eta = posteriorControls[3],
+                     chains = posteriorControls[4],
+                     iterations = posteriorControls[6],
+                     visualise = visualise,
+                     savePlots = savePlots,
+                     timestamp = posteriorControls[8],
+                     # these controls don't do anything, but need to have some value
+                     inference = 1,
+                     use_cores = 1))
+  # this verifies your input to init_controls
+  if(check_controls() == 0) {
+    warning("There was some error within the controls! Check  ",
+            "messages to see where exactly.")
+    stop()
+  }
+}
+
+# this function creates reads in a posterior file with a given name and 
+# updates the controls-object from the posterior's name
+initialiseSample <- function(posteriorName) {
+  # Load the saved posterior samples in the data (obviously without sampling
+  # them every time).
+  postPath <- paste0("Posteriors/", posteriorName)
+  if(!file.exists(postPath)) {
+    stop(paste0("The posterior you chose does not exist (on your machine? ",
+                "on this branch?). Remember that you have to download the ",
+                "posteriors manually from GDrive!"))
+  }
+  samples <<-  readRDS(file = postPath)
+  # get metadata about the posterior
+  sampler_params <<- get_sampler_params(samples, inc_warmup = TRUE)
+  # sampler_params returns a list with one entry per chain
+  controls["chains"] <<- length(sampler_params)
+  # length of the list is number of chains
+  controls["iterations"] <<- nrow(sampler_params[[1]])
+  # each row in each element of the list is one iteration without warmup
+  controls["warmup"] <<- controls$iterations -
+    nrow(get_sampler_params(samples, inc_warmup = FALSE)[[1]])
 }
 # ----------------------------------------------------------------------------#
 
