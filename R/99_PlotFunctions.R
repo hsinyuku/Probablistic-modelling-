@@ -383,17 +383,20 @@ plot_Real_GroupProp <- function(GenPopFill = "white",
   if(controls$type == "age") {
     data <- tibble(group = c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59",
                              "60-69", "70-79", "80+"),
-                   agedist = data_list_model$age_dist)
+                   popdist = data_list_model$age_dist,
+                   deaths = data_list_model$agedistr_deaths,
+                   cases = data_list_model$agedistr_cases)
     ylabtitle <- "Age Group"
-  } else if (controls$type == "gender") {
-    data <- tibble(group = c("male", "female"))
+  } else if (controls$type == "Gender") {
+    data <- tibble(group = c("male", "female"),
+                   popdist = data_list_model$gender_dist,
+                   deaths = data_list_model$genderdistr_deaths,
+                   cases = data_list_model$genderdistr_cases)
     ylabtitle <- "Gender"
   }
-  data <- cbind(data,
-                deaths = data_list_model$agedistr_deaths,
-                cases = data_list_model$agedistr_cases) %>% 
-    mutate_at(.vars = c("deaths", "cases"), .funs = function(x) x / sum(x)) %>%
-    rename(`General Population` = agedist,
+  data <- mutate_at(data, .vars = c("deaths", "cases"),
+                    .funs = function(x) x / sum(x)) %>%
+    rename(`General Population` = popdist,
            `Reported Cases` = cases,
            `Reported Deaths` = deaths) %>% 
     pivot_longer(cols = -group)
