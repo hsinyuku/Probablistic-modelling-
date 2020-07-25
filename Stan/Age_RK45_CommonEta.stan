@@ -242,7 +242,7 @@ transformed parameters {
   }
   output_agedistr_cases = (comp_C[S,].*rho) ./ sum(comp_C[S,].*rho);
     // D_k^{cases}: age distribution of all reported cases over the modeled
-    // period; not a percentage, but a count
+    // period
   output_agedistr_deaths = (comp_M[S,]) ./ sum(comp_M[S,]);
 }
 
@@ -371,6 +371,17 @@ generated quantities{
       p_underreport_deaths;
   }
 
+  /*
+  1) (distribution of) new reported symptomatic cases per day and age group
+  (not corrected for ascertainment and underreporting; fit to the age
+  distribution among cases over the whole simulation period)
+  2) (distribution of) new symptomatic cases per day and age group (reported
+  symptomatic cases per day, corrected for age-specific ascertainment and
+  underreporting)
+  3) (distribution of) new symptomatic cases per day and age group (reported
+  symptomatic cases per day, corrected for age-specific ascertainment and
+  underreporting, role of (1-psi) is currently unclear)
+  */
   for(i in 1:S) {
     predicted_comp_reported_diffC[i] = 
       predicted_reported_incidence_symptomatic_cases[i] == 0 ?
@@ -385,6 +396,9 @@ generated quantities{
       p_underreport_cases;
   }
   
+  // age distribution of total deaths on each day (strangely, it is fitted
+  //to the age distribution of deaths of the whole simularion period, so the
+  // distribution should be similar on each day)
   for(i in 1:(S+G)) {
     predicted_comp_diffM[i] = predicted_reported_incidence_deaths[i] == 0 ?
       rep_array(0,K) :
@@ -392,19 +406,54 @@ generated quantities{
                       predicted_reported_incidence_deaths[i]);
   } 
     
-    
+  /*
+  1.(distribution of) new reported symptomatic cases per age group (not
+    corrected for ascertainment and underreporting; fit to the age distribution
+    among cases over the whole simulation period)
+  2.(distribution of) new symptomatic cases per age group (reported symptomatic
+    cases, corrected for age-specific ascertainment and underreporting)
+  3.(distribution of) new symptomatic cases per age group (reported symptomatic
+    cases, corrected for age-specific ascertainment and underreporting)
+    UNCLEAR STATUS DUE TO (1-psi)
+  4.(distribution of) new total deaths per age group (total deaths, corrected
+    by underreporting, only including the modelling period; distribution on
+    every day is equal to the distribution of the whole simulation period)
+  5. (distribution of) new total deaths per age group, including delay (total
+    deaths, corrected by underreporting, including both the modelling period and
+    the delay; distribution on every day is equal to the distribution of the
+    whole simulation period)
+  */
   for(i in 1:K) {
     predicted_total_reported_symptomatic_cases_by_age[i] = 
       sum(predicted_comp_reported_diffC[1:S,i]) ;
     predicted_total_overall_symptomatic_cases_by_age[i] = 
       sum(predicted_comp_overall_diffC[1:S,i]);
     predicted_total_overall_all_cases_by_age[i] = 
-      sum(predicted_comp_overall_diffC[1:S,i]) + sum(predicted_comp_overall_diffA[1:S,i]);
+      sum(predicted_comp_overall_diffC[1:S,i]) +
+      sum(predicted_comp_overall_diffA[1:S,i]);
     predicted_total_overall_deaths_tmax_by_age[i] = 
       sum(predicted_comp_diffM[1:S,i]) / p_underreport_deaths;
     predicted_total_overall_deaths_delay_by_age[i] = 
       sum(predicted_comp_diffM[1:(S+G),i]) / p_underreport_deaths;
   }
+  
+  /*
+  1.(distribution of) new reported symptomatic cases (not
+    corrected for ascertainment and underreporting; fit to the age distribution
+    among cases over the whole simulation period)
+  2.(distribution of) new symptomatic cases (reported symptomatic
+    cases, corrected for age-specific ascertainment and underreporting)
+  3.(distribution of) new symptomatic cases (reported symptomatic
+    cases, corrected for age-specific ascertainment and underreporting)
+    UNCLEAR STATUS DUE TO (1-psi)
+  4.(distribution of) new total deaths (total deaths, corrected
+    by underreporting, only including the modelling period; distribution on
+    every day is equal to the distribution of the whole simulation period)
+  5. (distribution of) new total deaths, including delay (total
+    deaths, corrected by underreporting, including both the modelling period and
+    the delay; distribution on every day is equal to the distribution of the
+    whole simulation period)
+  */
   predicted_total_reported_symptomatic_cases = 
     sum(predicted_total_reported_symptomatic_cases_by_age);
   predicted_total_overall_symptomatic_cases = 
@@ -416,6 +465,25 @@ generated quantities{
   predicted_total_overall_deaths_delay = 
     sum(predicted_total_overall_deaths_delay_by_age);
   
+  /*
+  1) (distribution of) CFR per age group: total deaths per age group (corrected
+     by underreporting, only including the modelling period, wihout delay, per
+     age group) divided by reported symptomatic cases per age group (not
+     corrected for ascertainment and underreporting)
+  2) (distribution of) CFR per age group: new total deaths per age group,
+     including delay (total deaths, corrected by underreporting, including both
+     the modelling period and the delay) divided by reported symptomatic cases
+     per age group (not corrected for ascertainment and underreporting)
+  3) (distribution of) CFR per age group: total deaths per age group (corrected
+     by underreporting, only including the modelling period, wihout delay, per
+     age group) divided by symptomatic cases per age group (reported
+     symptomatic cases, corrected for age-specific ascertainment and
+     underreporting)
+  4) (distribution of) CFR per age group: total deaths per age group (corrected
+     by underreporting, including both the modelling period and the delay)
+     divided by symptomatic cases per age group (reported symptomatic cases,
+     corrected for age-specific ascertainment and underreporting)
+  */
   cfr_A_symptomatic_by_age = 
     predicted_total_overall_deaths_tmax_by_age ./ 
       predicted_total_reported_symptomatic_cases_by_age;
@@ -429,6 +497,24 @@ generated quantities{
     predicted_total_overall_deaths_delay_by_age ./
       predicted_total_overall_symptomatic_cases_by_age;
   
+  /*
+  1) (distribution of) CFR: total deaths (corrected by underreporting, only
+     including the modelling period, wihout delay, per age group) divided by
+     reported symptomatic cases (not corrected for ascertainment and
+     underreporting)
+  2) (distribution of) CFR: new total deaths, including delay (total deaths,
+     corrected by underreporting, including both the modelling period and the
+     delay) divided by reported symptomatic cases (not corrected for
+     ascertainment and underreporting)
+  3) (distribution of) CFR: total deaths (corrected by underreporting, only
+     including the modelling period, wihout delay, per age group) divided by
+     symptomatic cases (reported symptomatic cases, corrected for age-specific
+     ascertainment and underreporting)
+  4) (distribution of) CFR: total deaths (corrected by underreporting,
+     including both the modelling period and the delay) divided by symptomatic
+     cases (reported symptomatic cases, corrected for age-specific
+     ascertainment and underreporting)
+  */  
   cfr_A_symptomatic = 
     predicted_total_overall_deaths_tmax / predicted_total_reported_symptomatic_cases;
   cfr_B_symptomatic = 
@@ -438,9 +524,33 @@ generated quantities{
   cfr_D_symptomatic = 
     predicted_total_overall_deaths_delay / predicted_total_overall_symptomatic_cases;
   
-  cfr_C_all_by_age = predicted_total_overall_deaths_tmax_by_age ./ predicted_total_overall_all_cases_by_age;
-  cfr_D_all_by_age = predicted_total_overall_deaths_delay_by_age ./ predicted_total_overall_all_cases_by_age;
+  /* (distribution of) CFR per age group: total deaths per age group (corrected
+    by underreporting, only including the modelling period, without delay, per
+    age group) divided by cases per age group (reported symptomatic cases,
+    corrected for age-specific ascertainment and underreporting) */
+  // UNCLEAR STATUS DUE TO (1-psi)
+  cfr_C_all_by_age = predicted_total_overall_deaths_tmax_by_age ./
+    predicted_total_overall_all_cases_by_age;
+  /* (distribution of) CFR: total deaths (corrected by underreporting,
+    including both the modelling period and the delay) divided by cases per age
+    group (reported symptomatic cases, corrected for age-specific ascertainment
+    and underreporting) */
+  // UNCLEAR STATUS DUE TO (1-psi)
+  cfr_D_all_by_age = predicted_total_overall_deaths_delay_by_age ./
+    predicted_total_overall_all_cases_by_age;
   
-  cfr_C_all = predicted_total_overall_deaths_tmax / predicted_total_overall_all_cases;
-  cfr_D_all = predicted_total_overall_deaths_delay / predicted_total_overall_all_cases;
+  /* (distribution of) CFR: total deaths (corrected by underreporting,
+  including both the modelling period and the delay) divided by cases per
+  age group (reported symptomatic cases, corrected for age-specific
+  ascertainment and underreporting) */
+  // UNCLEAR STATUS DUE TO (1-psi)
+  cfr_C_all = predicted_total_overall_deaths_tmax /
+    predicted_total_overall_all_cases;
+  /* (distribution of) CFR: total deaths (corrected by underreporting, only
+  including the modelling period,  wihout delay) divided by new symptomatic 
+  cases (reported symptomatic cases, corrected for age-specific ascertainment
+  and underreporting) */
+  // UNCLEAR STATUS DUE TO (1-psi)
+  cfr_D_all = predicted_total_overall_deaths_delay /
+    predicted_total_overall_all_cases;
 }
