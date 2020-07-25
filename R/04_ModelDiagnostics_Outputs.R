@@ -140,6 +140,10 @@ stan_trace(samples, pars=c("beta", "epsilon","rho","pi","psi", "eta"))
 # definition time: CFR is calculated as deaths / cases (per group), and can be
 # calculated from both the simulated data and the real data
 
-
+plot_SimVsReal_CFRGroup() +
+  labs(caption = paste0("Note: simulated CFR differs from reported CFR in that",
+                        " it counts deaths corrected\nfor underreporting.")) +
+  theme(plot.caption.position = "plot",
+        plot.caption = element_text(hjust = 0))
 
 # ----------------------------------------------------------------------------#
