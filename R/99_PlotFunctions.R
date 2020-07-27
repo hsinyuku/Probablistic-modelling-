@@ -436,7 +436,7 @@ plot_Real_GroupProp <- function(GenPopFill = "white",
 #   (possibly per age group or per day)
 # sCFR = (symptomatic cases) / (deaths including delay)
 #   (possibly per age group or per day)
-# IFR = (cases) / (deaths including dealy)
+# IFR = (cases) / (deaths including delay)
 #   (possibly per age group or per day)
 
 # getting group CFR: real und simulated

@@ -81,5 +81,4 @@ agedistr_deaths = pull(agedistr_cases_deaths,deaths)
 # ----------------------------------------------------------------------------#
 
 p_underreport_cases=sum(incidence_cases)/sum(cases_deaths$new_cases)
-p_underreport_cases
 p_underreport_deaths=1
