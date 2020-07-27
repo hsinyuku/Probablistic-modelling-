@@ -18,6 +18,42 @@ Sys.setlocale("LC_TIME", "English") # this is necessary to get English date
 # functions already translated ####
 # ----------------------------------------------------------------------------#
 
+
+# this function should be able to provide python-like fstring-functionality. -#
+# Probably really slow, but will do the trick for things like plot caption. --#
+# CAN NOT BE USED INSIDE FUNCTION, MUST BE CALLED DIRECTLY FROM THE GLOBAL
+# ENVIRONMENT
+f <- function(fstring) {
+  replaceRegExp <- "\\{[[:alnum:]\\_\\]\\[]+\\}"
+  # the pattern we are looking for is any variable, surrounded by curly 
+  # brackets; variable names can contain letters, digits, and _ (but not 
+  # other special characters)
+  fstring2val <- function(fstring) {
+    # writing a function to use in str_replace_all(); one object name (enclosed)
+    # by curly brackets) at a time will be passed to this
+    objectName <- str_sub(fstring, 2, -2)
+    # remove the surrounding brackets, so the object's name remains
+    if(str_detect(objectName, "\\[[[:alnum:]\\_]+\\]")) {
+      # function should be able to call objects from lists, which have to be
+      # indexed using [[]] and quotation marks. To deal with this, we separate
+      # the two parts: the list name and the element name.
+      listName = str_extract(objectName, "[[:alnum:]\\_]+(?=\\[)")
+      # this is the name of the list to be accessed
+      listElement = str_sub(str_extract(objectName, "\\[[[:alnum:]\\_]+\\]"), 2, -2)
+      # this is the name of the element inside the list to be accessed
+      return(get(listName)[listElement])
+      # glue it together and call get()
+    } else {
+      # if the string passed was not a list, accessing is much simpler:
+      return(get(objectName))
+    }
+  }
+  # finally, search for all objects in the fstring (surrounded by curly
+  # brackets), then replace them one be one.
+  return(str_replace_all(fstring, replaceRegExp, fstring2val))
+}
+
+
 # Function to save plots -----------------------------------------------------#
 # necessary parts of the name is taken directly from the list with the
 # controls, but can also be specified manually
@@ -48,14 +84,14 @@ groupLabels <- function(group) {
 }
 
 # function to extract values from parameters as tibble -----------------------#
-  extractValue <- function(name, printStat = c("2.5%", "97.5%", "50%")) {
-  summary(samples, name)[[1]] %>%
+extractValue <- function(sample, name, printStat = c("2.5%", "97.5%", "50%")) {
+  summary(sample, name)[[1]] %>%
     as_tibble() %>% mutate(metric = name) %>% 
     select(metric, printStat)
 }
 
 # plotting simulated vs. real cases and deaths over time ---------------------#
-plot_SimVsReal_Time <- function(metric, day_max, day_data,
+plot_SimVsReal_Time <- function(sample, metric, day_max, day_data,
                                 AllCasesFill = "#00B2EE",
                                 SymptCasesFill = "#66CD00",
                                 RepCasesFill = "#008B8B",
@@ -69,11 +105,13 @@ plot_SimVsReal_Time <- function(metric, day_max, day_data,
   if (metric == "cases") {
     dates <- as_date(day_data:day_max)
     estimatedData <- rbind(
-      cbind(extractValue("predicted_reported_incidence_symptomatic_cases"),
+      cbind(extractValue(sample,
+                         "predicted_reported_incidence_symptomatic_cases"),
             date = dates),
-      cbind(extractValue("predicted_overall_incidence_symptomatic_cases"),
+      cbind(extractValue(sample,
+                         "predicted_overall_incidence_symptomatic_cases"),
             date = dates),
-      cbind(extractValue("predicted_overall_incidence_all_cases"),
+      cbind(extractValue(sample, "predicted_overall_incidence_all_cases"),
             date = dates))  %>% 
       # the releveling is necessary to control which metric gets printed over
       # which metric ("order in which they are printed")
@@ -88,7 +126,7 @@ plot_SimVsReal_Time <- function(metric, day_max, day_data,
              incidence = data_list_model$incidence_cases)
   } else if (metric == "deaths") {
     estimatedData <- 
-      cbind(extractValue("predicted_overall_incidence_deaths"), 
+      cbind(extractValue(sample, "predicted_overall_incidence_deaths"), 
             date = as_date(day_data:(day_max+data_list_model$G))) %>% 
       mutate(metric = case_when(date <= day_max ~ "Simulated Deaths",
                                 date >= day_max ~ "Residual Deaths"),
@@ -137,7 +175,7 @@ plot_SimVsReal_Time <- function(metric, day_max, day_data,
 }
 
 # plotting simulated vs. real deaths and cases per age group -----------------#
-plot_SimVsReal_Group <- function(metric, AllCasesFill = "#00B2EE",
+plot_SimVsReal_Group <- function(sample, metric, AllCasesFill = "#00B2EE",
                                  SymptCasesFill = "#66CD00",
                                  RepCasesFill = "#008B8B",
                                  SimDeaths = "#B22222", 
@@ -168,11 +206,14 @@ plot_SimVsReal_Group <- function(metric, AllCasesFill = "#00B2EE",
   # Preparing the simulated data
   if(metric == "cases") {
     estimatedData <- rbind(
-      extractValue(paste0("predicted_total_reported_symptomatic_cases_by_",
+      extractValue(sample,
+                   paste0("predicted_total_reported_symptomatic_cases_by_",
                           str_to_lower(controls$type))),
-      extractValue(paste0("predicted_total_overall_symptomatic_cases_by_",
-                   str_to_lower(controls$type))),
-      extractValue(paste0("predicted_total_overall_all_cases_by_",
+      extractValue(sample,
+                   paste0("predicted_total_overall_symptomatic_cases_by_",
+                          str_to_lower(controls$type))),
+      extractValue(sample,
+                   paste0("predicted_total_overall_all_cases_by_",
                           str_to_lower(controls$type)))) %>% 
       mutate(group = rep(groupLabels, 3),
              metric = factor(metric),
@@ -189,9 +230,11 @@ plot_SimVsReal_Group <- function(metric, AllCasesFill = "#00B2EE",
                  str_to_lower(controls$type))))
   } else if (metric == "deaths") {
     estimatedData <- rbind(
-      extractValue(paste0("predicted_total_overall_deaths_tmax_by_",
+      extractValue(sample,
+                   paste0("predicted_total_overall_deaths_tmax_by_",
                           str_to_lower(controls$type))),
-      extractValue(paste0("predicted_total_overall_deaths_delay_by_",
+      extractValue(sample, 
+                   paste0("predicted_total_overall_deaths_delay_by_",
                           str_to_lower(controls$type)))) %>% 
       mutate(group = rep(groupLabels, 2),
              metric = factor(metric),
@@ -229,7 +272,7 @@ plot_SimVsReal_Group <- function(metric, AllCasesFill = "#00B2EE",
     plot <- plot +
       labs(y = "Number of total cases") +
       scale_colour_manual(values = c(AllCasesFill, SymptCasesFill,
-                                   RepCasesFill))
+                                     RepCasesFill))
   } else if(metric == "deaths") {
     plot <- plot + 
       labs(y = "Number of deaths") +
@@ -239,7 +282,7 @@ plot_SimVsReal_Group <- function(metric, AllCasesFill = "#00B2EE",
 }
 
 # plotting total deaths and cases --------------------------------------------#
-plot_SimVsReal_Total <- function(metric, AllCasesFill = "#00B2EE",
+plot_SimVsReal_Total <- function(sample, metric, AllCasesFill = "#00B2EE",
                                  SymptCasesFill = "#66CD00",
                                  RepCasesFill = "#008B8B",
                                  SimDeaths = "#B22222", 
@@ -255,24 +298,24 @@ plot_SimVsReal_Total <- function(metric, AllCasesFill = "#00B2EE",
       n = total,
       metric = "Reported cases")
     estimatedData <- rbind(
-      extractValue("predicted_total_reported_symptomatic_cases"),
-      extractValue("predicted_total_overall_symptomatic_cases"),
-      extractValue("predicted_total_overall_all_cases"))  %>% 
+      extractValue(sample, "predicted_total_reported_symptomatic_cases"),
+      extractValue(sample, "predicted_total_overall_symptomatic_cases"),
+      extractValue(sample, "predicted_total_overall_all_cases"))  %>% 
       # the releveling is necessary to control which metric gets printed over
       # which metric ("order in which they are printed")
       mutate(metric = factor(metric),
              metric = fct_recode(
                metric,
-               All = "predicted_total_reported_symptomatic_cases",
+               All = "predicted_total_overall_all_cases",
                "Symptomatic Cases" = "predicted_total_overall_symptomatic_cases",
-               "Reported Cases" = "predicted_total_overall_all_cases"))
+               "Reported Cases" = "predicted_total_reported_symptomatic_cases"))
   } else if (metric == "deaths") {
     realData <- tibble(
       n = total,
       metric = "Reported deaths")
     estimatedData <- 
-      rbind(extractValue("predicted_total_overall_deaths_tmax"),
-            extractValue("predicted_total_overall_deaths_delay")) %>% 
+      rbind(extractValue(sample, "predicted_total_overall_deaths_tmax"),
+            extractValue(sample, "predicted_total_overall_deaths_delay")) %>% 
       mutate(metric = factor(metric),
              metric = fct_recode(
                metric,
@@ -300,7 +343,7 @@ plot_SimVsReal_Total <- function(metric, AllCasesFill = "#00B2EE",
     plot <- plot +
       labs(y = "Cases") +
       scale_colour_manual(values = c(AllCasesFill, SymptCasesFill,
-                                   RepCasesFill))
+                                     RepCasesFill))
   } else if (metric == "deaths") {
     plot <- plot +
       labs(y = "Deaths") +
@@ -310,8 +353,8 @@ plot_SimVsReal_Total <- function(metric, AllCasesFill = "#00B2EE",
 }
 
 # plotting ascertainment ratio rho per age group -----------------------------#
-plot_ascertainment <- function(AscRateFill = "#") {
-  rhoData <- summary(samples, "rho")$summary %>% as_tibble()
+plot_ascertainment <- function(sample, AscRateFill = "#") {
+  rhoData <- summary(sample, "rho")$summary %>% as_tibble()
   if(controls$type == "Age") {
     rhoData <- rhoData %>%
       mutate(ageGroup = rep(c("0-9","10-19","20-29","30-39","40-49","50-59",
@@ -390,7 +433,7 @@ plot_Real_Time <- function(metric, day_start, day_max,
   }
   return(plot)
 }
-  
+
 # plot the proportion of reported cases / deaths per group -------------------#
 plot_Real_GroupProp <- function(GenPopFill = "white",
                                 RepCasesFill = "#008B8B",
@@ -428,7 +471,7 @@ plot_Real_GroupProp <- function(GenPopFill = "white",
     labs(y = ylabtitle)
   return(plot)
 }
-  
+
 # plot CFRs -------------------------------------------------------------------
 
 # some nomenclature:
@@ -440,7 +483,7 @@ plot_Real_GroupProp <- function(GenPopFill = "white",
 #   (possibly per age group or per day)
 
 # getting group CFR: real und simulated
-data_CFR_groups <- function() {
+data_CFR_groups <- function(sample) {
   # this  function provides CFRs per group, together with extensive footnotes
   # that explain where certain data come from
   if(controls$type == "Gender") {
@@ -454,7 +497,7 @@ data_CFR_groups <- function() {
                        reportedDeaths = data_list_model$agedistr_deaths) %>%
       mutate(reportedCFR = reportedDeaths / reportedCases)
   }
-
+  
   realData <- list(
     reportedCases = list(
       select(realData, group, reportedCases),
@@ -473,9 +516,10 @@ data_CFR_groups <- function() {
   )
   simData <- list(
     `CFR (simulated)` = list(
-      tibble(extractValue(paste0("cfr_A_symptomatic_by_",
+      tibble(extractValue(sample, 
+                          paste0("cfr_A_symptomatic_by_",
                                  str_to_lower(controls$type))),
-            group = groupLabels(controls$type)) %>% 
+             group = groupLabels(controls$type)) %>% 
         mutate(metric = "CFR (simulated)"),
       paste0(
         "## CFR as per generated quantity `cfr_A_symptomatic_by_group`: ",
@@ -487,9 +531,9 @@ data_CFR_groups <- function() {
         " reported deaths.")
     ),
     `sCFR (simulated)` = list(
-      tibble(extractValue(paste0("cfr_D_symptomatic_by_",
+      tibble(extractValue(sample, paste0("cfr_D_symptomatic_by_",
                                  str_to_lower(controls$type))),
-            group = groupLabels(controls$type)) %>% 
+             group = groupLabels(controls$type)) %>% 
         mutate(metric = "sCFR (simulated)"),
       paste0(
         "## sCFR as per generated quantitiy `cfr_D_symptomatic_by_group`: ",
@@ -500,9 +544,9 @@ data_CFR_groups <- function() {
         "underreporting). ")
     ),
     `IFR (simulated)` = list(
-      tibble(extractValue(paste0("cfr_D_all_by_",
+      tibble(extractValue(sample, paste0("cfr_D_all_by_",
                                  str_to_lower(controls$type))),
-            group = groupLabels(controls$type)) %>% 
+             group = groupLabels(controls$type)) %>% 
         mutate(metric = "IFR (simulated)"),
       paste0(
         "## IFR as per generated quantity `cfr_D_all_by_group`:",
@@ -518,35 +562,35 @@ data_CFR_groups <- function() {
 }
 
 # calculate total CFR from real data:
-  # variant a: sum of cases over time, divided by sum of deaths over time
-  # variant b: sum of cases over groups, divided by sum of deaths over groups
+# variant a: sum of cases over time, divided by sum of deaths over time
+# variant b: sum of cases over groups, divided by sum of deaths over groups
 data_CFR_total <- function() {
   real_CFRs <- 
     list(`Reported cases (sum over time)`  = sum(data_list_model$incidence_cases),
          `Reported deaths (sum over time)` = sum(data_list_model$incidence_deaths),
          `Reported cases (sum over groups)` = sum(data_list_model$agedistr_cases),
          `Reported deaths (sum over groups)` = sum(data_list_model$agedistr_deaths))
-    realCFRs$`CFR (sums over time)` = realCFRs[[2]] / realCFRs[[1]]
-    realCFRs$`CFR (sums over groups)` = realCFRs[[4]] / realCFRs[[3]]
-return(realCFRs)
+  realCFRs$`CFR (sums over time)` = realCFRs[[2]] / realCFRs[[1]]
+  realCFRs$`CFR (sums over groups)` = realCFRs[[4]] / realCFRs[[3]]
+  return(realCFRs)
 }
 
 # calculate CFR per day from real data:
 data_CFR_time <- function() {
   return(tibble(date = as_date(day_data:day_max),
-         dailyCases = data_list_model$incidence_cases,
-         dailyDeaths = data_list_model$incidence_deaths) %>% 
-    mutate(realCFR = dailyDeaths / dailyCases))
+                dailyCases = data_list_model$incidence_cases,
+                dailyDeaths = data_list_model$incidence_deaths) %>% 
+           mutate(realCFR = dailyDeaths / dailyCases))
 }
 
-plot_SimVsReal_CFRGroup <- function() {
-  realData <- data_CFR_groups()$reportedCFR[[1]]
+plot_SimVsReal_CFRGroup <- function(sample) {
+  realData <- data_CFR_groups(sample)$reportedCFR[[1]]
   simData <- bind_rows(
-    lapply(data_CFR_groups()[c("CFR (simulated)",
+    lapply(data_CFR_groups(sample)[c("CFR (simulated)",
                                "sCFR (simulated)",
                                "IFR (simulated)")], function(x) x[[1]])) %>% 
     mutate(metric = forcats::fct_relevel(metric,
-      "CFR (simulated)", "sCFR (simulated)", "IFR (simulated)"
+                                         "CFR (simulated)", "sCFR (simulated)", "IFR (simulated)"
     ))
   ggplot() +
     geom_col(data = realData,
@@ -563,16 +607,48 @@ plot_SimVsReal_CFRGroup <- function() {
                       labels = "CFR (reported)")
 }
 
+plot_CFR_total_regions <- function(data) {
+  # data should be a tibble with the relevant fatality ratios
+  data <- filter(generatedQuantitiesSummary,
+         parameter %in% c("cfr_A_symptomatic", "cfr_B_symptomatic",
+                          "cfr_C_symptomatic", "cfr_D_symptomatic",
+                          "cfr_C_all", "cfr_D_all")) %>% 
+    unnest(cols = data) %>% 
+    mutate(parameter = factor(parameter, 
+                              levels = c("cfr_A_symptomatic", "cfr_B_symptomatic",
+                                        "cfr_C_symptomatic", "cfr_D_symptomatic",
+                                        "cfr_C_all", "cfr_D_all")))
+  
+  filter(data, parameter %in% c("cfr_A_symptomatic", "cfr_D_symptomatic",
+                                "cfr_D_all")) %>% 
+    mutate(region = ifelse(region == "BadenW", "Baden-\nWürttemberg", region)) %>% 
+  ggplot() +
+    geom_pointrange(aes(x = region, ymin = `2.5%`, ymax = `97.5%`, y = `50%`,
+                        col = parameter),
+                    position = position_dodge(width = 0.3)) +
+    scale_colour_discrete(
+      label = c("CFR: fatality ratio among reported cases",
+                # "CFR (corrected for right-censoring)",
+                # "CFR (corrected for underreporting)",
+                "sCFR: CFR, corrected for right-censoring and underreporting",
+                # "sCFR (corrected for proportion of\nnon-symptomatic)",
+                "IFR: sCFR, corrected for right-censoring and proportion of non-symptomatic"),
+      name = "Simulated fatality ratios") +
+    theme(legend.position = "bottom", legend.direction = "vertical") +
+    scale_x_labelsRotate() +
+    scale_y_percent()
+} 
+
 
 # plot model parameters -------------------------------------------------------
 
-plot_Parameters <- function(){
+plot_Parameters <- function(sample){
   # Gather all parameters in theta
   pars <- c("beta", "epsilon","rho","pi","psi", "eta")
   subtitle = f(paste0("For {controls[chains]} chains and ",
                       "{controls[iterations]} iterations per chain."))
   title = f(paste0("Posterior Density Plots ({controls[region]})" ))
-  plot <- stan_dens(samples, pars = pars, separate_chains = T, nrow = 3) +
+  plot <- stan_dens(sample, pars = pars, separate_chains = T, nrow = 3) +
     labs(title = title, subtitle = subtitle) +
     scale_x_continuous(breaks = c(0, 0.5, 1), labels = c("0", ".5", "1")) +
     coord_cartesian(xlim =c(0,1))
