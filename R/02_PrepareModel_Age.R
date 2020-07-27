@@ -161,7 +161,6 @@ data_list_model = {list(
   p_xi      = p_xi,
   p_nu      = p_nu,
   # Fixed parameters -----------------------#
-  contact           = contact_matrix,
   p_q_P             = q_P,
   tau_1             = tau_1,
   tau_2             = tau_2,

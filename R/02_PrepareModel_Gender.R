@@ -79,14 +79,6 @@ kappa = (q_P*tau_2*psi)/((1-q_P)*mu-(1-psi)*q_P*tau_2)
 # select the appropriate contact matrix with regard to region and type
 contact_matrix <- contact_matrix_gender_age(type = controls["type"],
                                             region = controls["region"])
-
-# visualising the contact matrix
-if(controls[["visualise"]]) {
-  tibble(contacts = contact_matrix) %>%
-    mutate(age1 = rep(1:9,9), age2 = rep(1:9,each=9)) %>%
-    ggplot() +
-    geom_tile(aes(x=age2,y=age1,fill=contacts))
-}
 # ----------------------------------------------------------------------------#
 
 
@@ -166,7 +158,6 @@ data_list_model = {list(
   p_xi      = p_xi,
   p_nu      = p_nu,
   # Fixed parameters -----------------------#
-  contact           = contact_matrix,
   p_q_P             = q_P,
   tau_1           = tau_1,
   tau_2            = tau_2,

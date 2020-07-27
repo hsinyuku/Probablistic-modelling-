@@ -353,6 +353,7 @@ generated quantities{
   for(i in 1:(S+G)) predicted_comp_diffM[i] = predicted_reported_incidence_deaths[i] == 0 ?
     rep_array(0,K) : multinomial_rng(output_genderdistr_deaths, 
     predicted_reported_incidence_deaths[i]);
+    
   for(i in 1:K) {
     predicted_total_reported_symptomatic_cases_by_gender[i] = 
       sum(predicted_comp_reported_diffC[1:S,i]) ;

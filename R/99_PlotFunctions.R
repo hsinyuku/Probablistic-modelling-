@@ -21,17 +21,11 @@ Sys.setlocale("LC_TIME", "English") # this is necessary to get English date
 # Function to save plots -----------------------------------------------------#
 # necessary parts of the name is taken directly from the list with the
 # controls, but can also be specified manually
-save_gg <- function(plot, name, region = controls["region"],
-                    ind_eta = controls["ind_eta"],
-                    chains = controls["chains"],
-                    iterations = controls["iterations"], 
-                    type = controls["type"],
+save_gg <- function(plot, name,
                     width = 10, height = 6){
-  file = paste0("Figures/", region, "_", type, "_", ind_eta, "_", iterations,
-                "iterations_", chains, "chains.png")
-  ggsave(file, units = "in",
+  ggsave(paste0("Figures/", name, ".png"), units = "in",
          width = width, height = height)
-  print(paste0("Saved plot to ", file))
+  print(paste0("Saved plot to Figures/", name, ".png"))
 }
 
 # Functions for plot styling
@@ -45,10 +39,10 @@ scale_y_percent <- function(labels = "percent", ...) {
 }
 
 groupLabels <- function(group) {
-  if(group == "age")  {
+  if(group == "Age")  {
     groupLabels <- c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59",
                      "60-69", "70-79", "80+")
-  } else if(group == "gender") {
+  } else if(group == "Gender") {
     groupLabels <- c("male", "female") }
   return(groupLabels)
 }
@@ -149,7 +143,7 @@ plot_SimVsReal_Group <- function(metric, AllCasesFill = "#00B2EE",
                                  SimDeaths = "#B22222", 
                                  ResDeaths = "#FFD700") {
   # Preparing the real (reported) data
-  if(controls$type == "age") {
+  if(controls$type == "Age") {
     groupLabels <- c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59",
                      "60-69", "70-79", "80+")
     if(metric == "deaths") {
@@ -160,7 +154,7 @@ plot_SimVsReal_Group <- function(metric, AllCasesFill = "#00B2EE",
                          group = groupLabels)
       
     }
-  } else if(controls$type == "gender") {
+  } else if(controls$type == "Gender") {
     groupLabels <- c("male", "female")
     if(metric == "deaths") {
       realData <- tibble(n = data_list_model[[f("genderdistr_deaths")]],
@@ -174,26 +168,41 @@ plot_SimVsReal_Group <- function(metric, AllCasesFill = "#00B2EE",
   # Preparing the simulated data
   if(metric == "cases") {
     estimatedData <- rbind(
-      extractValue("predicted_total_reported_symptomatic_cases_by_age"),
-      extractValue("predicted_total_overall_symptomatic_cases_by_age"),
-      extractValue("predicted_total_overall_all_cases_by_age")) %>% 
+      extractValue(paste0("predicted_total_reported_symptomatic_cases_by_",
+                          str_to_lower(controls$type))),
+      extractValue(paste0("predicted_total_overall_symptomatic_cases_by_",
+                   str_to_lower(controls$type))),
+      extractValue(paste0("predicted_total_overall_all_cases_by_",
+                          str_to_lower(controls$type)))) %>% 
       mutate(group = rep(groupLabels, 3),
              metric = factor(metric),
              metric = fct_recode(
                metric,
-               All = "predicted_total_overall_all_cases_by_age",
-               `Symptomatic Cases` = "predicted_total_overall_symptomatic_cases_by_age",
-               `Reported Cases` = "predicted_total_reported_symptomatic_cases_by_age"))
+               All = paste0(
+                 "predicted_total_reported_symptomatic_cases_by_",
+                 str_to_lower(controls$type)),
+               `Symptomatic Cases` = paste0(
+                 "predicted_total_overall_symptomatic_cases_by_",
+                 str_to_lower(controls$type)),
+               `Reported Cases` = paste0(
+                 "predicted_total_overall_all_cases_by_",
+                 str_to_lower(controls$type))))
   } else if (metric == "deaths") {
     estimatedData <- rbind(
-      extractValue("predicted_total_overall_deaths_tmax_by_age"),
-      extractValue("predicted_total_overall_deaths_delay_by_age")) %>% 
+      extractValue(paste0("predicted_total_overall_deaths_tmax_by_",
+                          str_to_lower(controls$type))),
+      extractValue(paste0("predicted_total_overall_deaths_delay_by_",
+                          str_to_lower(controls$type)))) %>% 
       mutate(group = rep(groupLabels, 2),
              metric = factor(metric),
              metric = fct_recode(
                metric,
-               `Reported Deaths` = "predicted_total_overall_deaths_tmax_by_age",
-               `Projected Deaths` = "predicted_total_overall_deaths_delay_by_age"
+               `Reported Deaths` = paste0(
+                 "predicted_total_overall_deaths_tmax_by_",
+                 str_to_lower(controls$type)),
+               `Projected Deaths` = paste0(
+                 "predicted_total_overall_deaths_delay_by_",
+                 str_to_lower(controls$type))
              ))
   }
   plot <- ggplot() +
@@ -210,20 +219,18 @@ plot_SimVsReal_Group <- function(metric, AllCasesFill = "#00B2EE",
                                                      suffix = " K"),
                        expand = expansion(mult=c(0,.05)))
   # Styling for Age vs. for Gender
-  if(controls$type == "age") {
+  if(controls$type == "Age") {
     plot <- plot + 
       labs(x = "Age Group") +
       theme(axis.text.x=element_text(angle=45,hjust=1))
-  } else if(controls$type == "gender") {
+  } else if(controls$type == "Gender") {
   }
   if(metric == "cases") {
-    print("applying styling for cases")
     plot <- plot +
       labs(y = "Number of total cases") +
       scale_colour_manual(values = c(AllCasesFill, SymptCasesFill,
                                    RepCasesFill))
   } else if(metric == "deaths") {
-    print("applying styling for deaths")
     plot <- plot + 
       labs(y = "Number of deaths") +
       scale_colour_manual(values = c(ResDeaths, SimDeaths))
@@ -305,7 +312,15 @@ plot_SimVsReal_Total <- function(metric, AllCasesFill = "#00B2EE",
 # plotting ascertainment ratio rho per age group -----------------------------#
 plot_ascertainment <- function(AscRateFill = "#") {
   rhoData <- summary(samples, "rho")$summary %>% as_tibble()
-  rhoData <- rhoData %>% mutate(ageGroup = rep(c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+")))
+  if(controls$type == "Age") {
+    rhoData <- rhoData %>%
+      mutate(ageGroup = rep(c("0-9","10-19","20-29","30-39","40-49","50-59",
+                              "60-69","70-79","80+")))
+  } else if (controls$type == "Gender") {
+    rhoData <- rhoData %>%
+      mutate(ageGroup = rep(c("male", "female")))
+  }
+  
   
   ggplot(rhoData, aes(x = ageGroup, y = `50%`)) +
     geom_col(width = 0.5, alpha = 0.7, fill = AscRateFill) +
@@ -380,20 +395,23 @@ plot_Real_Time <- function(metric, day_start, day_max,
 plot_Real_GroupProp <- function(GenPopFill = "white",
                                 RepCasesFill = "#008B8B",
                                 SimDeaths = "#B22222") {
-  if(controls$type == "age") {
+  if(controls$type == "Age") {
     data <- tibble(group = c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59",
                              "60-69", "70-79", "80+"),
-                   agedist = data_list_model$age_dist)
+                   popdist = data_list_model$age_dist,
+                   deaths = data_list_model$agedistr_deaths,
+                   cases = data_list_model$agedistr_cases)
     ylabtitle <- "Age Group"
-  } else if (controls$type == "gender") {
-    data <- tibble(group = c("male", "female"))
+  } else if (controls$type == "Gender") {
+    data <- tibble(group = c("male", "female"),
+                   popdist = data_list_model$gender_dist,
+                   deaths = data_list_model$genderdistr_deaths,
+                   cases = data_list_model$genderdistr_cases)
     ylabtitle <- "Gender"
   }
-  data <- cbind(data,
-                deaths = data_list_model$agedistr_deaths,
-                cases = data_list_model$agedistr_cases) %>% 
-    mutate_at(.vars = c("deaths", "cases"), .funs = function(x) x / sum(x)) %>%
-    rename(`General Population` = agedist,
+  data <- mutate_at(data, .vars = c("deaths", "cases"),
+                    .funs = function(x) x / sum(x)) %>%
+    rename(`General Population` = popdist,
            `Reported Cases` = cases,
            `Reported Deaths` = deaths) %>% 
     pivot_longer(cols = -group)
@@ -425,10 +443,18 @@ plot_Real_GroupProp <- function(GenPopFill = "white",
 data_CFR_groups <- function() {
   # this  function provides CFRs per group, together with extensive footnotes
   # that explain where certain data come from
-  realData <- tibble(group       = groupLabels(controls$type),
-                     reportedCases  = data_list_model$agedistr_cases,
-                     reportedDeaths = data_list_model$agedistr_deaths) %>%
-    mutate(reportedCFR = reportedDeaths / reportedCases)
+  if(controls$type == "Gender") {
+    realData <- tibble(group       = groupLabels(controls$type),
+                       reportedCases  = data_list_model$genderdistr_cases,
+                       reportedDeaths = data_list_model$genderdistr_deaths) %>%
+      mutate(reportedCFR = reportedDeaths / reportedCases)
+  } else if(controls$type == "Age") {
+    realData <- tibble(group       = groupLabels(controls$type),
+                       reportedCases  = data_list_model$agedistr_cases,
+                       reportedDeaths = data_list_model$agedistr_deaths) %>%
+      mutate(reportedCFR = reportedDeaths / reportedCases)
+  }
+
   realData <- list(
     reportedCases = list(
       select(realData, group, reportedCases),
@@ -447,11 +473,12 @@ data_CFR_groups <- function() {
   )
   simData <- list(
     `CFR (simulated)` = list(
-      tibble(extractValue("cfr_A_symptomatic_by_age"),
+      tibble(extractValue(paste0("cfr_A_symptomatic_by_",
+                                 str_to_lower(controls$type))),
             group = groupLabels(controls$type)) %>% 
         mutate(metric = "CFR (simulated)"),
       paste0(
-        "## CFR as per generated quantity `cfr_A_symptomatic_by_age`: ",
+        "## CFR as per generated quantity `cfr_A_symptomatic_by_group`: ",
         "(distribution of) CFR per age group: total deaths per age group",
         " (corrected by underreporting, only including the modelling period",
         " without delay, per age group) divided by reported symptomatic cases",
@@ -460,11 +487,12 @@ data_CFR_groups <- function() {
         " reported deaths.")
     ),
     `sCFR (simulated)` = list(
-      tibble(extractValue("cfr_D_symptomatic_by_age"),
+      tibble(extractValue(paste0("cfr_D_symptomatic_by_",
+                                 str_to_lower(controls$type))),
             group = groupLabels(controls$type)) %>% 
         mutate(metric = "sCFR (simulated)"),
       paste0(
-        "## sCFR as per generated quantitiy `cfr_D_symptomatic_by_age`: ",
+        "## sCFR as per generated quantitiy `cfr_D_symptomatic_by_group`: ",
         "(distribution of) CFR per age group: total deaths per age group ",
         "(corrected by underreporting, including both the modelling period and",
         "the delay) divided by symptomatic cases per age group (reported ",
@@ -472,11 +500,12 @@ data_CFR_groups <- function() {
         "underreporting). ")
     ),
     `IFR (simulated)` = list(
-      tibble(extractValue("cfr_D_all_by_age"),
+      tibble(extractValue(paste0("cfr_D_all_by_",
+                                 str_to_lower(controls$type))),
             group = groupLabels(controls$type)) %>% 
         mutate(metric = "IFR (simulated)"),
       paste0(
-        "## IFR as per generated quantity `cfr_D_all_by_age`:",
+        "## IFR as per generated quantity `cfr_D_all_by_group`:",
         "(distribution of) CFR per age group: total deaths per age group ",
         "(corrected by underreporting, including both the modelling period and ",
         "the delay) divided by cases per age group (reported symptomatic cases, ",
@@ -535,4 +564,17 @@ plot_SimVsReal_CFRGroup <- function() {
 }
 
 
+# plot model parameters -------------------------------------------------------
 
+plot_Parameters <- function(){
+  # Gather all parameters in theta
+  pars <- c("beta", "epsilon","rho","pi","psi", "eta")
+  subtitle = f(paste0("For {controls[chains]} chains and ",
+                      "{controls[iterations]} iterations per chain."))
+  title = f(paste0("Posterior Density Plots ({controls[region]})" ))
+  plot <- stan_dens(samples, pars = pars, separate_chains = T, nrow = 3) +
+    labs(title = title, subtitle = subtitle) +
+    scale_x_continuous(breaks = c(0, 0.5, 1), labels = c("0", ".5", "1")) +
+    coord_cartesian(xlim =c(0,1))
+  return(plot)
+}
