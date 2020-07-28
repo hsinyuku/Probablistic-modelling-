@@ -1,94 +1,8 @@
-# ----------------------------------------------------------------------------#
-# ModelDiagnostics.R
-# 
-# This idea of this file is to run model diagnostics. Functions for this file
-# come from the script 04a_ModelDiagnostics_Plotting_Functions
-# ----------------------------------------------------------------------------#
-
 
 # ----------------------------------------------------------------------------#
-# sourcing other scripts, setting controls ####
-# ----------------------------------------------------------------------------#
-{
-  remove(list = ls())
-  source("setup.R")
-  source("R/99_ContactMatrix_Gender_Age_Function.R")
-  # specify here which posterior file you want to load!
-  init_controls(list(region = "Spain",
-                     type = "age",
-                     visualise = FALSE,
-                     savePlots = FALSE,
-                     ind_eta = FALSE,
-                     chains = 4,
-                     iterations = 800,
-                     timestamp = "2020-07-23",
-                     # these controls don't do anything, but need to have some value
-                     inference = 1,
-                     use_cores = 1))
-  # this verifies your input to init_controls
-  if(check_controls() == 0) {
-    warning("There was some error within the controls! Check  ",
-            "messages to see where exactly.")
-    stop()
-  }
-  source(paste0("R/01_DataManagement_", controls["region"], ".R"))
-  source(paste0("R/02_PrepareModel_", controls["type"], ".R"))
-  remove_except(list("controls", "data_list_model", "day_data", "day_max"))
-  source("setup.R") # adding necessary functions back in
-  source("R/99_DataFunctions.R") # for visualizations
-}
-theme_set(theme_bw())
-{
-  # Load the saved posterior samples in the data (obviously without sampling
-  # them every time).
-  postPath <- paste0("Posteriors/", paste(controls$region, 
-                                          str_to_title(controls$type),
-                                          controls$ind_eta,
-                                          controls$iterations, "iter",
-                                          controls$chains, "chains",
-                                          controls$timestamp,
-                                          sep = "_"),
-                     ".Rds")
-  if(!file.exists(postPath)) {
-    stop(paste0("The posterior you chose does not exist (on your machine? ",
-                "on this branch?). Remember that you have to download the ",
-                "posteriors manually from GDrive!"))
-  }
-  samples <-  readRDS(file = postPath)
-  sampler_params <- get_sampler_params(samples, inc_warmup = TRUE)
-  # sampler_params returns a list with one entry per chain
-  controls["chains"] <- length(sampler_params)
-  # length of the list is number of chains
-  controls["iterations"] <- nrow(sampler_params[[1]])
-  # each row in each element of the list is one iteration without warmup
-  controls["warmup"] <- controls$iterations -
-    nrow(get_sampler_params(samples, inc_warmup = FALSE)[[1]])
-}
-# ----------------------------------------------------------------------------#
 
 
-# ----------------------------------------------------------------------------#
-# real data ####
-# ----------------------------------------------------------------------------#
 
-# numbers of cases /deaths per day -------------------------------------------#
-Real_deaths <- Real_Time("deaths", day_data, day_max)
-Real_deaths
-Sum_realdeaths <- sum(Real_deaths["n"])
-Sum_realdeaths
-
-Real_cases <- Real_Time("cases", day_data, day_max) 
-Real_cases
-Sum_realcases <- sum(Real_cases["n"])
-Sum_realcases
-
-# proportion of reported cases / deaths per group ----------------------------#
-plot_Real_GroupProp()
-# note: every distribution adds up to one, so the cols height indicate
-# how many of all cases occurred in this age group / gender
-
-
-# ----------------------------------------------------------------------------#
 
 # ----------------------------------------------------------------------------#
 # simulated vs. real data ####
@@ -117,8 +31,7 @@ plot_Real_GroupProp()
 SimVsReal_Time("deaths", day_data = day_data, day_max = day_max)
 SimVsReal_Time("cases", day_data = day_data, day_max = day_max)
 
-# plot_SimVsReal_Group(metric = "cases")
-# plot_SimVsReal_Group(metric = "deaths")
+
 
 
 SimVsReal_Total("deaths")

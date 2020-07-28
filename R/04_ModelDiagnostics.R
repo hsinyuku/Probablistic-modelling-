@@ -32,93 +32,139 @@ posteriorName <- list.files("Posteriors")[1]
                      "posteriorName"))
   print("8) load functions for plotting")
   source("R/99_PlotFunctions.R")
+  source("R/99_DataFunctions.R")
 }
 
 theme_set(theme_bw())
 posterior <- str_sub(posteriorName, 1, str_locate(posteriorName, "\\.")[1]-1)
 
+
 # ----------------------------------------------------------------------------#
-# plots for individual samples ----
+# data and plots: individual samples, real and simulated ----
 # ----------------------------------------------------------------------------#
-{
-  # numbers of cases /deaths per day -------------------------------------------#
-  plot_RealDeathsTime <- plot_Real_Time("deaths", day_data, day_max)
-  plot_RealDeathsTime
-  if (controls$savePlots) save_gg(plot_RealDeathsTime,
-                                  paste0("RealDeathsTime_", posterior))
-  plot_RealCasesTime <- plot_Real_Time("cases", day_data, day_max) 
-  plot_RealCasesTime
-  if (controls$savePlots) save_gg(plot_RealCasesTime,
-                                  paste0("RealCasesTime_", posterior))
-  # number of cases and deaths per group
-  plot_RealCasesDeathsGroups <- plot_Real_GroupProp()
-  plot_RealCasesDeathsGroups
-  if (controls$savePlots) save_gg(plot_RealCasesDeathsGroups,
-                                  paste0("RealCasesDeathsGroups_", posterior))
-  # plot parameter distributions
-  plot_ParametersDensity <- plot_Parameters(sample$sample)
-  plot_ParametersDensity
-  if (controls$savePlots) save_gg(plot_ParametersDensity,
-                                  paste0("ParameterDensity", posterior))
+
+# numbers of real reported symptomatic cases per day #
+# -------------------------------------------------- #
+realTimeCases <- data_Real_Time(data_list_model, "cases", day_data, day_max)
+plot_RealTimeCases <- plot_Real_Time(realTimeCases, "cases")
+if (controls$savePlots) save_gg(plot_RealTimeCases,
+                                paste0("RealDeathsTime_", posterior))
+
+# numbers of real reported deaths per day #
+# --------------------------------------- #
+realTimeDeaths <- data_Real_Time(data_list_model, "deaths", day_data, day_max)
+plot_RealTimeDeaths <- plot_Real_Time(realTimeDeaths, "deaths")
+if (controls$savePlots) save_gg(plot_RealTimeDeaths,
+                                paste0("RealCasesTime", posterior))
+
+# numbers of simulated versus real cases per group #
+# ------------------------------------------------ #
+simvsrealGroupCases <- data_SimVsReal_Group(controls, data_list_model,
+                                            "cases", sample$sample)
+plot_simvsrealGroupCases <- plot_SimVsReal_Group(simvsrealGroupCases,
+                                               controls, "cases")
+plot_simvsrealGroupCases
+if (controls$savePlots) save_gg(plot_RealSimDeathsTime,
+                                paste0("RealDeathsGroup", posterior))
+
+# numbers of simulated versus real deaths per group #
+# ------------------------------------------------ #
+simvsrealGroupDeaths <- data_SimVsReal_Group(controls, data_list_model,
+                                             "deaths", sample$sample)
+plot_simvsrealGroupDeaths <- plot_SimVsReal_Group(simvsrealGroupDeaths,
+                                                  controls, "deaths")
+plot_simvsrealGroupDeaths
+if (controls$savePlots) save_gg(plot_RealSimCasesTime,
+                                paste0("RealSimCasesGroup", posterior))
+
+# numbers of simulated versus real cases per day #
+# ---------------------------------------------- #
+simvsrealTimeCases <- data_SimVsReal_Time("cases", controls, sample$sample,
+                                          day_max, day_data, data_list_model)
+plot_simvsrealTimeCases <- plot_SimVsReal_Time(simvsrealTimeCases, "cases",
+                                               day_max, day_data,
+                                               data_list_model)
+plot_simvsrealTimeCases
+if (controls$savePlots) save_gg(plot_simvsrealTimeCases,
+                                paste0("SimRealCasesTime", posterior))
+
+
+# numbers of simulated versus real deaths per day #
+# ----------------------------------------------- #
+simvsrealTimeDeaths <- data_SimVsReal_Time("deaths", controls, sample$sample,
+                                          day_max, day_data, data_list_model)
+plot_simvsrealTimeCases <- plot_SimVsReal_Time(simvsrealTimeDeaths, "deaths",
+                                               day_max, day_data,
+                                               data_list_model)
+plot_simvsrealTimeCases
+if (controls$savePlots) save_gg(plot_simvsrealTimeCases,
+                                paste0("SimRealDeathsTime", posterior))
+
+# number of simulated versus real cases, total #
+# -------------------------------------------- #
+simvsrealTotalCases <-  data_SimVsReal_Total(sample$sample, "cases",
+                                             data_list_model, controls)
+plot_simvsrealTotalCases <- plot_SimVsReal_Total(simvsrealTotalCases, "cases")
+plot_simvsrealTotalCases
+if (controls$savePlots) save_gg(plot_simvsrealTotalCases,
+                                paste0("SimRealCasesTotal", posterior))
+
+# number of simulated versus real deaths, total #
+# --------------------------------------------- #
+simvsrealTotalDeaths <-  data_SimVsReal_Total(sample$sample, "deaths",
+                                             data_list_model, controls)
+plot_simvsrealTotalDeaths <- plot_SimVsReal_Total(simvsrealTotalDeaths, "deaths")
+plot_simvsrealTotalDeaths
+if (controls$savePlots) save_gg(plot_simvsrealTotalDeaths,
+                                paste0("SimRealDeathsTotal", posterior))
+# ----------------------------------------------------------------------------#
+
+
+# ----------------------------------------------------------------------------#
+# plots: model inspection ----
+# ----------------------------------------------------------------------------#
+
+# plot parameter distributions
+plot_ParametersDensity <- plot_Parameters(sample$sample)
+plot_ParametersDensity
+if (controls$savePlots) save_gg(plot_ParametersDensity,
+                                paste0("ParameterDensity", posterior))
+
+# plot parameter traces 
+plot_ParameterTrace <- stan_trace(sample$sample,
+                                  pars=c("beta", "epsilon","rho","pi",
+                                         "psi", "eta"))
+plot_ParameterTrace
+if (controls$savePlots) save_gg(plot_ParameterTrace,
+                                paste0("ParameterTrace", posterior))
+
+# plot ascertainment rate per group
+plot_AscertainmentGroup <- plot_ascertainment(sample$sample, "#CC333F")
+plot_AscertainmentGroup
+if (controls$savePlots) save_gg(plot_AscertainmentGroup,
+                                paste0("AscertainmentGroup", posterior))
+# ----------------------------------------------------------------------------#
+
+
+# ----------------------------------------------------------------------------#
+# plots and data: individual CFR ----
+# ----------------------------------------------------------------------------#
   
-  # plot parameter traces 
-  plot_ParameterTrace <- stan_trace(sample$sample,
-                                    pars=c("beta", "epsilon","rho","pi",
-                                           "psi", "eta"))
-  plot_ParameterTrace
-  if (controls$savePlots) save_gg(plot_ParameterTrace,
-                                  paste0("ParameterTrace", posterior))
-  
-  # Plot simulated cases (all, symptomatic, reported) vs real cases
-  plot_RealSimDeathsTime <- plot_SimVsReal_Time(sample$sample, "deaths",
-                                                day_data = day_data,
-                                                day_max = day_max)
-  plot_RealSimDeathsTime
-  if (controls$savePlots) save_gg(plot_RealSimDeathsTime,
-                                  paste0("RealDeathsTime", posterior))
-  plot_RealSimCasesTime <- plot_SimVsReal_Time(sample$sample, "cases",
-                                               day_data = day_data,
-                                               day_max = day_max)
-  plot_RealSimCasesTime
-  if (controls$savePlots) save_gg(plot_RealSimCasesTime,
-                                  paste0("RealSimCasesTime", posterior))
-  
-  # plot cases and deaths over time, simulated vs. real data
-  plot_SimRealGroupCases <- plot_SimVsReal_Group(sample$sample, metric = "cases")
-  plot_SimRealGroupCases
-  if (controls$savePlots) save_gg(plot_SimVsReal_Group,
-                                  paste0("SimRealGroupCases", posterior))
-  plot_SimRealGroupDeaths <- plot_SimVsReal_Group(sample$sample, metric = "deaths")
-  plot_SimRealGroupDeaths
-  if (controls$savePlots) save_gg(plot_SimVsReal_Group,
-                                  paste0("SimRealGroupDeaths", posterior))
-  
-  # plot total cases and deaths, simulated vs. real
-  plot_SimRealTotalCases <- plot_SimVsReal_Total(sample$sample, "cases")
-  plot_SimRealTotalCases
-  if (controls$savePlots) save_gg(plot_SimRealTotalCases,
-                                  paste0("SimRealTotalCases", posterior))
-  plot_SimRealTotalDeaths <- plot_SimVsReal_Total(sample$sample, "deaths")
-  plot_SimRealTotalDeaths
-  if (controls$savePlots) save_gg(plot_SimRealTotalDeaths,
-                                  paste0("SimRealTotalDeaths", posterior))
-  
-  # plot ascertainment rate per group
-  plot_AscertainmentGroup <- plot_ascertainment(sample$sample, "#CC333F")
-  plot_AscertainmentGroup
-  if (controls$savePlots) save_gg(plot_AscertainmentGroup,
-                                  paste0("AscertainmentGroup", posterior))
-  
-  # CFR
-  plot_SimRealCFRGroup <- plot_SimVsReal_CFRGroup(sample$sample) +
-    labs(caption = paste0("Note: simulated CFR differs from reported CFR in that",
-                          " it counts deaths corrected\nfor underreporting.")) +
-    theme(plot.caption.position = "plot",
-          plot.caption = element_text(hjust = 0))
-  plot_SimRealCFRGroup
-  if (controls$savePlots) save_gg(plot_SimRealCFRGroup,
-                                  paste0("SimRealCFRGroup", posterior))
-}
+# CFR per group #
+# ------------- #
+CFRgroup <- data_CFR_groups(controls, data_list_model, sample)
+plot_CFR_group <- plot_CFRGroup(CFRgroup)
+plot_CFR_group
+if (controls$savePlots) save_gg(plot_CFRgroup,
+                                paste0("CFRgroup", posterior))
+
+# total CFR #
+# --------- #
+CFRtotal <- data_CFR_total(controls, data_list_model, sample$sample)
+plot_CFR_total <- plot_CFR_Total(CFRtotal)
+plot_CFR_total
+if (controls$savePlots) save_gg(plot_CFR_total,
+                                paste0("CFRtotal", posterior))
 
 # ----------------------------------------------------------------------------#
 # data for all samples----
