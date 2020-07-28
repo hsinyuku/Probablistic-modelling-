@@ -47,6 +47,11 @@ age_dist <- age_dist/sum(age_dist) # getting relative age distribution
 
 pop_t = 59020000
 
+# Gender distribution ---------------------------------------------------------
+# The sex ratio is obtained from the China government.
+gender_dist <- c(106.19, 100)
+gender_dist <- gender_dist/sum(gender_dist)
+
 # dataset A: confirmed daily cases --------------------------------------------
 confirmed_cases = read_csv("data/Hubei_cases_confirmed.csv") %>%
   mutate(date = ymd(paste(year, month, day, sep="-"))) %>%
@@ -74,7 +79,6 @@ chinaDeath <- chinaDeath$dailyHistory %>%  # Data within this table
   
 # Daily deaths are only recorded from 20.01.2020, so 0s are filled in for the
 # time frame from day_start until 20.01.2020. It is now length 42.
-
 incidence_deaths = c(rep(0, day_max - day_data + 1 -
                            length(chinaDeath$dailyDeathCorrect)),
                      chinaDeath$dailyDeathCorrect)
@@ -89,6 +93,21 @@ agedistr_deaths = c(0, 1, 7, 18, 38, 130, 309, 312, 208)
 
 # -----------------------------------------------------------------------------
 
+# dataset B: gender distribution of all cases, for China ----------------------
+# Source: Statista 
+# https://www.statista.com/statistics/1095039/china-gender-distribution-of-wuhan-coronavirus-covid-19-patients/
+genderdistr_cases <- c(0.514 * sum(incidence_cases), 
+                       0.486 * sum(incidence_cases))
+
+genderdistr_cases <- round(genderdistr_cases, 0) %>% as.integer()
+
+# dataset D: gender distribution of all cases, for China ----------------------
+# Source: Statista 
+# https://www.statista.com/statistics/1099654/china-wuhan-coronavirus-covid-19-fatality-rate-by-gender/
+genderdistr_deaths <- c(incidence_cases %>% sum() * 0.514 * 0.028, # male deaths
+                   incidence_cases %>% sum() * 0.486 * 0.017) # female deaths
+
+genderdistr_deaths <- round(genderdistr_deaths, 0) %>% as.integer()
 
 # ----------------------------------------------------------------------------#
 # fixed corrections and delays ####
