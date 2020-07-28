@@ -6,9 +6,9 @@
 # ----------------------------------------------------------------------------#
 
 list.files("Posteriors")
-remove(list = ls())
+remove_except("generatedQuantitiesSummary")
 # Which posterior do you want to inspect?
-posteriorName <- list.files("Posteriors")[3]
+posteriorName <- list.files("Posteriors")[5]
 
 {
   print("1) sourcing setup.R")
@@ -251,9 +251,12 @@ CFRtotalRegions <- filter(generatedQuantitiesSummary,
          parameter %in% c("cfr_A_symptomatic", "cfr_D_symptomatic",
                           "cfr_D_all")) %>% 
   mutate(region = ifelse(region == "BadenW", "Baden-\nWürttemberg", region),
-         name = str_c(region, ", \n", type))
+         name = str_c(region, ", \n", type),
+         parameter = fct_recode(parameter, `CFR` = "cfr_A_symptomatic",
+                                `sCFR` = "cfr_D_symptomatic",
+                                `IFR` = "cfr_D_all"))
 plot_CFR_Total_Regions(CFRtotalRegions)
-  # There are multiple points per region because we have multiple posterios for
+# There are multiple points per region because we have multiple posterios for
   # these regions
 
 # compare the IFR for different age groups for different reasons

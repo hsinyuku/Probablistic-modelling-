@@ -259,9 +259,9 @@ plot_Real_GroupProp <- function(GenPopFill = "white",
 # plot CFRs -------------------------------------------------------------------
 
 # some nomenclature:
-# CFR = (reported symptomatic cases) / (reported deaths)
+# CFR = (reported deaths) / (reported symptomatic cases)
 #   (possibly per age group or per day)
-# sCFR = (symptomatic cases) / (deaths including delay)
+# sCFR = (deaths including delay) / (symptomatic cases)
 #   (possibly per age group or per day)
 # IFR = (cases) / (deaths including delay)
 #   (possibly per age group or per day)
@@ -325,10 +325,8 @@ plot_CFR_Total_Regions <- function(data) {
     geom_pointrange(aes(x = name, ymin = `2.5%`, ymax = `97.5%`, y = `50%`,
                         col = parameter),
                     position = position_dodge(width = 0.3)) +
-    scale_colour_discrete(
-      label = c("IFR: sCFR, corrected for right-censoring and proportion of non-symptomatic"),
-      name = "Simulated fatality ratios") +
-    theme(legend.position = "bottom", legend.direction = "vertical") +
+    scale_colour_discrete(name = "Simulated fatality ratios") +
+    theme(legend.position = "bottom", legend.direction = "horizontal") +
     scale_x_labelsRotate() +
     scale_y_percent() +
     labs(y = NULL, x = NULL)
