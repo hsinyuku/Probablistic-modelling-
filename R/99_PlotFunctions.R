@@ -319,6 +319,44 @@ plot_CFR_Total_Regions <- function(data) {
 } 
 
 
+# this plots the IFR for different regions
+plot_CFR_Total_Regions <- function(data) {
+  ggplot(data) +
+    geom_pointrange(aes(x = name, ymin = `2.5%`, ymax = `97.5%`, y = `50%`,
+                        col = parameter),
+                    position = position_dodge(width = 0.3)) +
+    scale_colour_discrete(
+      label = c("IFR: sCFR, corrected for right-censoring and proportion of non-symptomatic"),
+      name = "Simulated fatality ratios") +
+    theme(legend.position = "bottom", legend.direction = "vertical") +
+    scale_x_labelsRotate() +
+    scale_y_percent() +
+    labs(y = NULL, x = NULL)
+} 
+
+plot_IFR_Groups_Regions <- function(data, log = F) {
+  minor_breaks <- c(
+    seq(0.00001, 0.0001, 0.00001), seq(0.0001, 0.001, 0.0001),
+    seq(0.001, 0.01, 0.001), seq(0.01, 0.1, 0.01), seq(0.1, 1, 0.1)
+  )
+  plot <- ggplot(data, aes(x = index, y = `50%`, col = region, group = region)) +
+    geom_line() + geom_point()
+  if(log) {
+    plot + 
+      scale_y_log10(expand = expansion(mult=c(0,.05)),
+                    labels = scales::percent_format(accuracy = 0.001),
+                    minor_breaks = minor_breaks,
+                    breaks = c(.00003, .0001, .0003, .001, .003, .01, .03, .1, .3)) +
+      labs(x = "Age Group", y = "IFR (log-scaled)", col = "Region") +
+      scale_x_labelsRotate()
+  } else {
+    plot + 
+      scale_y_percent() +
+      labs(x = "Age Group", y = "IFR", col = "Region") +
+      scale_x_labelsRotate()
+  }
+}
+
 # plot model parameters -------------------------------------------------------
 
 plot_Parameters <- function(sample){

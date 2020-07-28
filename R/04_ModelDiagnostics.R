@@ -236,13 +236,39 @@ saveRDS(generatedQuantitiesList, "data/00_generatedQuantities.Rds")
 # ----------------------------------------------------------------------------#
 
 # compare different fatality ratios for different regions
-CFRtotalRegions <- data_CFR_Total_Regions(generatedQuantitiesSummary)
-CFRtotalRegions %>%
+CFRtotalRegions <- filter(generatedQuantitiesSummary,
+                          parameter %in% c("cfr_A_symptomatic",
+                                           "cfr_B_symptomatic",
+                                           "cfr_C_symptomatic",
+                                           "cfr_D_symptomatic",
+                                           "cfr_C_all", "cfr_D_all")) %>% 
+  unnest(cols = data) %>% 
+  mutate(parameter = factor(parameter, 
+                            levels = c("cfr_A_symptomatic", "cfr_B_symptomatic",
+                                       "cfr_C_symptomatic", "cfr_D_symptomatic",
+                                       "cfr_C_all", "cfr_D_all"))) %>%
   filter(ind_eta == "CommonEta",
          parameter %in% c("cfr_A_symptomatic", "cfr_D_symptomatic",
                           "cfr_D_all")) %>% 
   mutate(region = ifelse(region == "BadenW", "Baden-\nWürttemberg", region),
-         name = str_c(region, ", \n", type)) %>% 
-plot_CFR_Total_Regions(.)
+         name = str_c(region, ", \n", type))
+plot_CFR_Total_Regions(CFRtotalRegions)
   # There are multiple points per region because we have multiple posterios for
   # these regions
+
+# compare the IFR for different age groups for different reasons
+IFRGroupsRegions <- filter(generatedQuantitiesSummary,
+                           parameter == "cfr_D_symptomatic_by_group") %>% 
+  unnest(cols = data) %>% 
+  filter(type == "Age", ind_eta == "CommonEta") %>% 
+  mutate(region = ifelse(region == "BadenW", "Baden-\nWürttemberg", region),
+         name = str_c(region, ", \n", type),
+         index = factor(index))
+x <- as.character(1:9)
+names(x) <- groupLabels("age")
+IFRGroupsRegions$index <- fct_recode(IFRGroupsRegions$index, !!!x)
+
+plot_IFR_Groups_Regions(IFRGroupsRegions, log = T)
+
+
+

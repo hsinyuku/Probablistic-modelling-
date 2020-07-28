@@ -281,16 +281,3 @@ data_CFR_Total <- function(controls, data_list_model, sample) {
                                   "IFR (simulated)"))
   return(list("real" = realData, "simulated" = simData))
 }
-
-data_CFR_Total_Regions <- function(data) {
-  data <- filter(data,
-                 parameter %in% c("cfr_A_symptomatic", "cfr_B_symptomatic",
-                                  "cfr_C_symptomatic", "cfr_D_symptomatic",
-                                  "cfr_C_all", "cfr_D_all")) %>% 
-    unnest(cols = data) %>% 
-    mutate(parameter = factor(parameter, 
-                              levels = c("cfr_A_symptomatic", "cfr_B_symptomatic",
-                                         "cfr_C_symptomatic", "cfr_D_symptomatic",
-                                         "cfr_C_all", "cfr_D_all")))
-  return(data)
-}
