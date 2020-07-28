@@ -299,23 +299,9 @@ plot_CFR_Total <- function(data) {
 }
 
 # this plots CFRs for different regions
-plot_CFR_Total_regions <- function(data) {
-  # data should be a tibble with the relevant fatality ratios
-  data <- filter(generatedQuantitiesSummary,
-         parameter %in% c("cfr_A_symptomatic", "cfr_B_symptomatic",
-                          "cfr_C_symptomatic", "cfr_D_symptomatic",
-                          "cfr_C_all", "cfr_D_all")) %>% 
-    unnest(cols = data) %>% 
-    mutate(parameter = factor(parameter, 
-                              levels = c("cfr_A_symptomatic", "cfr_B_symptomatic",
-                                        "cfr_C_symptomatic", "cfr_D_symptomatic",
-                                        "cfr_C_all", "cfr_D_all")))
-  
-  filter(data, parameter %in% c("cfr_A_symptomatic", "cfr_D_symptomatic",
-                                "cfr_D_all")) %>% 
-    mutate(region = ifelse(region == "BadenW", "Baden-\nWürttemberg", region)) %>% 
-  ggplot() +
-    geom_pointrange(aes(x = region, ymin = `2.5%`, ymax = `97.5%`, y = `50%`,
+plot_CFR_Total_Regions <- function(data) {
+  ggplot(data) +
+    geom_pointrange(aes(x = name, ymin = `2.5%`, ymax = `97.5%`, y = `50%`,
                         col = parameter),
                     position = position_dodge(width = 0.3)) +
     scale_colour_discrete(
@@ -328,7 +314,8 @@ plot_CFR_Total_regions <- function(data) {
       name = "Simulated fatality ratios") +
     theme(legend.position = "bottom", legend.direction = "vertical") +
     scale_x_labelsRotate() +
-    scale_y_percent()
+    scale_y_percent() +
+    labs(y = NULL, x = NULL)
 } 
 
 

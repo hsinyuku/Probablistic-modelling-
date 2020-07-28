@@ -236,6 +236,13 @@ saveRDS(generatedQuantitiesList, "data/00_generatedQuantities.Rds")
 # ----------------------------------------------------------------------------#
 
 # compare different fatality ratios for different regions
-plot_CFR_total_regions()
-  # There multiple points per region because we have multiple posterios for
+CFRtotalRegions <- data_CFR_Total_Regions(generatedQuantitiesSummary)
+CFRtotalRegions %>%
+  filter(ind_eta == "CommonEta",
+         parameter %in% c("cfr_A_symptomatic", "cfr_D_symptomatic",
+                          "cfr_D_all")) %>% 
+  mutate(region = ifelse(region == "BadenW", "Baden-\nWürttemberg", region),
+         name = str_c(region, ", \n", type)) %>% 
+plot_CFR_Total_Regions(.)
+  # There are multiple points per region because we have multiple posterios for
   # these regions
