@@ -8,7 +8,7 @@
 list.files("Posteriors")
 remove(list = ls())
 # Which posterior do you want to inspect?
-posteriorName <- list.files("Posteriors")[1]
+posteriorName <- list.files("Posteriors")[3]
 
 {
   print("1) sourcing setup.R")
@@ -47,6 +47,7 @@ posterior <- str_sub(posteriorName, 1, str_locate(posteriorName, "\\.")[1]-1)
 # -------------------------------------------------- #
 realTimeCases <- data_Real_Time(data_list_model, "cases", day_data, day_max)
 plot_RealTimeCases <- plot_Real_Time(realTimeCases, "cases")
+plot_RealTimeCases
 if (controls$savePlots) save_gg(plot_RealTimeCases,
                                 paste0("RealDeathsTime_", posterior))
 
@@ -54,6 +55,7 @@ if (controls$savePlots) save_gg(plot_RealTimeCases,
 # --------------------------------------- #
 realTimeDeaths <- data_Real_Time(data_list_model, "deaths", day_data, day_max)
 plot_RealTimeDeaths <- plot_Real_Time(realTimeDeaths, "deaths")
+plot_RealTimeDeaths
 if (controls$savePlots) save_gg(plot_RealTimeDeaths,
                                 paste0("RealCasesTime", posterior))
 
@@ -152,15 +154,15 @@ if (controls$savePlots) save_gg(plot_AscertainmentGroup,
   
 # CFR per group #
 # ------------- #
-CFRgroup <- data_CFR_groups(controls, data_list_model, sample)
-plot_CFR_group <- plot_CFRGroup(CFRgroup)
+CFRgroup <- data_CFR_Group(controls, data_list_model, sample)
+plot_CFR_group <- plot_CFR_Group(CFRgroup)
 plot_CFR_group
 if (controls$savePlots) save_gg(plot_CFRgroup,
                                 paste0("CFRgroup", posterior))
 
 # total CFR #
 # --------- #
-CFRtotal <- data_CFR_total(controls, data_list_model, sample$sample)
+CFRtotal <- data_CFR_Total(controls, data_list_model, sample$sample)
 plot_CFR_total <- plot_CFR_Total(CFRtotal)
 plot_CFR_total
 if (controls$savePlots) save_gg(plot_CFR_total,

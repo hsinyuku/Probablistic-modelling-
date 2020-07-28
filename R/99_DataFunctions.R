@@ -27,8 +27,19 @@ extractValue <- function(sample, name, printStat = c("2.5%", "97.5%", "50%")) {
     select(metric, printStat)
 }
 
-# simulated vs. real cases and deaths over time ---------------------#
+data_Real_Time <- function(data_list_model, metric, 
+                           day_start, day_max) {
+  day_start = day_start
+  day_max = day_max
+  data <- tibble(date = as_date(day_data:day_max))
+  if(metric == "cases") {
+    data <- cbind(data, n = data_list_model$incidence_cases)
+  } else if(metric == "deaths") {
+    data <- cbind(data, n = data_list_model$incidence_deaths)
+  }
+}
 
+# simulated vs. real cases and deaths over time ---------------------#
 data_SimVsReal_Time <- function(metric, controls, sample, day_max, day_data,
                                 data_list_model,
                                 AllCasesFill = "#00B2EE",
@@ -106,7 +117,6 @@ data_SimVsReal_Group <- function(controls, data_list_model, metric, sample,
     } else if (metric == "cases") {
       realData <- tibble(n = data_list_model[[f("genderdistr_cases")]],
                          group = groupLabels)
-      
     }
   }
   # Preparing the simulated data
@@ -153,9 +163,9 @@ data_SimVsReal_Group <- function(controls, data_list_model, metric, sample,
              "predicted_total_overall_deaths_delay_by_age",
              "predicted_total_overall_deaths_delay_by_gender")
     simData <- rbind(
-      extractValue(sample$sample,
+      extractValue(sample,
                    predicted_total_overall_deaths_tmax_by_group),
-      extractValue(sample$sample,
+      extractValue(sample,
                    predicted_total_overall_deaths_delay_by_group)) %>% 
       mutate(group = rep(groupLabels, 2),
              metric = str_replace(metric, "(age)|(gender)", "group"),
@@ -222,7 +232,7 @@ data_SimVsReal_Total <- function(sample, metric, data_list_model, controls,
 #   (possibly per age group or per day)
 
 # getting group CFR: real und simulated
-data_CFR_groups <- function(controls, data_list_model, sample) {
+data_CFR_Group <- function(controls, data_list_model, sample) {
   # this  function provides CFRs per group, together with extensive footnotes
   # that explain where certain data come from
   group <- str_to_lower(controls$type)
@@ -247,14 +257,14 @@ data_CFR_groups <- function(controls, data_list_model, sample) {
 
 
 # calculate CFR per day from real data:
-data_CFR_time <- function() {
+data_CFR_Time <- function() {
   return(tibble(date = as_date(day_data:day_max),
                 dailyCases = data_list_model$incidence_cases,
                 dailyDeaths = data_list_model$incidence_deaths) %>% 
            mutate(realCFR = dailyDeaths / dailyCases))
 }
 
-data_CFR_total <- function(controls, data_list_model, sample) {
+data_CFR_Total <- function(controls, data_list_model, sample) {
   group <- str_to_lower(controls$type)
   realData <- tibble(
     casesTime = sum(data_list_model$incidence_cases),
