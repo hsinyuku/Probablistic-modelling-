@@ -15,7 +15,7 @@
   # Sys.setenv(LOCAL_CPPFLAGS = '-march=corei7 -mtune=corei7')
   remove(list = ls())
   source("setup.R")
-  init_controls(
+  controls <- (
     list(
       # Data for which region should be simulated and/or fitted?
       region = "Baden-Wuerttemberg", # DO NOT WRITE BADEN-WÜRTTEMBERG HERE!
@@ -59,15 +59,16 @@
 # sourcing other scripts ####
 # ----------------------------------------------------------------------------#
 {
-  source("setup.R")
-  source("R/99_ContactMatrix_Gender_Age_Function.R")
-  
-  if(check_controls() == 0) {
+  # this checks whether the controls object is correct
+  if(!is.list(check_controls(controls))) {
     warning("There was some error within the controls! Check  ",
             "messages to see where exactly.")
     stop()
+  } else {
+    controls <- check_controls(controls)
   }
   
+  source("R/99_ContactMatrix_Gender_Age_Function.R")
   source(paste0("R/01_DataManagement_", controls["region"], ".R"))
   source(paste0("R/02_PrepareModel_", controls["type"], ".R"))
   

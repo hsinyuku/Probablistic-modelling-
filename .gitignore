@@ -44,7 +44,10 @@ vignettes/*.pdf
 # don't sync large posteriors
 Posteriors/BadenW_Age_CommonEta_800_iter_1_chains_2020-07-21.Rds
 Posteriors/Bavaria_Age_CommonEta_800_iter_4_chains_2020-07-21.Rds
+Posteriors/Hubei_Age_CommonEta_800_iter_4_chains_2020-07-27.Rds
+Posteriors/Lombardy_Age_CommonEta_800_iter_4_chains_2020-07-25.Rds
 Posteriors/Lombardy_Gender_CommonEta_1000_iter_4_chains_2020-07-21.Rds
 Posteriors/Spain_Age_CommonEta_200_iter_3_chains_2020-07-18.Rds
 Posteriors/Spain_Age_CommonEta_800_iter_4_chains_2020-07-23.Rds
 Posteriors/Spain_Gender_CommonEta_1000_iter_4_chains_2020-07-21.Rds
+data/00_generatedQuantities.Rds
