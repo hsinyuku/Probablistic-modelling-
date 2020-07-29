@@ -6,9 +6,9 @@
 # ----------------------------------------------------------------------------#
 
 list.files("Posteriors")
-remove_except("generatedQuantitiesSummary")
+remove(list = ls())
 # Which posterior do you want to inspect?
-posteriorName <- list.files("Posteriors")[5]
+posteriorName <- list.files("Posteriors")[6]
 
 {
   print("1) sourcing setup.R")
@@ -35,9 +35,10 @@ posteriorName <- list.files("Posteriors")[5]
   source("R/99_DataFunctions.R")
 }
 
+controls$savePlots <-TRUE
+
 theme_set(theme_bw())
 posterior <- str_sub(posteriorName, 1, str_locate(posteriorName, "\\.")[1]-1)
-
 
 # ----------------------------------------------------------------------------#
 # data and plots: individual samples, real and simulated ----
@@ -58,6 +59,9 @@ plot_RealTimeDeaths <- plot_Real_Time(realTimeDeaths, "deaths")
 plot_RealTimeDeaths
 if (controls$savePlots) save_gg(plot_RealTimeDeaths,
                                 paste0("RealCasesTime", posterior))
+
+# real distribution by group #
+plot_Real_GroupProp()
 
 # numbers of simulated versus real cases per group #
 # ------------------------------------------------ #
@@ -236,42 +240,6 @@ saveRDS(generatedQuantitiesList, "data/00_generatedQuantities.Rds")
 # ----------------------------------------------------------------------------#
 
 # compare different fatality ratios for different regions
-CFRtotalRegions <- filter(generatedQuantitiesSummary,
-                          parameter %in% c("cfr_A_symptomatic",
-                                           "cfr_B_symptomatic",
-                                           "cfr_C_symptomatic",
-                                           "cfr_D_symptomatic",
-                                           "cfr_C_all", "cfr_D_all")) %>% 
-  unnest(cols = data) %>% 
-  mutate(parameter = factor(parameter, 
-                            levels = c("cfr_A_symptomatic", "cfr_B_symptomatic",
-                                       "cfr_C_symptomatic", "cfr_D_symptomatic",
-                                       "cfr_C_all", "cfr_D_all"))) %>%
-  filter(ind_eta == "CommonEta",
-         parameter %in% c("cfr_A_symptomatic", "cfr_D_symptomatic",
-                          "cfr_D_all")) %>% 
-  mutate(region = ifelse(region == "BadenW", "Baden-\nWürttemberg", region),
-         name = str_c(region, ", \n", type),
-         parameter = fct_recode(parameter, `CFR` = "cfr_A_symptomatic",
-                                `sCFR` = "cfr_D_symptomatic",
-                                `IFR` = "cfr_D_all"))
-plot_CFR_Total_Regions(CFRtotalRegions)
-# There are multiple points per region because we have multiple posterios for
+plot_CFR_total_regions()
+  # There multiple points per region because we have multiple posterios for
   # these regions
-
-# compare the IFR for different age groups for different reasons
-IFRGroupsRegions <- filter(generatedQuantitiesSummary,
-                           parameter == "cfr_D_symptomatic_by_group") %>% 
-  unnest(cols = data) %>% 
-  filter(type == "Age", ind_eta == "CommonEta") %>% 
-  mutate(region = ifelse(region == "BadenW", "Baden-\nWürttemberg", region),
-         name = str_c(region, ", \n", type),
-         index = factor(index))
-x <- as.character(1:9)
-names(x) <- groupLabels("age")
-IFRGroupsRegions$index <- fct_recode(IFRGroupsRegions$index, !!!x)
-
-plot_IFR_Groups_Regions(IFRGroupsRegions, log = T)
-
-
-
