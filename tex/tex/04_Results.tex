@@ -1,0 +1,89 @@
+\documentclass[../main.tex]{subfiles}
+
+\begin{document} 
+
+\section{Results}
+\label{sec: Result}
+%\footnote{written by Hsin-Yu,Ku}} 
+
+% What we ran: 
+%1. Age: Spain (3;200) / Hubei / Bavaria (all with 4;800)    
+%2. Gender: Spain  / Hubei / Lombardy (all with 4;1000) 
+%3. Eta: Spain / Hubei (4;800) 
+
+
+%%% Results of the run time.
+%%% Bavaria : 
+
+% -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+\subsection{Replication of \cite{the original work}}
+
+In the previous \ref{sec: ModelSimulation} section, we summarize the three models which simulates data for infected cases and deaths in our work. First, we have model \ref{Model_1} that aims to replicate the work of \cite{the original work}. In our work, model \ref{Model_1} simulates the dynamics of transmission and mortality during the SARS-CoV-2 epidemic for three European regions: Spain, Bavaria in Germany and Hubei in China. The results of Spain will be described as in below, the other results will be summarized in the additional results section.
+
+\subsubsection{Spain}
+We estimate that a total of 2652987 individuals (95\%CrI: 2366983 - 3067400) were infected in Spain between 2 March to 16 April 2020. Of these, the number of symptomatic cases is estimated at 2141716  (95\%CrI: 1998668 - 2280034), 15.2 times (95\%CrI: 14.2 - 16.2)  more than the real 140249 reported cases during that period. 
+% This results is same as the paper according to graphics
+
+The model predicts a total of 19651 deaths (95\%CrI: 17906 - 21638) among all people infected until 16 April in Spain (compared with 19478 deaths at this point without adjusting for right-censoring). This results in an estimated IFR of 0.0007\% (95\%CrI: 0.0006\% - 0.0008\%). 
+
+Assuming the later correction of deaths was evenly distributed by date of
+symptom onset and age group, the total number of deaths increases to 27688 (95\%CrI: 25364 - 30236). When using the corrected numbers of cases and deaths, we derived an IFR of 1.04\% (95\%CrI: 0.99\% - 1.07\%). The estimated sCFR, more relevant to the clinical setting, was 1.29\% (95\%CrI: 1.27\% - 1.33\%). 
+
+The estimated sCFR increased with age as summarized in \ref{tab: sCFR_Spain_age}: under 20 years of age, below 0.0177\% in 1,000; 20-49 years, between 0.023 and 0.6 per 1,000; 50-59 years, 0.277\% (95\%CrI: 0.182\% - 0.435\%); 60-69 years, 1.61\% (95\%CrI: 1.12\% - 2.33\%); 70-79 years, 7.25\% (95\%CrI: 5.32\% - 10.2); 80 years and older, 42.6?\% (95\%CrI: 31.5\% - 58.2\%). 
+
+Figure \ref{fig: result of Spain} shows all the simulation results for Spain. 
+
+\begin{table}[!htbp] \centering
+\begin{tabular}{p{3cm}p{2cm}p{2cm}p{2cm}}
+& \textbf{CFR} & \textbf{IFR} & \textbf{sCFR} \\
+\cmidrule(l){1-4}
+ \textbf{Age 0-9} & ?\% & ?\% & ?\%\\
+ \textbf{Age 10-19} & ?\% & ?\% & ?\%\\
+ \textbf{Age 20-29} & ?\% & ?\% & ?\%\\
+ \textbf{Age 30-39} & ?\% & ?\% & ?\%\\
+ \textbf{Age 80+} & ?\% & ?\% & ?\%\\
+\end{tabular}
+\label{tab: sCFR_Spain_age}
+\caption{Different mortality ratios by age group in Spain}
+\end{table}
+
+% \subsubsection{Hubei}
+
+% Figure \ref{fig: result of Hubei} shows the simulation results for Hubei. 
+
+% \subsubsection{Lombardy(Italy)}
+
+% Figure \ref{fig: result of Lombardy} shows the simulation results for Lombardy. 
+
+
+\subsubsection{Bavaria(Germany)}
+
+Comparing with results from \ref{the original work}, the model ......
+
+Figure \ref{fig: result of Bavaria} shows the simulation results for Bavaria. 
+
+
+% -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+\subsection{Two Model Extensions}
+
+\subsubsection{Gender-specific model}
+
+Our first extension of model, i.e model \ref{Model_2} in \ref{sec: ModelSimulation}, intends to see the dynamics of transmission and mortality, not only by age group as \cite{the original work} did, but by another angle: by gender. We applied this model to Spain and Lombardy.\\ 
+
+\subsubsubsection{Spain}
+
+\\
+
+\subsubsubsection{Lombardy(Italy)}
+
+\\
+
+\subsubsection{Age-group-specific transmission reduction $\eta_k$ model}
+
+The second extension model we did, i.e model \ref{Model_2} in \ref{sec: ModelSimulation}, aims to examine on $\eta_k$, the age-group-specific transmission reduction after implementing control measures. The model is simulated with data in Spain. 
+
+
+
+\end{document} 
+
+

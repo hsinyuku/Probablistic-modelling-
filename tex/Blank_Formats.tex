@@ -1,0 +1,68 @@
+% I'll leave here some of the blank formats used to write equations and tables in the document, so we can just copy and paste them when needed
+
+% table
+
+\begin{table}[H]
+\centering
+\caption{}
+\label{table}
+\begin{tabular}{|l|l|1|}
+\hline
+ColTitle1    &  ColTitle2  \\ \hline
+    &         \\ \hline
+    &         \\ \hline
+    &         \\ \hline
+    &         \\ \hline
+    &         \\ \hline
+    &         \\ \hline
+    &         \\ \hline
+    &         \\ \hline
+    &        \\ \hline
+    &        \\ \hline
+    &        \\ \hline
+    &         \\ \hline
+    &         \\ \hline
+    &         \\ \hline
+    &         \\ \hline
+    &         \\ \hline
+\end{tabular}
+\end{table}
+
+% differential equation - left side
+\begin{align}
+\frac{d}{dt}~=
+\end{align}
+
+% Basic graph to show the flow between compartments - still not sure it works though!
+
+\begin{tikzpicture}
+
+> = stealth, % arrow head style
+            shorten > = 1pt, 
+            auto,
+            node distance = 3cm, 
+            semithick 
+        ]
+
+        \tikzstyle{every state}=[
+            draw = black,
+            thick,
+            fill = white,
+            minimum size = 4mm
+        ]
+
+  \node[state] (S) {S};
+  \node[state] (E) [right of=S] {E};
+  \node[state] (P) [right of=E] {P};
+  \node[state] (A) [above right of=P] {A};
+    \node[state] (I) [below right of=P] {I};
+    \node[state] (R) [below right of=I] {R};
+
+  \path[->] (S) edge node [above] {} (E)
+  \path[->] (E) edge node [above] {} (P)
+  \path[->] (P) edge node [above] {} (I)
+  \path[->] (P) edge node [above] {\tau_{2}(1-\psi)} (A)
+  \path[->] (I) edge node [above] {\mu} (R)
+  \path[->] (A) edge node [above]  {\mu} (R)
+
+\end{tikzpicture}

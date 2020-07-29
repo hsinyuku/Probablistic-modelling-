@@ -1,0 +1,208 @@
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+\subsection{Data}
+\label{sec: Data}
+%\footnote{written by Hsin-Yu,Ku}
+
+\subsubsection{Overview of the Region-specific Datasets}
+Among the seven regions in \cite{The original work}, data of three European regions are used in our work: Lombardy(Italy), Bavaria(Germany), Spain. For all three regions, sex region-specific data input, denoted as $A$, $C$,$B_{age}$, $D_{age}$, $B_{gender}$, $D_{gender}$ are collected.\\
+
+Three datasets, $A$, $B_{age}$ and $B_{gender}$ are used for confirmed cases of SARS-CoV-2 infections. $A$ is the number of new symptomatic infections, i.e. the confirmed cases, by day of symptom onset. $B_{age}$ is the age distribution of these confirmed cases up to tmax, the last day of collected data. Similarly, $B_{gender}$ is the gender-structured distribution of the confirmed infections. 
+
+On the other hand, there are also three datasets for deaths with confirmed infection by day,$C$, and its age and gender distribution, $D_{age}$ and $D_{gender}$ respectively.\\  %, which are used in the estimation of parameter $\epsilon_k$ mentioned in the last part of section \ref{sec: SEPIAR}. 
+
+Table \ref{tab: summary_dataset} summarizes the sex region-specific datasets. 
+
+\newcommand{\ra}[1]{\renewcommand{\arraystretch}{#1}}
+\begin{table*} [!htbp] \centering
+\ra{1.2}
+    \begin{tabular}{ p{2cm}p{9cm}}
+        \toprule
+        \textbf{Symbol} & \textbf{Description}  \\ 
+        %\midrule
+        A & Confirmed cases of infection by day of symptom onset  \\
+        B_{age} & Age distribution of all confirmed cases  \\
+        B_{gender} & Gender-structured distribution of confirmed infections \\
+        C & Deaths with confirmed infection by day  \\
+        D_{age} & Age distribution of deaths \\
+        D_{gender} & Gender-structured distribution of deaths \\
+        \bottomrule
+    \end{tabular}
+\caption{Summary of data sources}
+\label{tab: summary_dataset}
+\end{table*}
+
+\subsubsection{Additional Input of Our Work for Data}
+
+\textbf{Adjustment of data for Bavaria}
+
+Among the six data input, for $A$, $B$,$B_{age}$, $D_{age}$, we used the exact same data for Lombardy and Spain, while some adjustments are made for data of Bavaria, as described in the following part. 
+
+In the original paper, there are some assumptions made about the data input for the two states Bavaria and Baden-Württemberg (Germany). While the confirmed cases of infection by day of symptom onset (A) and the deaths with confirmed infection by day (C) are from the two regions, they assume that the age distribution for both cases (B) and deaths (D) in these regions are the same as that for Germany. 
+In the inference step of the model, the posterior of the age distribution of cases $Pr(\theta|\mathbb{B})$ is equal to a multinomial distribution $Multinomial(\mathbb{B}|D_k^{cases})$. $D_k^{cases}$ is a simplex object (percentages of cases among the age groups which sum up to 1) and generated using $\theta$ in the sampling process. On the other hand, $\mathbb{B}$ are absolute counts from the whole Germany according to the assumption above. To account for this in the cases of Bavaria and Baden-Württemberg, we use the total number of confirmed cases ($\mathbb{A}$) respectively to scale down $\mathbb{B}$ so that the two state-specific data are comparable.\\
+
+\textbf{Gender-structured distributions for cases and deaths}
+
+Two other data inputs $B_{gender}$, $D_{gender}$ are not part of \ref{the original work}'s original work.\\ % Jade note_3
+
+For one of the extensions where we model transmissibility and mortality rate of the virus based on gender (described in the next section), additional external data is required. We choose three regions to apply this model, namely Hubei, Lombardy and Spain. For each of the regions, the gender distribution of cases ($B_{gender}$) and deaths ($D_{gender}$) at the end of the data collection period are collected. [Citing needed] Combining all the above about data used, table \ref{tab: three_regions} summarizes the details about the six datasets collected for the three regions.
+
+\begin{table}[htbp]\centering
+  \begin{tabular}{p{3.5cm}p{3.5cm}p{0.6cm}p{0.6cm}p{0.6cm}p{0.6cm}p{0.6cm}p{0.6cm}}
+  \toprule
+  & \multicolumn{5}{r}{\textbf{Source}} \\
+  \cmidrule(r){3-8}
+  %& \thead{Telematics: As a\\Vision Zero Tool} & \thead{Datakind: Predicting\\Crash Locations} & \thead{Dash: App Data\\ for Individual\\Driving Behaviour} \\
+  & \multicolumn{1}{c}{Data period} & \multicolumn{1}{c}{A} & \multicolumn{1}{c}{C} & \multicolumn{1}{c}{B_{age}}& \multicolumn{1}{c}{B_{gender}}& \multicolumn{1}{c}{D_{age}}& \multicolumn{1}{c}{D_{gender}}\\
+  \midrule
+  \textbf{Lombardy(Italy)}  & 11.02 - 25.04.2020 & - & - & - & - & - & - \\
+  \textbf{Bavaria(Germany)} & 03.03 - 16.04.2020 & - & - & - & - & - & - \\
+  \textbf{Spain}            & 02.03 - 16.04.2020 & - & - & - & - & - & - \\
+  \bottomrule
+  \end{tabular}
+\caption{Details and sources of data collected of the three regions}
+\label{tab: three_regions}
+\end{table}
+
+% \newcommand{\ra}[1]{\renewcommand{\arraystretch}{#1}}
+% \begin{table*} [!htbp] \centering
+% \ra{1.2}
+%     \begin{tabular}{ p{5cm}  p{5cm}  p{3cm}}
+%         \toprule
+%         \textbf{Region} & \textbf{Period of data collection} & \textbf{Source} \\ 
+%         Lombardy(Italy)  & 11.02 - 25.04.2020 &  \\
+%         Bavaria(Germany) & 03.03 - 16.04.2020 &  \\
+%         Spain  & 02.03 - 16.04.2020 & \\ 
+%         \bottomrule
+%         \multicolumn{3}{p{15cm}}{
+%             \parbox[t]{15cm}{ \\
+%             }
+%         }
+%     \end{tabular}
+% \caption{Details and sources of data collected of the three regions}
+% \label{tab: three_regions}
+% \end{table*}
+
+% ------------------------------------------------------------------------------------------------------
+\subsection{Social contact patterns and contact matrices}
+\label{sec: ContactMatrices}
+%\footnote{written by Chan Le}
+
+One of the indispensable elements in the modelling process of CoVID transmissibility in the social contact matrices among various groups in the population, may it be between different genders or among diffrerent age groups. A study of human social contact patterns in Shanghai, China is used for the estimation of Hubei. As for other European regions (including the United Kingdom), results from the POLYMOD study is ultilized. The POLYMOD study comprises of surveys from the United Kingdom and seven EU countries (Belgium, Finland, Germany, Italy, Luxembourg, Nethelands and Poland). It is the first quantitative study to perform a large-scale and in-depth analysis of the social contact patterns relevant for modelling transmissibility of resperatory diseases. 
+
+The social contact matrices were considered a black box in the original paper, as there is a dedicated package named socialmixr that generates these matrices automatically with the option of setting different ranges for the age groups. In this section, we would like to look further into how the matrices are actually calculated, what the input data looks like, and how we proceed to adapt the original function to create a 2 by 2 contact matrix for gender.
+
+The input data is divided into two parts: the participant personal data and the information about their contact people.
+
+\begin{itemize}
+    \item The participant personal data includes participant key, age, gender, occupation, education, nationality.
+    \item The contact data includes participant key, contact key, (estimated) age and gender of contact person, dummy variables indicating place of contact, duration and frequency of contact, and whether a physical contact took place.
+\end{itemize}
+
+The two input data are merged using the participant key. A contigency table of the number of contacts, either based on gender (2 by 2) or on age groups (9 by 9) is created (1). A vector of number of participants based on gender or age groups is created from the participant personal data (2). Beside from the input data, we also employ population data to calculate the contact matrix:
+
+\begin{itemize}
+    \item Population of all participating countries are listed
+    \item The sex ratio (male to 100 female) of all participating countries are listed.
+    \item The absolute numbers of men and women in each country are calculated, and then aggregated (3)
+\end{itemize}
+
+The final step is to normalize (1) by (2) and (3), accounting for the number of people participant in the study, as well as the total population of all participating countries. The same procedure is applied in the case of 9 by 9 contact matrix based on age groups.
+
+It is worth noticing after going through the original code of the function in the package, some potential elements such as contact place, physical contact, and duration and frequency of contact do not flow into the contact matrix calculation.
+% ------------------------------------------------------------------------------------------------------
+\subsection{Model Simulation}
+\label{sec: ModelSimulation}
+%\footnote{written by Hsin-Yu,Ku}
+
+Two additional models are extended upon the original model of \cite{The original work} which models the dynamics of transmission and mortality by age group. One of them modifies dynamics by age group to by gender. That is, the transmission originally accounted by interactions between different age groups is switched to an angle of interactions between two genders. Additionally, in the second extension model,  $\eta_k$  is introduced as an age-group specific parameter, instead of a general $\eta$ in \cite{The original work}, to account for the relative reduction in transmission after implementing control measures by age group. To sum up, three following models were used to model the dynamics of transmission and mortality with different aspects: 
+
+\begin{enumerate} 
+\item Model 1: Age-group-specific model (the original model in \cite{The original work}): 
+\label{Model_1}
+\newline The model incorporates dynamics between 9 age group.  
+\item Model 2: Gender-specific model
+\label{Model_2}
+\newline The model focuses on interactions between two genders. 
+\item Model 3: Age-group-specific transmission reduction $\eta_k$ model: 
+\label{Model_3}
+\newline The model accounts for different magnitudes of reduction in transmissibility among nine age groups after the control measures took effect. 
+\end{enumerate}
+
+Model \ref{Model_2} is built by modifying the POLYMOD contact matrix used in model \ref{Model_2}. We used the original raw data of the POLYMOD to extract the gender information. % Jade note_5 
+
+Model \ref{Model_3} extend the general $\eta$ in \cite{The original work} that accounts for the relative reduction in transmission after implementing control measures to an age-specific  $\eta_k$. By doing so, we aim at measuring how control measures reduce the transmission in different age groups. % Jade note_6
+
+
+% ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+\subsection{Stan}
+\label{sec: Stan}
+%\footnote{written by Daniele Francario}
+
+The model described in the previous section, which can be summarized by the following system of differential equations, which includes the dummy compartment $C_{k}$:
+
+\begin{align}
+\frac{d}{dt}~S=-\lambda_{k}(t) S_{k} 
+\end{align}
+\begin{align}
+\frac{d}{dt}~E = \lambda_{k}(t) S_{k} - \tau_{1} E_{k}
+\end{align}
+\begin{align}
+\frac{d}{dt}~P = \tau_{1}  E_{k} - \tau_{2}  P_{k}
+\end{align}
+\begin{align}
+\frac{d}{dt}~A = \tau_{2}(1-\psi)  P_{k} - \mu  A_{k}
+\end{align}
+\begin{align}
+\frac{d}{dt}~I = \tau_{2}  \psi  P_{k} - \mu  I_{k}
+\end{align}
+\begin{align}
+\frac{d}{dt}~R = \mu  (A_{k}  I_{k})
+\end{align}
+\begin{align}
+\frac{d}{dt}~C=\tau_{2}\psiP_{k}
+\end{align}
+
+is then specified with Stan to produce estimates of the posterior distributions of the following parameters, for which we define the listed weak priors:
+
+\begin{table}[H]
+\centering
+\caption{}
+\label{table}
+\begin{tabular}{|l|l|1|}
+\hline
+ColTitle1    &  ColTitle2  \\ \hline
+    &         \\ \hline
+    &         \\ \hline
+    &         \\ \hline
+    &         \\ \hline
+    &         \\ \hline
+    &         \\ \hline
+    &         \\ \hline
+    &         \\ \hline
+    &        \\ \hline
+    &        \\ \hline
+    &        \\ \hline
+    &         \\ \hline
+    &         \\ \hline
+    &         \\ \hline
+    &         \\ \hline
+    &         \\ \hline
+\end{tabular}
+\end{table}
+
+By setting the following likelihood for our four datasets: 
+
+Computers Used, Runtimes, 
+
+To accomplish this, a model composed of the classical four sections has to be written: data, parameters, transformed parameters, and generated quantitities.
+
+In the specific case under examination here, four different models had to be written to allow to consider Age and the possibility that the parameter $\eta$ changes over time
+
+each of the models was then run for 4 chains and 400 iterations 
+
+
+\end{document}

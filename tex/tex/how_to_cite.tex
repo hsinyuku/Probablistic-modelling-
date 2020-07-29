@@ -1,0 +1,15 @@
+\documentclass[../Main.tex]{subfiles}
+ 
+\begin{document}
+
+\texttt{\textbackslash cite\{vanOijen.2020\}} will be compiled as \cite{vanOijen.2020}; this is the \say{raw} command.
+
+\texttt{\textbackslash parencite\{vanOijen.2020\}} will be compiled as \parencite{vanOijen.2020}; it is good when for the \say{normal} citation at the end of a sentence or after a sentence.
+
+\texttt{\textbackslash textcite\{vanOijen.2020\}} will be compiled as \textcite{vanOijen.2020}. It can be used in sentences, e.g. in the form \say{\textcite{vanOijen.2020} repeatedly state that Data Science is just showing of you dark-themed IDEs}.
+
+When something is cited multiple times in a row, on the following occurrences, it will be printed as "ibid.".
+
+When you want to cite multiple authors in one command, use the plural versions: \texttt{\textbackslash parencite\{vanOijen.2020, vanOijen.2017\}} becomes \parencite{vanOijen.2020, vanOijen.2017}. 
+
+\end{document}

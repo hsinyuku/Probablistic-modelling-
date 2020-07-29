@@ -1,0 +1,131 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+
+\subsection{SEPIAR Model}
+\label{sec: SEPIAR}
+%\footnote{written by Daniele Francario}
+
+The first step of this work is represented by the abstract representation of the ongoing outbreak through a mathematical model which summerizes its defining features.  Compartmental Models, starting from the the Susceptible-Infectious-Recovered (SIR) model, are widely used in modern epidemiology and normally employ differential equations to describe the dynamics of the size of each of the compartments into which the population is divided to describe the status of each individual in relation to the infection.
+In SIR models, The first compartment (S) symbolizes the section of the population which has never been exposed to the infection but is susceptible to being so. At the beginning of the simulation, the size of this compartment will be almost equal to the size entire population. The remaining small proportion, made up of the first individuals that became infectious according to a parameter $\pi$, will be already in the compartment I. In this simple version of the compartmental model, the temporal dynamics of the outbreak will be first defined through the transmission rate $\beta$, representing the likelihood that one of the "patients zero" already in compartment I at the beginning of the outbreak will transmit the disease to an individual in compartment S upon establishing a contact relevant for the transmission of the disease. Individuals in this last compartment, however, are  expected in the case of SIR models to eventually both recover from the infection and develop antibodies against it at a recovery rate $\mu$ and play no further role in the spread of the infection, therefore moving to the compartment R.
+In addition to these fundamental temporal dynamics, which highlight how the evolution of an outbreak left unchecked will be largely determined by the ability of the infection to spread($\beta$) and resist the attempts by both the individual's immune system or medical treatment($\mu$) to defeat it, a series of scenarios needs to be additionally formalized to account for the specific natural history of the Sars-CoV-19 infection.
+To begin with, the probability of the aforementioned relevant contact taking place between any two members of the population is dependant upon a large number of variables (age, sex and socioeconomic status being only some of the potential ones) describing each of the two. This implies that the actual spread of the disease will be dependent first upon the probability of the relevant contact between an individual in compartment S and an individual in compartment I actually taking place and only then upon the transmission rate $\beta$. For the study conducted by the authors, the value of this probability is calculated from the contact matrices produced by the studies conducted by Mossong et al. in 2008 for European Countries and by the study conducted by Zhang et. al in Shanghai for Hubei. Since both studies provide information about contact patterns for nine different 10-year age groups (0-9 up to 80+ years), the model compartments'size will also be adapted accordingly, resulting in an age-stratified model whose parameters remain however fixed across age groups.
+Over this age-stratified general structure additional specifications are made. Exposure does not result in immediate infectiousness, since the virus will require an incubation period, , before an exposed individual becomes infectious. This incubation period, defined as $\frac{1}{\tau_{1}} + \frac{1}{\tau_{2}}$, is split into a period $\frac{1}{\tau_{1}}$ of approximately 2.7 days of length, during which the exposed individual is not yet an active carrier itself, followed by a period $\frac{1}{\tau_{2}}$ of approximately 2.3 further days during which the individual is nevertheless infectious, albeit at a reduced rate \textit{$\kappa$}, even while being in a presymptomatic stage where he does not yet show any associated symptom. The individual might actually remain in this asymptomatic stage and continue spreading the infection at the same rate \textit{$\kappa$} until he recovers at the rate $\mu$, which defines the duration of the infectious period $1frac{1}{\mu}$ for both asymptomatic and infectious individuals. Summed up with the Incubation time, this provides us with the overall generation time \textit{g}.
+Such dynamics require the inclusion of additional compartments and variables to describe the phenomena that take place in the aforementioned five-day period. The first is the force of infection $\lambda_{k}(t)$, specific to each age group \textit{k}, which will set the rate at which individuals in the Susceptible (S) compartment will be exposed to contagion and subsequently move into the Exposed (E) compartment.
+The first differential equation for our model, describing the temporal dynamics of the susceptible compartment over the course of the simulated outbreak will therefore be:
+
+\begin{align}
+\frac{d}{dt}~S=-\lambda_{k}(t) S_{k} 
+\end{align}
+
+Where the value of the force of infection $\lambda_{k}(t)$ for each age group(denoted by $k$) will be specified by the following function:
+
+\begin{align}
+\lambda_{k}(t) = f(t,\eta,\nu,\csi)\beta \sum_{l=1}^{9}\frac{I_{l}(t)+\kappaP_{l}(t)+\kappaA_{l}(t)}{E_{l}}F_{k,l} \end{align}
+
+Highlighting how this parameter will be dependent on, for each age group:
+\begin{itemize}
+  \item the proportion of infectious individuals in each of the nine age classes  \textit{l} $\in{(1,...,9)}$, represented here by the number of individuals in the infectious($I_{l}$), presymptomatic($P_{l}$) and asymptomatic($A_{l}$) compartments - which will be explained below - divided by the total size of the age class $E_{l}$.
+  \item the total number of contacts between individuals of age class \textit{k} and age class \textit{l}, provided by the relevant entry of the country-specific contact matrix $F_{k,l}$
+  \item the transmission rate $\beta$, which is considered to be equal for all age classes.
+  \item the transmission rate of individuals in the presymptomatic and asymptomatic compartments, which is reduced by the parameter $\kappa$.
+  \item the time-dependent reduction in the transmission rate following the introduction of control measures $f(t,\eta,\nu,\csi)$, whose impact is described by the following function:
+  
+\end{itemize}
+\begin{align}
+f(t,\eta,\nu,\csi) = \eta + frac{1-\eta}{1+exp(\csi(t-t_{c}-\nu))}
+\end{align}
+
+whose parameters describe, respectively, the impact that the implementation of control measures will have on the transmission rate($\eta$), the slope of the logistic function modelling such implementation($\csi$), and the delay until control measures are fully effective($\nu$). The second differential equation for our model, which describes the amount of individuals exposed to the infection, will then be:
+
+\begin{align}
+\frac{d}{dt}~E = \lambda_{k}(t) S_{k} - \tau_{1} E_{k}
+\end{align}
+
+Where $\tau_{1}$ represents, as already mentioned, the amount of the overall incubation time during which individuals in compartment E will move to the intermediate presymptomatic (P) compartment, symbolizing the fact that they have become infectious even without showing any symptom. A dynamic which is simulated by our third differential equation:
+
+\begin{align}
+\frac{d}{dt}~P = \tau_{1}  E_{k} - \tau_{2}  P_{k}
+\end{align}
+
+With $\tau_{2}$ then defining the remaining amount of the incubation time before a proportion $\psi$ of the individuals of individuals in compartment P will become infectious(I), while the remaining proportion $1-\psi$ will remain asymptomatic(A). Alternative movements which in our model are summarized by the following two differential equations:
+
+\begin{align}
+\frac{d}{dt}~A = \tau_{2}(1-\psi)  P_{k} - \mu  A_{k}
+\end{align}
+\begin{align}
+\frac{d}{dt}~I = \tau_{2}  \psi  P_{k} - \mu  I_{k}
+\end{align}
+
+As it has already been mentioned, Individuals in compartments P and A will still contribute to the spread of the infection. They will however do so at reduced rate \textit{q} expressed from the the following equation:
+
+\begin{align}
+q = \frac{\frac{\kappa}{\tau_{2}}}{\frac{\kappa}{\tau_{2}}+(1-\psi)\frac{\kappa}{\mu}+\psi\frac{1}{\mu}}
+\end{align}
+
+From which we can then derive both the aforementioned reduced trasmission rate $\kappa$:
+
+\begin{align}
+\kappa = \frac{q\tau_{2}\psi}{(1-q)\mu-(1-\psi)q\tau_{2}}
+\end{align}
+
+And the overall generation time of infectious individuals\textit{g}:
+
+\begin{align}
+\textit{g} = \frac{1}{\tau_{1}}+\textit{q}\frac{1}{\tau_{2}}+(1-\textit{q})(\frac{1}{\tau_{2}}+\frac{1}{\mu})
+\end{align}
+
+Finally, individuals in both compartments will eventually move to the removed compartment at the aforemention recovery rate $\mu$, which can be derived from the previous equation for \textit{g}:
+
+\begin{align}
+\frac{1}{\mu}=\frac{g-\frac{1}{\tau1}-\frac{1}{\tau2}}{1-q}
+\end{align}
+
+Thus playing no further role in the spread of the infectious disease. This dynamic is expressed by the model's last differential equation:
+
+\begin{align}
+\frac{d}{dt}~R = \mu(A_{k}+I_{k})
+\end{align}
+
+Mortality, as it might be possible to guess from what has been written so far, is considered outside the system of equations through the parameter $\epsilon_k$, which specifies the proportion of symptomatic individuals that will die in each age group at a specific time \textit{t}, defined as the additional compartment $M_{k,t}$ with the following equation:
+
+\begin{align}
+M_{k,t} = H\epsilon_{k}\sum_{d}^{60}\DeltaC_{k,t-d}I_{d}
+\end{align}
+
+Where H represents the proportion of deaths whose exact date is unknown and $I_{d}$ represent the discretized log-normal distribution of time from symptom onset to death of length 60, to account for those infectious individuals which might have died after the end of the simulation period $t_{max}$. Finally, $C_{k}$ represents a dummy compartment used to  record the cumulative incidence of symptomatic infections by day of symptom onset, as defined by the differential equation:
+
+\begin{align}
+\frac{d}{dt}~C=\tau_{2}\psiP_{k}
+\end{align}
+
+To conclude, the movement of individuals in each age group between compartments can be visualized by the following graph below: 
+
+\begin{tikzpicture}
+[->, > = stealth,
+ shorten > = 1pt, 
+ auto,
+ node distance = 3.5cm]
+  \tikzstyle{every state}={every state}=[
+draw = black,
+thick,
+fill = white,
+minimum size = 4mm]
+
+  \node[state] (S)              {$S_{k}$};
+  \node[state]         (E) [right of=S] {$E_{k}$};
+  \node[state]         (P) [right of=E] {$P_{k}$};
+  \node[state]         (A) [above right of=P] {$A_{k}$};
+  \node[state]         (I) [below right of=P]  {$I_{k}$};
+  \node[state]          (R) [above right of=I]  {$R_{k}$};
+   \node[state]          (C) [left of=I]  {$C_{k}$}; 
+  \path (S) edge node {$\lambda_{k}(t)$} (E)
+        (E) edge node {$\tau_{1}$} (P)
+        (P) edge node {$\tau_{2}\psi$} (A)
+            edge node [above right] {$\tau_{2}(1-\psi)$} (I)
+            edge node [above left]{$\tau_{2}(1-\psi)$} (C)
+        (A) edge node {$\mu$} (R)
+        (I) edge [below right] node {$\mu$} (R);
+        
+\end{tikzpicture}
+\end{document}
