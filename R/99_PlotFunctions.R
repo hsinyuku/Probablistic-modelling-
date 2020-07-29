@@ -371,7 +371,7 @@ plot_Parameters <- function(sample){
 }
 
 # Plot the reduction in transmissibility for different age groups ------------#
-plot_eta <- function(TransRedFill = "#8FCB9B") {
+plot_eta <- function(samples, TransRedFill = "#8FCB9B") {
   eta_age <-
     summary(samples, "eta")$summary %>% as_tibble() %>%
     mutate(ageGroup = rep(
