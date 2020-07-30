@@ -233,14 +233,68 @@ save_gg(comparisonCases,"Comparison_Spain_Deaths", width = 7, height = 7.5)
 
 
 # this code block attempts to export tables to Latex
-parRegions <- summary(sampleRegions[[1]], c("beta", "psi", "pi", "eta", "nu",
-                                            "xi", "phi[1]", "phi[2]"))[[1]]
-xtable::xtable(tibble("Parameter" = rownames(parRegions),
-       "Posterior Median (95% CI)" = str_c(
-         signif(parRegions[,"50%"], 2), " [",
-         str_c(signif(parRegions[,"2.5%"], 2),
-               signif(parRegions[,"97.5%"], 2), sep = " - "), "]"))) %>% 
-  print(paste0("Tables/Parameters", posteriorNameRegions[1]), type = "latex")
+for(i in seq_along(list.files("Posteriors"))) {
+  print(list.files("Posteriors")[[i]])
+  # get the parameter values
+  if(controlsRegions[[i]]$ind_eta == "VaryingEta") {
+    parRegions <- summary(sampleRegions[[i]],
+                          c("beta", "psi", "pi", "nu",
+                            "xi", "phi[1]", "phi[2]"))[[1]]
+    parNames <- c("$\\beta$", "$\\psi$", "$\\pi$", "$\\nu$", "$\\xi$",
+                  "$\\phi_1$", "$\\phi_2$")
+    parDescription <- c("Probability of transmission upon contact",
+                        "Proportion of symptomatic infections",
+                        "Initial proportion of infected in the population",
+                        "Delay of implementation of control measures (days)",
+                        "Slope of implementation of control measures",
+                        "Overdispersion parameter for cases",
+                        "Overdispersion parameter for deaths")
+  } else if (controlsRegions[[i]]$ind_eta == "CommonEta") {
+    parRegions <- summary(sampleRegions[[i]],
+                          c("beta", "psi", "pi", "eta", "nu",
+                            "xi", "phi[1]", "phi[2]"))[[1]]
+    parNames <- c("$\\beta$", "$\\psi$", "$\\pi$", "$\\eta$", "$\\nu$",
+                  "$\\xi$", "$\\phi_1$", "$\\phi_2$")
+    parDescription <- c("Probability of transmission upon contact",
+                        "Proportion of symptomatic infections",
+                        "Initial proportion of infected in the population",
+                        "Reduction of transmission due to control measures",
+                        "Delay of implementation of control measures (days)",
+                        "Slope of implementation of control measures",
+                        "Overdispersion parameter for cases",
+                        "Overdispersion parameter for deaths")
+  }
+  # prepare the tibble
+  parTibble <- tibble("Parameter" = parNames,
+                      "Interpretation" = parDescription,
+                      "Posterior Median (95\\% CI)" = str_c(
+                        signif(parRegions[,"50%"], 2), " [",
+                        str_c(signif(parRegions[,"2.5%"], 2),
+                              signif(parRegions[,"97.5%"], 2),
+                              sep = " - "), "]"))
+  # write a caption
+  parCaption <- paste0("Posterior distributions of the general parameters in ",
+                       controlsRegions[[i]]$region, " (model for ",
+                       str_to_lower(controlsRegions[[i]]$type),
+                       " groups with ",
+                       str_to_lower(
+                         str_extract(controlsRegions[[i]]$ind_eta,
+                                     "[:alpha:]*(?=(Eta))")), " $\\eta$)")
+  # write a label
+  parLabel <- paste0("tab:ParamTable", controlsRegions[[i]]$region, "_",
+                     controlsRegions[[i]]$type, "_",
+                     controlsRegions[[i]]$ind_eta)
+  xtable::xtable(parTibble,
+                 caption = parCaption, label = parLabel,
+                 align = c("l", "l", "p{9cm}", "p{3cm}")
+  ) %>% 
+    print(paste0("Tables/Parameters_",
+                 posteriorNameRegions[i],".tex"),
+          type = "latex", include.rownames=FALSE,
+          sanitize.text.function=function(x){x}) # this makes it possible to 
+  # have math mode, but all LaTeX special character need to be escaped
+}
+
 
 
 
