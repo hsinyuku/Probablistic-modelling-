@@ -37,6 +37,7 @@ posteriorName <- list.files("Posteriors")[7]
 
 #source("R/99_PlotFunctions.R")
 controls$savePlots <-TRUE
+controls$plotLegends <- FALSE
 
 theme_set(theme_bw())
 posterior <- str_sub(posteriorName, 1, str_locate(posteriorName, "\\.")[1]-1)
@@ -122,6 +123,11 @@ simvsrealTotalCases
 plot_simvsrealTotalCases2 <- plot_SimVsReal_Total2(simvsrealTotalCases, "cases")
 plot_simvsrealTotalCases2
 if (controls$savePlots) save_gg(plot_simvsrealTotalCases2,
+plot_simvsrealTotalCases <- plot_SimVsReal_Total(simvsrealTotalCases, 
+                                                 metric = "cases",
+                                                 plotSums = "time")
+plot_simvsrealTotalCases
+if (controls$savePlots) save_gg(plot_simvsrealTotalCases,
                                 paste0("SimRealCasesTotal", posterior))
 
 # number of simulated versus real deaths, total #
@@ -132,7 +138,56 @@ simvsrealTotalDeaths
 plot_simvsrealTotalDeaths2 <- plot_SimVsReal_Total2(simvsrealTotalDeaths, "deaths")
 plot_simvsrealTotalDeaths2
 if (controls$savePlots) save_gg(plot_simvsrealTotalDeaths2,
+plot_simvsrealTotalDeaths <- plot_SimVsReal_Total(simvsrealTotalDeaths,
+                                                  metric = "deaths",
+                                                  plotSums = "time")
+plot_simvsrealTotalDeaths
+if (controls$savePlots) save_gg(plot_simvsrealTotalDeaths,
                                 paste0("SimRealDeathsTotal", posterior))
+# ----------------------------------------------------------------------------#
+
+
+# ----------------------------------------------------------------------------#
+# composite plots (single regions) ----
+# ----------------------------------------------------------------------------#
+
+
+library(cowplot)
+
+legend <- get_legend(
+  ggplot(data = tibble(x = factor(x = c("All Cases", "Symptomatic Cases",
+                                      "Reported Cases",
+                                      "Simulated Deaths", "Projected Deaths"),
+                                levels = c("All Cases", "Symptomatic Cases",
+                                           "Reported Cases",
+                                           "Simulated Deaths", "Projected Deaths"),
+                                ordered = T))) +
+    geom_bar(aes(x = x, fill = x)) +
+    scale_fill_manual(values = c("#00B2EE", "#66CD00", "#008B8B",
+                                 "#B22222", "#FFD700"), name = NULL) +
+    theme(legend.direction = "horizontal"))
+
+plot_overview <- cowplot::plot_grid(
+  # first element: six plots
+  cowplot::plot_grid(
+    plot_simvsrealTimeCases + guides(linetype = F, fill = F, col = F),
+    plot_simvsrealTotalCases + guides(linetype = F, fill = F, col = F),
+    plot_simvsrealGroupCases + guides(linetype = F, fill = F, col = F),
+    plot_simvsrealTimeDeaths + guides(linetype = F, fill = F, col = F),
+    plot_simvsrealTotalDeaths + guides(linetype = F, fill = F, col = F),
+    plot_simvsrealGroupDeaths + guides(linetype = F, fill = F, col = F),
+    nrow = 2, ncol = 3, labels = "AUTO", align = "hv", axis = "b",
+    rel_widths = c(3, 1.4, 3)
+  ),
+  # second element: legend
+  legend,
+  nrow = 2, rel_heights = c(10,1)
+)
+if (controls$savePlots) save_gg(plot_overview,
+                                paste0("Overview", posterior),
+                                width = 7, height = 5)
+
+
 # ----------------------------------------------------------------------------#
 
 
