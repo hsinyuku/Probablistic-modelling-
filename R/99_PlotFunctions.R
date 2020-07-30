@@ -192,7 +192,7 @@ plot_SimVsReal_Total <- function(data, metric,
                     aes(x = 1.5, ymin = `2.5%`, y = `50%`, ymax = `97.5%`,
                         col = metric),
                     position = position_dodge2(width = 1, padding = 0.2)) +
-    theme(plot.subtitle = element_text(hjust = 0.5))
+    theme(plot.subtitle = element_text(hjust = 1))
   if(plotSums == "both") {
     plot <- plot +
       scale_x_labelsRotate() +

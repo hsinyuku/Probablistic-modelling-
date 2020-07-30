@@ -6,9 +6,9 @@
 # ----------------------------------------------------------------------------#
 
 list.files("Posteriors")
-remove(list = ls())
+# remove(list = ls())
 # Which posterior do you want to inspect?
-posteriorName <- list.files("Posteriors")[6]
+posteriorName <- list.files("Posteriors")[1]
 
 {
   print("1) sourcing setup.R")
@@ -221,74 +221,4 @@ plot_CFR_total
 if (controls$savePlots) save_gg(plot_CFR_total,
                                 paste0("CFRtotal", posterior))
 
-# ----------------------------------------------------------------------------#
-# data for all samples----
-# ----------------------------------------------------------------------------#
-# the following code can be used to extract data from all the posteriors that
-# are in the respective directory. Only run this code when you want to update
-# all the posteriors.
-source("setup.R")
-generatedQuantitiesList <- list()
-for(posteriorName in list.files("Posteriors")) {
-  print(posteriorName)
-  remove("controls", "sample", "list")
-  controls <- extractPosteriorMetadata(posteriorName)
-  check_controls(controls)
-  sample <- initialiseSample(posteriorName, type = controls$type)
-  if(controls$chains != as.character(sample$metadata$chains) |
-      controls$iterations != as.character(sample$metadata$iterations)) {
-    stop(paste("Error: posterior metadata did not match its name\n",
-               posteriorName))
-  }
-  list <- list(append(sample, controls))
-  names(list) <- posteriorName
-  generatedQuantitiesList <- append(generatedQuantitiesList, list)
-}
-saveRDS(generatedQuantitiesList, "data/00_generatedQuantities.Rds")
 
-# this code extracts data about the generated quantities from all the 
-# posteriors
-{
-  generatedQuantitiesList <- readRDS("data/00_generatedQuantities.Rds")
-  
-  generatedQuantitiesSummary <- list()
-  for (parameter in c("per_day", "per_group", "per_both", "per_none")) {
-    parameterSummary <- map_dfr(generatedQuantitiesList, function(x) {
-      x$parameters[[parameter]] %>% 
-        add_column(region = x$region, 
-                   type = x$type,
-                   ind_eta = x$ind_eta,
-                   chains = x$chains,
-                   iterations = x$iterations,
-                   timestamp = x$timestamp)
-    })
-    generatedQuantitiesSummary <- append(generatedQuantitiesSummary,
-                                         list(parameterSummary))
-  }
-  
-  names(generatedQuantitiesSummary) <- c("per_day", "per_group",
-                                         "per_both", "per_none")
-  generatedQuantitiesSummary <- map_dfr(generatedQuantitiesSummary,
-                                        function(x) {
-    group_by(x, parameter) %>% nest()
-  })
-  
-  quantityMetadataTable <- quantityMetadataTable(controls$type) %>% 
-    mutate(parameter = str_replace(parameter, "(age)|(gender)", "group"))
-  
-  generatedQuantitiesSummary <- generatedQuantitiesSummary %>% 
-    mutate(
-      parameter = str_replace(parameter, "(age)|(gender)", "group"),
-      parameter = factor(parameter,
-                         levels = quantityMetadataTable$parameter))
-}
-
-
-# ----------------------------------------------------------------------------#
-# plots for all samples ----
-# ----------------------------------------------------------------------------#
-
-# compare different fatality ratios for different regions
-plot_CFR_total_regions()
-  # There multiple points per region because we have multiple posterios for
-  # these regions

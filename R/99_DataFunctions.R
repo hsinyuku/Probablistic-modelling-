@@ -40,7 +40,7 @@ data_Real_Time <- function(data_list_model, metric,
 }
 
 # simulated vs. real cases and deaths over time ---------------------#
-data_SimVsReal_Time <- function(metric, controls, sample, day_max, day_data,
+data_SimVsReal_Time <- function(metric, sample, day_max, day_data,
                                 data_list_model,
                                 AllCasesFill = "#00B2EE",
                                 SymptCasesFill = "#66CD00",
