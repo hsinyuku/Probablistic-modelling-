@@ -84,17 +84,6 @@ plot_simvsrealGroupDeaths
 if (controls$savePlots) save_gg(plot_RealSimCasesTime,
                                 paste0("RealSimCasesGroup", posterior))
 
-# numbers of simulated versus real deaths and cases per group #
-# ----------------------------------------------------------- #
-simvsrealGroupBoth <- list("real" = NULL, "simulated" = NULL)
-simvsrealGroupBoth$real <- bind_rows(
-  add_column(simvsrealGroupDeaths$real, type = "Deaths per group"),
-  add_column(simvsrealGroupCases$real, type = "Cases per group"))
-simvsrealGroupBoth$simulated <- bind_rows(
-  add_column(simvsrealGroupDeaths$simulated, type = "Deaths per group"),
-  add_column(simvsrealGroupCases$simulated, type = "Cases per group"))
-plot_simvsrealGroupBoth <- plot_SimVsReal_Group_Both(simvsrealGroupBoth)
-
 # numbers of simulated versus real cases per day #
 # ---------------------------------------------- #
 simvsrealTimeCases <- data_SimVsReal_Time("cases", controls, sample$sample,
@@ -118,17 +107,6 @@ plot_simvsrealTimeDeaths
 if (controls$savePlots) save_gg(plot_simvsrealTimeDeaths,
                                 paste0("SimRealDeathsTime", posterior))
 
-# numbers of simulated versus real cases and deaths per day #
-# --------------------------------------------------------- #
-simvsrealTimeBoth <- list("real" = NULL, "simulated" = NULL)
-simvsrealTimeBoth$real <- bind_rows(
-  add_column(simvsrealTimeDeaths$real, type = "Deaths per day"),
-  add_column(simvsrealTimeCases$real, type = "Cases per day"))
-simvsrealTimeBoth$simulated <- bind_rows(
-  add_column(simvsrealTimeDeaths$simulated, type = "Deaths per day"),
-  add_column(simvsrealTimeCases$simulated, type = "Cases per day"))
-plot_simvsrealTimeBoth <- plot_SimVsReal_Time_Both(simvsrealTimeBoth)
-
 # number of simulated versus real cases, total #
 # -------------------------------------------- #
 simvsrealTotalCases <-  data_SimVsReal_Total(sample$sample, "cases",
@@ -150,18 +128,6 @@ plot_simvsrealTotalDeaths <- plot_SimVsReal_Total(simvsrealTotalDeaths,
 plot_simvsrealTotalDeaths
 if (controls$savePlots) save_gg(plot_simvsrealTotalDeaths,
                                 paste0("SimRealDeathsTotal", posterior))
-
-# number of simulated versus real deaths and cases, total #
-# ------------------------------------------------------- #
-simvsrealTotalBoth <- list("real" = NULL, "simulated" = NULL)
-simvsrealTotalBoth$real <- bind_rows(
-  add_column(simvsrealTotalDeaths$real, type = "Total deaths"),
-  add_column(simvsrealTotalCases$real, type = "Total cases"))
-simvsrealTotalBoth$simulated <- bind_rows(
-  add_column(simvsrealTotalDeaths$simulated, type = "Total deaths"),
-  add_column(simvsrealTotalCases$simulated, type = "Total cases"))
-plot_simvsrealTotalBoth <- plot_SimVsReal_Total_Both(simvsrealTotalBoth,
-                                                     plotSums = "time")
 # ----------------------------------------------------------------------------#
 
 
@@ -171,13 +137,21 @@ plot_simvsrealTotalBoth <- plot_SimVsReal_Total_Both(simvsrealTotalBoth,
 
 
 library(cowplot)
-legend <- cowplot::get_legend(plot_simvsrealTimeBoth +
-                                  theme(legend.direction = "horizontal",
-                                        legend.title = element_blank()))
 
-plot_grid(plot_simvsrealTimeCases + guides(linetype = F, fill = F, col = F),
-          plot_simvsrealTimeCases + guides(linetype = F, fill = F, col = F))
-cowplot::plot_grid(
+legend <- get_legend(
+  ggplot(data = tibble(x = factor(x = c("All Cases", "Symptomatic Cases",
+                                      "Reported Cases",
+                                      "Simulated Deaths", "Projected Deaths"),
+                                levels = c("All Cases", "Symptomatic Cases",
+                                           "Reported Cases",
+                                           "Simulated Deaths", "Projected Deaths"),
+                                ordered = T))) +
+    geom_bar(aes(x = x, fill = x)) +
+    scale_fill_manual(values = c("#00B2EE", "#66CD00", "#008B8B",
+                                 "#B22222", "#FFD700"), name = NULL) +
+    theme(legend.direction = "horizontal"))
+
+plot_overview <- cowplot::plot_grid(
   # first element: six plots
   cowplot::plot_grid(
     plot_simvsrealTimeCases + guides(linetype = F, fill = F, col = F),
@@ -186,13 +160,16 @@ cowplot::plot_grid(
     plot_simvsrealTimeDeaths + guides(linetype = F, fill = F, col = F),
     plot_simvsrealTotalDeaths + guides(linetype = F, fill = F, col = F),
     plot_simvsrealGroupDeaths + guides(linetype = F, fill = F, col = F),
-    nrow = 2, ncol = 3, labels = "AUTO", align = "h", axis = "b"
+    nrow = 2, ncol = 3, labels = "AUTO", align = "hv", axis = "b",
+    rel_widths = c(3, 1.4, 3)
   ),
   # second element: legend
   legend,
   nrow = 2, rel_heights = c(10,1)
 )
-
+if (controls$savePlots) save_gg(plot_overview,
+                                paste0("Overview", posterior),
+                                width = 7, height = 5)
 
 
 # ----------------------------------------------------------------------------#
