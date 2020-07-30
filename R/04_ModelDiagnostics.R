@@ -8,7 +8,7 @@
 list.files("Posteriors")
 # remove(list = ls())
 # Which posterior do you want to inspect?
-posteriorName <- list.files("Posteriors")[1]
+posteriorName <- list.files("Posteriors")[7]
 
 {
   print("1) sourcing setup.R")
@@ -35,6 +35,7 @@ posteriorName <- list.files("Posteriors")[1]
   source("R/99_DataFunctions.R")
 }
 
+#source("R/99_PlotFunctions.R")
 controls$savePlots <-TRUE
 controls$plotLegends <- FALSE
 
@@ -48,6 +49,8 @@ posterior <- str_sub(posteriorName, 1, str_locate(posteriorName, "\\.")[1]-1)
 # numbers of real reported symptomatic cases per day #
 # -------------------------------------------------- #
 realTimeCases <- data_Real_Time(data_list_model, "cases", day_data, day_max)
+sum_realCases <- sum(realTimeCases["n"])
+sum_realCases                     
 plot_RealTimeCases <- plot_Real_Time(realTimeCases, "cases")
 plot_RealTimeCases
 if (controls$savePlots) save_gg(plot_RealTimeCases,
@@ -56,6 +59,8 @@ if (controls$savePlots) save_gg(plot_RealTimeCases,
 # numbers of real reported deaths per day #
 # --------------------------------------- #
 realTimeDeaths <- data_Real_Time(data_list_model, "deaths", day_data, day_max)
+sum_realDeaths <- sum(realTimeDeaths["n"])
+sum_realDeaths
 plot_RealTimeDeaths <- plot_Real_Time(realTimeDeaths, "deaths")
 plot_RealTimeDeaths
 if (controls$savePlots) save_gg(plot_RealTimeDeaths,
@@ -63,16 +68,19 @@ if (controls$savePlots) save_gg(plot_RealTimeDeaths,
 
 # real distribution by group #
 plot_Real_GroupProp()
+if (controls$savePlots) save_gg(plot_Real_GroupProp,
+                                paste0("Real_GroupProp", posterior))
 
 # numbers of simulated versus real cases per group #
 # ------------------------------------------------ #
 simvsrealGroupCases <- data_SimVsReal_Group(controls, data_list_model,
                                             "cases", sample$sample)
+simvsrealGroupCases
 plot_simvsrealGroupCases <- plot_SimVsReal_Group(simvsrealGroupCases,
                                                controls, "cases")
 plot_simvsrealGroupCases
-if (controls$savePlots) save_gg(plot_RealSimDeathsTime,
-                                paste0("RealDeathsGroup", posterior))
+if (controls$savePlots) save_gg(plot_RealSimGroupCases,
+                                paste0("RealSimGroupCases", posterior))
 
 # numbers of simulated versus real deaths per group #
 # ------------------------------------------------ #
@@ -81,8 +89,8 @@ simvsrealGroupDeaths <- data_SimVsReal_Group(controls, data_list_model,
 plot_simvsrealGroupDeaths <- plot_SimVsReal_Group(simvsrealGroupDeaths,
                                                   controls, "deaths")
 plot_simvsrealGroupDeaths
-if (controls$savePlots) save_gg(plot_RealSimCasesTime,
-                                paste0("RealSimCasesGroup", posterior))
+if (controls$savePlots) save_gg(plot_RealSimGroupDeaths,
+                                paste0("RealSimGroupDeaths", posterior))
 
 # numbers of simulated versus real cases per day #
 # ---------------------------------------------- #
@@ -111,6 +119,10 @@ if (controls$savePlots) save_gg(plot_simvsrealTimeDeaths,
 # -------------------------------------------- #
 simvsrealTotalCases <-  data_SimVsReal_Total(sample$sample, "cases",
                                              data_list_model, controls)
+simvsrealTotalCases
+plot_simvsrealTotalCases2 <- plot_SimVsReal_Total2(simvsrealTotalCases, "cases")
+plot_simvsrealTotalCases2
+if (controls$savePlots) save_gg(plot_simvsrealTotalCases2,
 plot_simvsrealTotalCases <- plot_SimVsReal_Total(simvsrealTotalCases, 
                                                  metric = "cases",
                                                  plotSums = "time")
@@ -122,6 +134,10 @@ if (controls$savePlots) save_gg(plot_simvsrealTotalCases,
 # --------------------------------------------- #
 simvsrealTotalDeaths <-  data_SimVsReal_Total(sample$sample, "deaths",
                                              data_list_model, controls)
+simvsrealTotalDeaths
+plot_simvsrealTotalDeaths2 <- plot_SimVsReal_Total2(simvsrealTotalDeaths, "deaths")
+plot_simvsrealTotalDeaths2
+if (controls$savePlots) save_gg(plot_simvsrealTotalDeaths2,
 plot_simvsrealTotalDeaths <- plot_SimVsReal_Total(simvsrealTotalDeaths,
                                                   metric = "deaths",
                                                   plotSums = "time")
@@ -194,6 +210,7 @@ if (controls$savePlots) save_gg(plot_ParameterTrace,
                                 paste0("ParameterTrace", posterior))
 
 # plot ascertainment rate per group
+data_ascertainment(sample$sample)
 plot_AscertainmentGroup <- plot_ascertainment(sample$sample, "#CC333F")
 plot_AscertainmentGroup
 if (controls$savePlots) save_gg(plot_AscertainmentGroup,
@@ -208,6 +225,29 @@ if (controls$savePlots) save_gg(plot_AscertainmentGroup,
 # CFR per group #
 # ------------- #
 CFRgroup <- data_CFR_Group(controls, data_list_model, sample)
+
+# unique(CFRgroup[[2]]$metric_description) 
+
+# CFR
+CFRgroup[[2]] %>% 
+  filter(metric_description == "CFR (simulated)")%>% 
+  mutate(combo=paste((round(`50%`,4)*100),"%","[",(round(`2.5%`,4)*100),"-",(round(`97.5%`,4)*100),"]")) %>% 
+  select(combo)
+
+# sCFR
+CFRgroup[[2]] %>% 
+  filter(metric_description == "sCFR (simulated)") %>% 
+  mutate(SFRcombo=paste((round(`50%`,5)*100),"% [",(round(`2.5%`,4)*100),"-",
+                        (round(`97.5%`,4)*100),"]")) %>% 
+  select(SFRcombo)
+
+# IFR
+CFRgroup[[2]] %>% 
+  filter(metric_description == "IFR (simulated)")%>% 
+  mutate(IFRcombo=paste((round(`50%`,5)*100),"%","[",(round(`2.5%`,4)*100),"-",
+                        (round(`97.5%`,5)*100),"]")) %>% 
+  select(IFRcombo)
+
 plot_CFR_group <- plot_CFR_Group(CFRgroup)
 plot_CFR_group
 if (controls$savePlots) save_gg(plot_CFRgroup,
@@ -216,6 +256,8 @@ if (controls$savePlots) save_gg(plot_CFRgroup,
 # total CFR #
 # --------- #
 CFRtotal <- data_CFR_Total(controls, data_list_model, sample$sample)
+CFRtotal
+
 plot_CFR_total <- plot_CFR_Total(CFRtotal)
 plot_CFR_total
 if (controls$savePlots) save_gg(plot_CFR_total,

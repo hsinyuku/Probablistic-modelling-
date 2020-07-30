@@ -275,7 +275,7 @@ data_CFR_Total <- function(controls, data_list_model, sample) {
               CFRoverGroups = deathsGroups / casesGroups) %>% 
     pivot_longer(cols = c(CFRoverTime, CFRoverGroups))
   simData <- rbind(extractValue(sample, "cfr_A_symptomatic"),
-        extractValue(sample, "cfr_C_symptomatic"),
+        extractValue(sample, "cfr_D_symptomatic"),
         extractValue(sample, "cfr_D_all")) %>% 
     mutate(metric_description = c("CFR (simulated)", "sCFR (simulated)",
                                   "IFR (simulated)"))
