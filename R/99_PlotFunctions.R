@@ -58,7 +58,7 @@ f <- function(fstring) {
 # necessary parts of the name is taken directly from the list with the
 # controls, but can also be specified manually
 save_gg <- function(plot, name,
-                    width = 10, height = 6){
+                    width = 5, height = 3){
   ggsave(paste0("Figures/", name, ".png"), units = "in",
          width = width, height = height)
   print(paste0("Saved plot to Figures/", name, ".png"))
@@ -196,6 +196,44 @@ plot_SimVsReal_Total <- function(data, metric,
   return(plot)
 }
 
+plot_SimVsReal_Total2 <- function(data, metric,
+                                 AllCasesFill = "#00B2EE",
+                                 SymptCasesFill = "#66CD00",
+                                 RepCasesFill = "#008B8B",
+                                 SimDeaths = "#B22222", 
+                                 ResDeaths = "#FFD700") {
+  plot <- ggplot() +
+    geom_col(data = data$real[2,], width = 1,
+             aes(x = name, y = value), fill = "white", col = "black") +
+    geom_pointrange(data = data$simulated,
+                    aes(x = 1, ymin = `2.5%`, y = `50%`, ymax = `97.5%`,
+                        col = metric),
+                    position = position_dodge2(width = 0.5, padding = 0.2))
+  # some stylings
+  plot <- plot +
+    theme(axis.title.x=element_blank(),
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank())+
+    #scale_x_discrete(labels = c("Sum over\ngroups", "Sum over\ntime"),name = "Calculation of total cases") +
+    scale_y_continuous(expand = expansion(mult=c(0,.05)),
+                       labels = scales::label_number(scale = 1/1000,
+                                                     accuracy = 0.1,
+                                                     suffix = " K")) +
+    labs(col = "Simulated Data \n(Median, 95% CI)")
+  # some stylings differ between cases and deaths:
+  if (metric == "cases") {
+    plot <- plot +
+      labs(y = "Cases") +
+      scale_colour_manual(values = c(AllCasesFill, SymptCasesFill,
+                                     RepCasesFill))
+  } else if (metric == "deaths") {
+    plot <- plot +
+      labs(y = "Deaths") +
+      scale_colour_manual(values = c(ResDeaths, SimDeaths))
+  }
+  return(plot)
+}
+
 # plot the number of reported cases / deaths per day -------------------------#
 plot_Real_Time <- function(data, metric, RepCasesFill = "#008B8B",
                            SimDeaths = "#B22222") {
@@ -309,7 +347,7 @@ plot_CFR_Total_Regions <- function(data) {
                 # "CFR (corrected for right-censoring)",
                 # "CFR (corrected for underreporting)",
                 "sCFR: CFR, corrected for right-censoring and underreporting",
-                # "sCFR (corrected for proportion of\nnon-symptomatic)",
+                # "sCFR (corrected for proportion of non-symptomatic)",
                 "IFR: sCFR, corrected for right-censoring and proportion of non-symptomatic"),
       name = "Simulated fatality ratios") +
     theme(legend.position = "bottom", legend.direction = "vertical") +
@@ -398,6 +436,19 @@ plot_eta <- function(samples, TransRedFill = "#8FCB9B") {
 }
 
 # plotting ascertainment ratio rho per age group -----------------------------#
+data_ascertainment <- function(sample, AscRateFill = "#") {
+  rhoData <- summary(sample, "rho")$summary %>% as_tibble()
+  if(controls$type == "Age") {
+    rhoData <- rhoData %>%
+      mutate(ageGroup = rep(c("0-9","10-19","20-29","30-39","40-49","50-59",
+                              "60-69","70-79","80+")))
+  } else if (controls$type == "Gender") {
+    rhoData <- rhoData %>%
+      mutate(ageGroup = rep(c("male", "female")))
+  }
+  return(rhoData)
+}
+
 plot_ascertainment <- function(sample, AscRateFill = "#") {
   rhoData <- summary(sample, "rho")$summary %>% as_tibble()
   if(controls$type == "Age") {
@@ -408,7 +459,6 @@ plot_ascertainment <- function(sample, AscRateFill = "#") {
     rhoData <- rhoData %>%
       mutate(ageGroup = rep(c("male", "female")))
   }
-  
   
   ggplot(rhoData, aes(x = ageGroup, y = `50%`)) +
     geom_col(width = 0.5, alpha = 0.7, fill = AscRateFill) +
