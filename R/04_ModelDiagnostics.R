@@ -5,7 +5,7 @@
 # one posterior. Argument should only be the posterior's name.
 # ----------------------------------------------------------------------------#
 
-list.files("Posteriors")
+# list.files("Posteriors")
 # remove(list = ls())
 # Which posterior do you want to inspect?
 posteriorName <- list.files("Posteriors")[7]
@@ -67,8 +67,8 @@ if (controls$savePlots) save_gg(plot_RealTimeDeaths,
                                 paste0("RealCasesTime", posterior))
 
 # real distribution by group #
-plot_Real_GroupProp()
-if (controls$savePlots) save_gg(plot_Real_GroupProp,
+realGroupsDeathsCases <- plot_Real_GroupProp()
+if (controls$savePlots) save_gg(realGroupsDeathsCases,
                                 paste0("Real_GroupProp", posterior))
 
 # numbers of simulated versus real cases per group #
@@ -94,7 +94,8 @@ if (controls$savePlots) save_gg(plot_RealSimGroupDeaths,
 
 # numbers of simulated versus real cases per day #
 # ---------------------------------------------- #
-simvsrealTimeCases <- data_SimVsReal_Time("cases", controls, sample$sample,
+simvsrealTimeCases <- data_SimVsReal_Time("cases",
+                                          sample = sample$sample,
                                           day_max, day_data, data_list_model)
 plot_simvsrealTimeCases <- plot_SimVsReal_Time(simvsrealTimeCases, "cases",
                                                day_max, day_data,
@@ -106,7 +107,8 @@ if (controls$savePlots) save_gg(plot_simvsrealTimeCases,
 
 # numbers of simulated versus real deaths per day #
 # ----------------------------------------------- #
-simvsrealTimeDeaths <- data_SimVsReal_Time("deaths", controls, sample$sample,
+simvsrealTimeDeaths <- data_SimVsReal_Time("deaths",
+                                           sample = sample$sample,
                                           day_max, day_data, data_list_model)
 plot_simvsrealTimeDeaths <- plot_SimVsReal_Time(simvsrealTimeDeaths, "deaths",
                                                day_max, day_data,
@@ -120,9 +122,6 @@ if (controls$savePlots) save_gg(plot_simvsrealTimeDeaths,
 simvsrealTotalCases <-  data_SimVsReal_Total(sample$sample, "cases",
                                              data_list_model, controls)
 simvsrealTotalCases
-plot_simvsrealTotalCases2 <- plot_SimVsReal_Total2(simvsrealTotalCases, "cases")
-plot_simvsrealTotalCases2
-if (controls$savePlots) save_gg(plot_simvsrealTotalCases2)
 plot_simvsrealTotalCases <- plot_SimVsReal_Total(simvsrealTotalCases, 
                                                  metric = "cases",
                                                  plotSums = "time")
@@ -135,9 +134,6 @@ if (controls$savePlots) save_gg(plot_simvsrealTotalCases,
 simvsrealTotalDeaths <-  data_SimVsReal_Total(sample$sample, "deaths",
                                              data_list_model, controls)
 simvsrealTotalDeaths
-plot_simvsrealTotalDeaths2 <- plot_SimVsReal_Total2(simvsrealTotalDeaths, "deaths")
-plot_simvsrealTotalDeaths2
-if (controls$savePlots) save_gg(plot_simvsrealTotalDeaths2)
 plot_simvsrealTotalDeaths <- plot_SimVsReal_Total(simvsrealTotalDeaths,
                                                   metric = "deaths",
                                                   plotSums = "time")
@@ -152,6 +148,8 @@ if (controls$savePlots) save_gg(plot_simvsrealTotalDeaths,
 # ----------------------------------------------------------------------------#
 library(cowplot)
 
+# composite plot for simulated data #
+# --------------------------------- #
 legend <- get_legend(
   ggplot(data = tibble(x = factor(x = c("All Cases", "Symptomatic Cases",
                                       "Reported Cases",
@@ -165,7 +163,7 @@ legend <- get_legend(
                                  "#B22222", "#FFD700"), name = NULL) +
     theme(legend.direction = "horizontal"))
 
-plot_overview <- cowplot::plot_grid(
+plot_overviewSimulated <- cowplot::plot_grid(
   # first element: six plots
   cowplot::plot_grid(
     plot_simvsrealTimeCases + guides(linetype = F, fill = F, col = F),
@@ -181,11 +179,19 @@ plot_overview <- cowplot::plot_grid(
   legend,
   nrow = 2, rel_heights = c(10,1)
 )
-if (controls$savePlots) save_gg(plot_overview,
-                                paste0("Overview", posterior),
+if (controls$savePlots) save_gg(plot_overviewSimulated,
+                                paste0("Overview_Simulated_", posterior),
                                 width = 7, height = 5)
 
-
+# composite plot for real data #
+# ---------------------------- #
+plot_overviewReal <- plot_grid(
+  plot_grid(plot_RealTimeCases, plot_RealTimeDeaths,
+            nrow = 2, labels = c("A", "B")),
+  realGroupsDeathsCases, nrow = 1, labels = c("", "C"))
+save_gg(plot_overviewReal,
+        paste0("Overview_Real_", posterior),
+        width = 7, height = 4)
 # ----------------------------------------------------------------------------#
 
 
@@ -193,19 +199,27 @@ if (controls$savePlots) save_gg(plot_overview,
 # plots: model inspection ----
 # ----------------------------------------------------------------------------#
 
+if (controls$ind_eta == "VaryingEta") {
+  summary(sample$sample, "eta")[[1]]
+}
+
 # plot parameter distributions
-plot_ParametersDensity <- plot_Parameters(sample$sample)
+plot_ParametersDensity <- plot_Parameters(sample$sample, ncol = 6) +
+  scale_x_continuous(labels = scales::number_format())
 plot_ParametersDensity
 if (controls$savePlots) save_gg(plot_ParametersDensity,
-                                paste0("ParameterDensity", posterior))
+                                paste0("ParameterDensity", posterior),
+                                width = 8, height = 5)
 
 # plot parameter traces 
 plot_ParameterTrace <- stan_trace(sample$sample,
                                   pars=c("beta", "epsilon","rho","pi",
-                                         "psi", "eta"))
+                                         "psi", "eta"), ncol = 6) +
+  scale_x_continuous(breaks = seq(0, 1000, by = 200))
 plot_ParameterTrace
 if (controls$savePlots) save_gg(plot_ParameterTrace,
-                                paste0("ParameterTrace", posterior))
+                                paste0("ParameterTrace", posterior),
+                                width = 8, height = 5)
 
 # plot ascertainment rate per group
 data_ascertainment(sample$sample)

@@ -148,32 +148,36 @@ source("R/99_PlotFunctions.R")
 
 # generate data for the chosen regions
 plotlist <- list("time" = list(), "total" = list(), "groups" = list())
-for(i in 4:6) { # choose which regions you want to plot
+for(i in c(7,9,8)) { # choose which regions you want to plot
   simvsrealTimeCases <- data_SimVsReal_Time(metric = "cases",
                                             sample = sampleRegions[[i]],
                                             day_max = daysRegions[[i]]$day_max,
                                             day_data = daysRegions[[i]]$day_data,
                                             data_list_model = dlmRegions[[i]])
-  plotlist$time <-append(plotlist$time,
-                          list(plot_SimVsReal_Time(simvsrealTimeCases, "cases",
-                                                   day_max, day_data,
-                                                   data_list_model)))
+  plotlist$time <-
+    append(plotlist$time,
+           list(plot_SimVsReal_Time(simvsrealTimeCases, "cases",
+                                    day_max = daysRegions[[i]]$day_max,
+                                    day_data = daysRegions[[i]]$day_data,
+                                    dlmRegions[[i]])))
   simvsrealTotalCases <- data_SimVsReal_Total(sample = sampleRegions[[i]],
                                               metric = "cases",
                                               data_list_model = dlmRegions[[i]],
                                               controls = controlsRegions[[i]])
-  plotlist$total<- append(plotlist$total,
-                          list(plot_SimVsReal_Total(simvsrealTotalCases,
-                                                    metric = "cases",
-                                                    plotSums = "time")))
+  plotlist$total <-
+    append(plotlist$total,
+           list(plot_SimVsReal_Total(simvsrealTotalCases,
+                                     metric = "cases",
+                                     plotSums = "time")))
   simvsrealGroupCases <- data_SimVsReal_Group(sample = sampleRegions[[i]],
                                               metric = "cases",
                                               data_list_model = dlmRegions[[i]],
                                               controls = controlsRegions[[i]])
-  plotlist$groups <- append(plotlist$groups,
-                            list(plot_SimVsReal_Group(simvsrealGroupCases,
-                                                      metric = "cases",
-                                                      controls = controlsRegions[[i]])))
+  plotlist$groups <-
+    append(plotlist$groups,
+           list(plot_SimVsReal_Group(simvsrealGroupCases,
+                                     metric = "cases",
+                                     controls = controlsRegions[[i]])))
 }
 
 # use the generated data to plot a comparison of cases
@@ -210,32 +214,44 @@ save_gg(comparisonCases,"Comparison_Spain_Cases", width = 7, height = 7.5)
 
 # use the generated data to plot a comparison of deaths
 plotlist <- list("time" = list(), "total" = list(), "groups" = list())
-for(i in 4:6) { # choose which regions you want to plot
+for(i in c(7,9,8)) { # choose which regions you want to plot
   simvsrealTimeDeaths <- data_SimVsReal_Time(metric = "deaths",
                                             sample = sampleRegions[[i]],
                                             day_max = daysRegions[[i]]$day_max,
                                             day_data = daysRegions[[i]]$day_data,
                                             data_list_model = dlmRegions[[i]])
-  plotlist$time <-append(plotlist$time,
-                         list(plot_SimVsReal_Time(simvsrealTimeDeaths, "deaths",
-                                                  day_max, day_data,
-                                                  data_list_model)))
+  plotlist$time <- 
+    append(plotlist$time,
+           list(
+             plot_SimVsReal_Time(simvsrealTimeDeaths, "deaths",
+                                 day_max = daysRegions[[i]]$day_max,
+                                 day_data = daysRegions[[i]]$day_data,
+                                 dlmRegions[[i]])
+           )
+    )
   simvsrealTotalDeaths <- data_SimVsReal_Total(sample = sampleRegions[[i]],
                                               metric = "deaths",
                                               data_list_model = dlmRegions[[i]],
                                               controls = controlsRegions[[i]])
-  plotlist$total<- append(plotlist$total,
-                          list(plot_SimVsReal_Total(simvsrealTotalDeaths,
-                                                    metric = "deaths",
-                                                    plotSums = "time")))
+  plotlist$total <-
+    append(plotlist$total,
+           list(
+             plot_SimVsReal_Total(simvsrealTotalDeaths,
+                                  metric = "deaths",
+                                  plotSums = "time")
+           )
+    )
   simvsrealGroupDeaths <- data_SimVsReal_Group(sample = sampleRegions[[i]],
                                               metric = "deaths",
                                               data_list_model = dlmRegions[[i]],
                                               controls = controlsRegions[[i]])
-  plotlist$groups <- append(plotlist$groups,
-                            list(plot_SimVsReal_Group(simvsrealGroupDeaths,
-                                                      metric = "deaths",
-                                                      controls = controlsRegions[[i]])))
+  plotlist$groups <-
+    append(plotlist$groups,
+           list(plot_SimVsReal_Group(simvsrealGroupDeaths,
+                                     metric = "deaths",
+                                     controls = controlsRegions[[i]])
+           )
+    )
 }
 legend <- get_legend(plotlist$time[[1]] + theme(legend.direction = "horizontal",
                                                 legend.title = element_blank()))

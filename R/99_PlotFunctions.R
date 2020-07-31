@@ -117,7 +117,7 @@ plot_SimVsReal_Time <- function(data, metric, day_max, day_data,
            linetype = "Simulated Data \n(Median, 95% CI)") +
       geom_vline(xintercept = day_max + 0.5, linetype=2) +
       scale_y_continuous(expand = expansion(mult=c(0,.05))) +
-      scale_fill_manual(values = c(ResDeaths, SimDeaths))
+      scale_fill_manual(values = c(SimDeaths, ResDeaths))
   }
   return(plot)
 }
@@ -229,49 +229,11 @@ plot_SimVsReal_Total <- function(data, metric,
   return(plot)
 }
 
-plot_SimVsReal_Total2 <- function(data, metric,
-                                 AllCasesFill = "#00B2EE",
-                                 SymptCasesFill = "#66CD00",
-                                 RepCasesFill = "#008B8B",
-                                 SimDeaths = "#B22222", 
-                                 ResDeaths = "#FFD700") {
-  plot <- ggplot() +
-    geom_col(data = data$real[2,], width = 1,
-             aes(x = name, y = value), fill = "white", col = "black") +
-    geom_pointrange(data = data$simulated,
-                    aes(x = 1, ymin = `2.5%`, y = `50%`, ymax = `97.5%`,
-                        col = metric),
-                    position = position_dodge2(width = 0.5, padding = 0.2))
-  # some stylings
-  plot <- plot +
-    theme(axis.title.x=element_blank(),
-          axis.text.x=element_blank(),
-          axis.ticks.x=element_blank())+
-    #scale_x_discrete(labels = c("Sum over\ngroups", "Sum over\ntime"),name = "Calculation of total cases") +
-    scale_y_continuous(expand = expansion(mult=c(0,.05)),
-                       labels = scales::label_number(scale = 1/1000,
-                                                     accuracy = 0.1,
-                                                     suffix = " K")) +
-    labs(col = "Simulated Data \n(Median, 95% CI)")
-  # some stylings differ between cases and deaths:
-  if (metric == "cases") {
-    plot <- plot +
-      labs(y = "Cases") +
-      scale_colour_manual(values = c(AllCasesFill, SymptCasesFill,
-                                     RepCasesFill))
-  } else if (metric == "deaths") {
-    plot <- plot +
-      labs(y = "Deaths") +
-      scale_colour_manual(values = c(ResDeaths, SimDeaths))
-  }
-  return(plot)
-}
-
 # plot the number of reported cases / deaths per day -------------------------#
 plot_Real_Time <- function(data, metric, RepCasesFill = "#008B8B",
                            SimDeaths = "#B22222") {
   plot <- ggplot(data, aes(x = date, y = n)) +
-    labs(x = "Date (days)")
+    labs(x = "Time (days)")
   if(metric == "cases") {
     plot <- plot +
       geom_col(col = "black", fill = RepCasesFill) +
@@ -279,12 +241,14 @@ plot_Real_Time <- function(data, metric, RepCasesFill = "#008B8B",
                          labels = scales::label_number(scale = 1/1000,
                                                        accuracy = 0.1,
                                                        suffix = " K"),
-                         name = "Number of cases")
+                         name = NULL) +
+      labs(subtitle = "Cases per day")
   } else if (metric == "deaths") {
     plot <- plot +
       geom_col(col = "black", fill = SimDeaths) +
       scale_y_continuous(expand = expansion(mult=c(0,.05)),
-                         name = "Number of deaths")
+                         name = NULL) +
+      labs(subtitle = "Deaths per day")
   }
   return(plot)
 }
@@ -309,9 +273,9 @@ plot_Real_GroupProp <- function(GenPopFill = "white",
   }
   data <- mutate_at(data, .vars = c("deaths", "cases"),
                     .funs = function(x) x / sum(x)) %>%
-    rename(`General Population` = popdist,
-           `Reported Cases` = cases,
-           `Reported Deaths` = deaths) %>% 
+    rename(`General\nPopulation` = popdist,
+           `Reported\nCases` = cases,
+           `Reported\nDeaths` = deaths) %>% 
     pivot_longer(cols = -group)
   plot <- ggplot(data, aes(y = group, x = value, fill = name)) +
     geom_col(col = "black") +
@@ -319,11 +283,12 @@ plot_Real_GroupProp <- function(GenPopFill = "white",
     scale_x_continuous(expand = expansion(mult=c(0,.05)),
                        labels = scales::label_percent(),
                        name = NULL) +
-    theme(axis.text.x=element_text(angle=45,hjust=1)) +
-    coord_cartesian(xlim = c(0, 0.65)) +
+    theme(axis.text.x=element_text(angle=45,hjust=1),
+          strip.background = element_rect(fill = "white"),
+          strip.text = element_text(size = 11)) +
     scale_fill_manual(values = c(GenPopFill, RepCasesFill, SimDeaths),
                       guide = FALSE)+ 
-    labs(y = ylabtitle)
+    labs(y = NULL)
   return(plot)
 }
 
@@ -337,7 +302,10 @@ plot_Real_GroupProp <- function(GenPopFill = "white",
 # IFR = (cases) / (deaths including delay)
 #   (possibly per age group or per day)
 
-plot_CFR_Group <- function(data) {
+plot_CFR_Group <- function(data,
+                           colCFR = "#B22222", 
+                           colsCFR = "#66CD00",
+                           colIFR = "#00B2EE") {
   ggplot() +
     geom_col(data = data$real,
              aes(x = group, y = reportedCFR, fill = "white"), col = "black") +
@@ -350,7 +318,8 @@ plot_CFR_Group <- function(data) {
          fill = "test") +
     scale_x_labelsRotate() + scale_y_percent() +
     scale_fill_manual(name = "Reported Data", values = "white",
-                      labels = "CFR (reported)")
+                      labels = "CFR (reported)") +
+    scale_colour_manual(values = c(colCFR, colsCFR, colIFR))
 }
 
 # this plots CFRs for one individual region
@@ -428,16 +397,14 @@ plot_IFR_Groups_Regions <- function(data, log = F) {
 
 # plot model parameters -------------------------------------------------------
 
-plot_Parameters <- function(sample){
+plot_Parameters <- function(sample, ncol = 8){
   # Gather all parameters in theta
   pars <- c("beta", "epsilon","rho","pi","psi", "eta")
   subtitle = f(paste0("For {controls[chains]} chains and ",
                       "{controls[iterations]} iterations per chain."))
   title = f(paste0("Posterior Density Plots ({controls[region]})" ))
-  plot <- stan_dens(sample, pars = pars, separate_chains = T, nrow = 3) +
-    labs(title = title, subtitle = subtitle) +
-    scale_x_continuous(breaks = c(0, 0.5, 1), labels = c("0", ".5", "1")) +
-    coord_cartesian(xlim =c(0,1))
+  plot <- stan_dens(sample, pars = pars, separate_chains = T, ncol = ncol) +
+    labs(title = title, subtitle = subtitle) 
   return(plot)
 }
 
