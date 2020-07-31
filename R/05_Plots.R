@@ -361,7 +361,6 @@ for (posterior in names(sampleRegions)) {
   realRegions <- append(realRegions, real)
   simRegions <- append(simRegions, sim)
 }
-bind_rows(simRegions, .id = "id")
 bind_rows(realRegions, .id = "id")
 
 

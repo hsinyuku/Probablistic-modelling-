@@ -8,7 +8,6 @@
 # list.files("Posteriors")
 # remove(list = ls())
 # Which posterior do you want to inspect?
-posteriorName <- list.files("Posteriors")[7]
 
 {
   print("1) sourcing setup.R")
@@ -205,11 +204,11 @@ if (controls$ind_eta == "VaryingEta") {
 
 # plot parameter distributions
 plot_ParametersDensity <- plot_Parameters(sample$sample, ncol = 6) +
-  scale_x_continuous(labels = scales::number_format())
+  scale_x_continuous(n.breaks = 3)
 plot_ParametersDensity
 if (controls$savePlots) save_gg(plot_ParametersDensity,
                                 paste0("ParameterDensity", posterior),
-                                width = 8, height = 5)
+                                width = 8, height = 7)
 
 # plot parameter traces 
 plot_ParameterTrace <- stan_trace(sample$sample,
@@ -219,7 +218,7 @@ plot_ParameterTrace <- stan_trace(sample$sample,
 plot_ParameterTrace
 if (controls$savePlots) save_gg(plot_ParameterTrace,
                                 paste0("ParameterTrace", posterior),
-                                width = 8, height = 5)
+                                width = 8, height = 7)
 
 # plot ascertainment rate per group
 data_ascertainment(sample$sample)

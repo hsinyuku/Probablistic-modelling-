@@ -427,10 +427,8 @@ plot_eta <- function(samples, TransRedFill = "#8FCB9B") {
     ))
   ggplot(eta_age, aes(x = ageGroup, y = `50%`)) +
     geom_col(fill = TransRedFill, width = 0.5) +
-    labs(x = "Age group", y = "Reduction in transmissibility per age group, %",
-         caption = paste0("$\\eta$ is the reduction in transmissibility, for",
-                          " each age group, after the control measures are",
-                          "fully effective.")) +
+    geom_errorbar(aes(ymin = `2.5%`, ymax =`97.5%`)) +
+    labs(x = "Age group", y = "Reduction in transmissibility per age group") +
     theme(axis.text.x=element_text(angle=45,hjust=1)) +
     scale_y_continuous(labels = scales::label_percent())
 }
