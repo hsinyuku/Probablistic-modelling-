@@ -58,11 +58,12 @@ f <- function(fstring) {
 # necessary parts of the name is taken directly from the list with the
 # controls, but can also be specified manually
 save_gg <- function(plot, name,
-                    width = 10, height = 6){
+                    width = 5, height = 3){
   ggsave(paste0("Figures/", name, ".png"), units = "in",
          width = width, height = height)
   print(paste0("Saved plot to Figures/", name, ".png"))
 }
+
 
 # Functions for plot styling
 scale_x_labelsRotate <- function(Angle = 45, ...) {
@@ -81,22 +82,23 @@ plot_SimVsReal_Time <- function(data, metric, day_max, day_data,
                                 SymptCasesFill = "#66CD00",
                                 RepCasesFill = "#008B8B",
                                 SimDeaths = "#B22222", 
-                                ResDeaths = "#FFD700") {
+                                ResDeaths = "#FFD700",
+                                guides = T) {
   plot <- ggplot(data$simulated, aes(x = date)) +
     geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`, fill = metric),
                 alpha = 1) +
     geom_line(aes(y = `50%`, linetype = metric)) +
     geom_point(data = data$real, 
-               aes(y = incidence), shape = 21, fill = "white")
-  # Styling the plot - common stylings
-  plot <- plot +
-    scale_x_date(labels = scales::label_date(format = "%b %d"))
+               aes(y = incidence), shape = 21, fill = "white") +
+    # common stylings
+    scale_x_date(labels = scales::label_date(format = "%b %d")) +
+    theme(plot.subtitle = element_text(hjust = 0.5))
   # some stylings differ between cases and deaths:
   if (metric == "cases") {
     plot <- plot +
       coord_cartesian(xlim=c(day_data, day_max)) +
-      labs(x = "Date (days)",
-           y = "Cases",
+      labs(x = "Time (days)", y = NULL,
+           subtitle = "Cases per day",
            fill =  "Simulated Data \n(Median, 95% CI)",
            linetype = "Simulated Data \n(Median, 95% CI)") +
       scale_y_continuous(expand = expansion(mult=c(0,.05)),
@@ -109,7 +111,7 @@ plot_SimVsReal_Time <- function(data, metric, day_max, day_data,
   } else if (metric == "deaths") {
     plot <- plot +
       coord_cartesian(xlim = c(day_data, day_max + data_list_model$G)) +
-      labs(x = "Date (days)", y = "Deaths per day", 
+      labs(x = "Time (days)", y = NULL, subtitle = "Deaths per day", 
            fill = "Simulated Data \n(Median, 95% CI)",
            linetype = "Simulated Data \n(Median, 95% CI)") +
       geom_vline(xintercept = day_max + 0.5, linetype=2) +
@@ -136,8 +138,10 @@ plot_SimVsReal_Group <- function(data, controls, metric, AllCasesFill = "#00B2EE
     labs(col = "Simulated Data") +
     scale_y_continuous(labels = scales::label_number(scale = 1/1000,
                                                      accuracy = 0.1,
-                                                     suffix = " K"),
-                       expand = expansion(mult=c(0,.05)))
+                                                     suffix = " K", 
+                                                     prefix = " "),
+                       expand = expansion(mult=c(0,.05))) +
+    theme(plot.subtitle = element_text(hjust = 0.5))
   # Styling for Age vs. for Gender
   if(controls$type == "Age") {
     plot <- plot + 
@@ -147,12 +151,12 @@ plot_SimVsReal_Group <- function(data, controls, metric, AllCasesFill = "#00B2EE
   }
   if(metric == "cases") {
     plot <- plot +
-      labs(y = "Number of total cases") +
+      labs(y = NULL, subtitle = "Cases per group") +
       scale_colour_manual(values = c(AllCasesFill, SymptCasesFill,
                                      RepCasesFill))
   } else if(metric == "deaths") {
     plot <- plot + 
-      labs(y = "Number of deaths") +
+      labs(y  = NULL, subtitle = "Deaths per group") +
       scale_colour_manual(values = c(ResDeaths, SimDeaths))
   }
   return(plot)
@@ -164,19 +168,85 @@ plot_SimVsReal_Total <- function(data, metric,
                                  SymptCasesFill = "#66CD00",
                                  RepCasesFill = "#008B8B",
                                  SimDeaths = "#B22222", 
-                                 ResDeaths = "#FFD700") {
-  plot <- ggplot() +
-    geom_col(data = data$real, width = 1,
-             aes(x = name, y = value), fill = "white", col = "black") +
+                                 ResDeaths = "#FFD700",
+                                 plotSums = "both") {
+  # this first if loop allows us to show how the number of deaths and cases
+  # differ, depending on whether the sum is over time or groups
+  if(plotSums == "both") {
+    plot <- ggplot() +
+      geom_col(data = data$real, width = 1,
+               aes(x = name, y = value), fill = "white", col = "black")
+  } else {
+    if(plotSums == "time") {
+      data$real <- filter(data$real, name == "sumOverTime")
+    } else if (plotSums == "groups") {
+      data$real <- filter(data$real, name == "sumOverGroups")
+    }
+    plot <- ggplot() +
+      geom_col(data = data$real, width = 1,
+               aes(x = 1.5, y = value), fill = "white", col = "black")
+  }
+  # common styling for all plots
+  plot <- plot  +
     geom_pointrange(data = data$simulated,
                     aes(x = 1.5, ymin = `2.5%`, y = `50%`, ymax = `97.5%`,
                         col = metric),
-                    position = position_dodge2(width = 1, padding = 0.2))
+                    position = position_dodge2(width = 1, padding = 0.2)) +
+    theme(plot.subtitle = element_text(hjust = 1))
+  if(plotSums == "both") {
+    plot <- plot +
+      scale_x_labelsRotate() +
+      scale_x_discrete(labels = c("Sum over\ngroups", "Sum over\ntime"),
+                       name = "Calculation of total cases")
+  } else {
+    plot <- plot + scale_x_continuous(name = "", breaks = NULL, labels = NULL)  +
+      coord_cartesian(xlim = c(0.5,2.5))
+  }
+  # some stylings
+  plot <- plot  +
+    labs(col = "Simulated Data \n(Median, 95% CI)")
+  # some stylings differ between cases and deaths:
+  if (metric == "cases") {
+    plot <- plot +
+      labs(y = NULL, subtitle = "Total cases") +
+      scale_colour_manual(values = c(AllCasesFill, SymptCasesFill,
+                                     RepCasesFill)) +
+      scale_y_continuous(expand = expansion(mult=c(0,.05)),
+                         labels = scales::label_number(scale = 1/1000,
+                                                       accuracy = 0.1,
+                                                       suffix = " K"))
+  } else if (metric == "deaths") {
+    plot <- plot +
+      labs(y = NULL, subtitle = "Total deaths") +
+      scale_colour_manual(values = c(ResDeaths, SimDeaths)) +
+      scale_y_continuous(expand = expansion(mult=c(0,.05)),
+                         labels = scales::label_number(scale = 1/1000,
+                                                       accuracy = 0.1,
+                                                       suffix = " K",
+                                                       prefix = "   "))
+  }
+  return(plot)
+}
+
+plot_SimVsReal_Total2 <- function(data, metric,
+                                 AllCasesFill = "#00B2EE",
+                                 SymptCasesFill = "#66CD00",
+                                 RepCasesFill = "#008B8B",
+                                 SimDeaths = "#B22222", 
+                                 ResDeaths = "#FFD700") {
+  plot <- ggplot() +
+    geom_col(data = data$real[2,], width = 1,
+             aes(x = name, y = value), fill = "white", col = "black") +
+    geom_pointrange(data = data$simulated,
+                    aes(x = 1, ymin = `2.5%`, y = `50%`, ymax = `97.5%`,
+                        col = metric),
+                    position = position_dodge2(width = 0.5, padding = 0.2))
   # some stylings
   plot <- plot +
-    scale_x_labelsRotate() +
-    scale_x_discrete(labels = c("Sum over\ngroups", "Sum over\ntime"),
-                         name = "Calculation of total cases") +
+    theme(axis.title.x=element_blank(),
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank())+
+    #scale_x_discrete(labels = c("Sum over\ngroups", "Sum over\ntime"),name = "Calculation of total cases") +
     scale_y_continuous(expand = expansion(mult=c(0,.05)),
                        labels = scales::label_number(scale = 1/1000,
                                                      accuracy = 0.1,
@@ -259,9 +329,9 @@ plot_Real_GroupProp <- function(GenPopFill = "white",
 # plot CFRs -------------------------------------------------------------------
 
 # some nomenclature:
-# CFR = (reported symptomatic cases) / (reported deaths)
+# CFR = (reported deaths) / (reported symptomatic cases)
 #   (possibly per age group or per day)
-# sCFR = (symptomatic cases) / (deaths including delay)
+# sCFR = (deaths including delay) / (symptomatic cases)
 #   (possibly per age group or per day)
 # IFR = (cases) / (deaths including delay)
 #   (possibly per age group or per day)
@@ -309,7 +379,7 @@ plot_CFR_Total_Regions <- function(data) {
                 # "CFR (corrected for right-censoring)",
                 # "CFR (corrected for underreporting)",
                 "sCFR: CFR, corrected for right-censoring and underreporting",
-                # "sCFR (corrected for proportion of\nnon-symptomatic)",
+                # "sCFR (corrected for proportion of non-symptomatic)",
                 "IFR: sCFR, corrected for right-censoring and proportion of non-symptomatic"),
       name = "Simulated fatality ratios") +
     theme(legend.position = "bottom", legend.direction = "vertical") +
@@ -325,10 +395,8 @@ plot_CFR_Total_Regions <- function(data) {
     geom_pointrange(aes(x = name, ymin = `2.5%`, ymax = `97.5%`, y = `50%`,
                         col = parameter),
                     position = position_dodge(width = 0.3)) +
-    scale_colour_discrete(
-      label = c("IFR: sCFR, corrected for right-censoring and proportion of non-symptomatic"),
-      name = "Simulated fatality ratios") +
-    theme(legend.position = "bottom", legend.direction = "vertical") +
+    scale_colour_discrete(name = "Simulated fatality ratios") +
+    theme(legend.position = "bottom", legend.direction = "horizontal") +
     scale_x_labelsRotate() +
     scale_y_percent() +
     labs(y = NULL, x = NULL)
@@ -373,7 +441,7 @@ plot_Parameters <- function(sample){
 }
 
 # Plot the reduction in transmissibility for different age groups ------------#
-plot_eta <- function(TransRedFill = "#8FCB9B") {
+plot_eta <- function(samples, TransRedFill = "#8FCB9B") {
   eta_age <-
     summary(samples, "eta")$summary %>% as_tibble() %>%
     mutate(ageGroup = rep(
@@ -400,6 +468,19 @@ plot_eta <- function(TransRedFill = "#8FCB9B") {
 }
 
 # plotting ascertainment ratio rho per age group -----------------------------#
+data_ascertainment <- function(sample, AscRateFill = "#") {
+  rhoData <- summary(sample, "rho")$summary %>% as_tibble()
+  if(controls$type == "Age") {
+    rhoData <- rhoData %>%
+      mutate(ageGroup = rep(c("0-9","10-19","20-29","30-39","40-49","50-59",
+                              "60-69","70-79","80+")))
+  } else if (controls$type == "Gender") {
+    rhoData <- rhoData %>%
+      mutate(ageGroup = rep(c("male", "female")))
+  }
+  return(rhoData)
+}
+
 plot_ascertainment <- function(sample, AscRateFill = "#") {
   rhoData <- summary(sample, "rho")$summary %>% as_tibble()
   if(controls$type == "Age") {
@@ -410,7 +491,6 @@ plot_ascertainment <- function(sample, AscRateFill = "#") {
     rhoData <- rhoData %>%
       mutate(ageGroup = rep(c("male", "female")))
   }
-  
   
   ggplot(rhoData, aes(x = ageGroup, y = `50%`)) +
     geom_col(width = 0.5, alpha = 0.7, fill = AscRateFill) +

@@ -40,7 +40,7 @@ data_Real_Time <- function(data_list_model, metric,
 }
 
 # simulated vs. real cases and deaths over time ---------------------#
-data_SimVsReal_Time <- function(metric, controls, sample, day_max, day_data,
+data_SimVsReal_Time <- function(metric, sample, day_max, day_data,
                                 data_list_model,
                                 AllCasesFill = "#00B2EE",
                                 SymptCasesFill = "#66CD00",
@@ -275,7 +275,7 @@ data_CFR_Total <- function(controls, data_list_model, sample) {
               CFRoverGroups = deathsGroups / casesGroups) %>% 
     pivot_longer(cols = c(CFRoverTime, CFRoverGroups))
   simData <- rbind(extractValue(sample, "cfr_A_symptomatic"),
-        extractValue(sample, "cfr_C_symptomatic"),
+        extractValue(sample, "cfr_D_symptomatic"),
         extractValue(sample, "cfr_D_all")) %>% 
     mutate(metric_description = c("CFR (simulated)", "sCFR (simulated)",
                                   "IFR (simulated)"))
