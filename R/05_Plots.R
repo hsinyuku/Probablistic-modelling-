@@ -1,3 +1,16 @@
+posteriorNameFromControls <- function(controls) {
+  return(paste(
+    controls$region, controls$type, controls$ind_eta, controls$iterations,
+    "iter", controls$chains, "chains", controls$timestamp, sep = "_"))
+}
+
+# ----------------------------------------------------------------------------#
+# plots for all regions (individually) ---- 
+# ----------------------------------------------------------------------------#
+
+# the following lines very simply call the full 04_ModelDiagnostics.R for 
+# each posterior individually. It takes some time, but should run fine.
+
 for(posterior in list.files("Posteriors")) {
   print(posterior)
   posteriorName <- posterior
@@ -9,7 +22,8 @@ posteriorNameRegions <-
           str_locate(list.files("Posteriors"), "\\.")[,1]-1)
 
 # ----------------------------------------------------------------------------#
-# data for all samples----
+# generate data for all samples (outdated) ----
+# DO NOT USE UNLESS YOU REALLY KNOW WHAT YOU'RE DOING!!!
 # ----------------------------------------------------------------------------#
 # the following code can be used to extract data from all the posteriors that
 # are in the respective directory. Only run this code when you want to update
@@ -69,10 +83,11 @@ saveRDS(generatedQuantitiesList, "data/00_generatedQuantities.Rds")
       parameter = factor(parameter,
                          levels = quantityMetadataTable$parameter))
 }
+# ----------------------------------------------------------------------------#
 
 
 # ----------------------------------------------------------------------------#
-# plots for all samples ----
+# generate data for all samples ----
 # ----------------------------------------------------------------------------#
 
 # the following code generates all the data necessary for plotting for all the
@@ -110,17 +125,28 @@ for(posterior in list.files("Posteriors")) {
   names(dlmtemp) <- posterior
   dlmRegions <- append(dlmRegions, dlmtemp)
 }
-
+posteriorNameRegions <-
+  str_sub(list.files("Posteriors"), 1,
+          str_locate(list.files("Posteriors"), "\\.")[,1]-1)
 remove_except(list("dlmRegions", "daysRegions", "controlsRegions",
-                   "sampleRegions"))
+                   "sampleRegions", "posteriorNameRegions"))
 source("setup.R")
 source("R/99_DataFunctions.R")
 source("R/99_PlotFunctions.R")
+# ----------------------------------------------------------------------------#
 
-# The following code generates plot. Using pretty dumb for-loops, plots are
+
+# ----------------------------------------------------------------------------#
+# plots to compare samples ----
+# ----------------------------------------------------------------------------#
+
+# The following code generates plots to compare different posteriors next to
+# each other. Using pretty dumb for-loops, plots are
 # generated for each posterior and then saved in plotlist. Specifiy which 
 # posteriors you want to plot by changing the iterator values in the loop.
 # Plots are lated plotted using cowplot's plot_grid().
+
+# generate data for the chosen regions
 plotlist <- list("time" = list(), "total" = list(), "groups" = list())
 for(i in 4:6) { # choose which regions you want to plot
   simvsrealTimeCases <- data_SimVsReal_Time(metric = "cases",
@@ -149,6 +175,8 @@ for(i in 4:6) { # choose which regions you want to plot
                                                       metric = "cases",
                                                       controls = controlsRegions[[i]])))
 }
+
+# use the generated data to plot a comparison of cases
 legend <- get_legend(plotlist$time[[1]] + theme(legend.direction = "horizontal",
                                                 legend.title = element_blank()))
 comparisonCases <- cowplot::plot_grid(
@@ -180,7 +208,7 @@ comparisonCases <- cowplot::plot_grid(
 )
 save_gg(comparisonCases,"Comparison_Spain_Cases", width = 7, height = 7.5)
 
-
+# use the generated data to plot a comparison of deaths
 plotlist <- list("time" = list(), "total" = list(), "groups" = list())
 for(i in 4:6) { # choose which regions you want to plot
   simvsrealTimeDeaths <- data_SimVsReal_Time(metric = "deaths",
@@ -232,6 +260,9 @@ comparisonDeaths <- cowplot::plot_grid(
 save_gg(comparisonCases,"Comparison_Spain_Deaths", width = 7, height = 7.5)
 
 
+# ----------------------------------------------------------------------------#
+# tables for parameter overviews ----
+# ----------------------------------------------------------------------------#
 # this code block attempts to export tables to Latex
 for(i in seq_along(list.files("Posteriors"))) {
   print(list.files("Posteriors")[[i]])
@@ -296,5 +327,54 @@ for(i in seq_along(list.files("Posteriors"))) {
 }
 
 
+# ----------------------------------------------------------------------------#
+# plots to compare fatality ratios ----
+# ----------------------------------------------------------------------------#
+
+# we need the data generated in section "generate data for all samples"
+# here we use it to extract the smulated FRs
+realRegions <- list()
+simRegions <- list()
+for (posterior in names(sampleRegions)) {
+  data <- data_CFR_Total(controlsRegions[[posterior]],
+                         dlmRegions[[posterior]], sampleRegions[[posterior]])
+  real <- list(data$real)
+  names(real) <- posteriorNameFromControls(controlsRegions[[posterior]])
+  sim <- list(data$sim)
+  names(sim) <- posteriorNameFromControls(controlsRegions[[posterior]])
+  realRegions <- append(realRegions, real)
+  simRegions <- append(simRegions, sim)
+}
+bind_rows(simRegions, .id = "id")
+bind_rows(realRegions, .id = "id")
 
 
+simFRRegions <- bind_rows(simRegions, .id = "id") %>% 
+  mutate(metric_description = fct_relevel(factor(metric_description),
+                                          "CFR (simulated)",
+                                          "sCFR (simulated)",
+                                          "IFR (simulated)"),
+         controls = str_split(id, "_")) %>%
+  unnest_wider(controls) %>% 
+  mutate(xlabel = str_c(...1, " (", ...2, ",\n", ...3, ")")) %>% 
+  select(metric_description, `2.5%`, `50%`, `97.5%`, xlabel)
+realCFRRegions <- bind_rows(realRegions, .id = "id") %>% 
+  mutate(controls = str_split(id, "_")) %>% 
+  unnest_wider(controls) %>% 
+  mutate(xlabel = str_c(...1, " (", ...2, ",\n", ...3, ")")) %>% 
+  select(name, value, xlabel) %>% 
+  filter(name == "CFRoverTime")
+  
+plot_CFR_total_regions <- ggplot() +
+  geom_col(data = realCFRRegions, aes(x = xlabel, y = value),
+           fill = "white", color = "black", width = 0.67) +
+  geom_pointrange(data = simFRRegions,
+                  aes(x = xlabel, col = metric_description, ymin = `2.5%`, y = `50%`, ymax = `97.5%`),
+                  position = position_dodge2(width = 0.6, padding = 0.1)) +
+  scale_x_labelsRotate() + labs(x = NULL) +
+  scale_y_percent(name = NULL,
+                  breaks = c(0.05, 0.1, 0.15, 0.2, 0.25)) +
+  scale_colour_manual(values = c("#B22222", "#66CD00", "#00B2EE"),
+                      name = "Fatality ratio\n(95% CI)") +
+  theme(legend.direction = "horizontal", legend.position = "bottom")
+save_gg(plot_CFR_total_regions, "CFRtotal_AllRegions", width = 7, height = 5)

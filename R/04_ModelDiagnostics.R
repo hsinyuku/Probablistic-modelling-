@@ -122,7 +122,7 @@ simvsrealTotalCases <-  data_SimVsReal_Total(sample$sample, "cases",
 simvsrealTotalCases
 plot_simvsrealTotalCases2 <- plot_SimVsReal_Total2(simvsrealTotalCases, "cases")
 plot_simvsrealTotalCases2
-if (controls$savePlots) save_gg(plot_simvsrealTotalCases2,
+if (controls$savePlots) save_gg(plot_simvsrealTotalCases2)
 plot_simvsrealTotalCases <- plot_SimVsReal_Total(simvsrealTotalCases, 
                                                  metric = "cases",
                                                  plotSums = "time")
@@ -137,7 +137,7 @@ simvsrealTotalDeaths <-  data_SimVsReal_Total(sample$sample, "deaths",
 simvsrealTotalDeaths
 plot_simvsrealTotalDeaths2 <- plot_SimVsReal_Total2(simvsrealTotalDeaths, "deaths")
 plot_simvsrealTotalDeaths2
-if (controls$savePlots) save_gg(plot_simvsrealTotalDeaths2,
+if (controls$savePlots) save_gg(plot_simvsrealTotalDeaths2)
 plot_simvsrealTotalDeaths <- plot_SimVsReal_Total(simvsrealTotalDeaths,
                                                   metric = "deaths",
                                                   plotSums = "time")
@@ -150,8 +150,6 @@ if (controls$savePlots) save_gg(plot_simvsrealTotalDeaths,
 # ----------------------------------------------------------------------------#
 # composite plots (single regions) ----
 # ----------------------------------------------------------------------------#
-
-
 library(cowplot)
 
 legend <- get_legend(

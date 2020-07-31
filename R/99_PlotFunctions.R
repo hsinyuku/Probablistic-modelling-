@@ -72,7 +72,8 @@ scale_x_labelsRotate <- function(Angle = 45, ...) {
 
 scale_y_percent <- function(labels = "percent", ...) {
   scale_y_continuous(expand = expansion(mult=c(0,.05)),
-                     labels = scales::label_percent())
+                     labels = scales::label_percent(),
+                     )
 }
 
 # plotting simulated vs. real cases and deaths over time ---------------------#

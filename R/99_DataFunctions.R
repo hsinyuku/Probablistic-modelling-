@@ -270,10 +270,7 @@ data_CFR_Total <- function(controls, data_list_model, sample) {
     casesTime = sum(data_list_model$incidence_cases),
     deathsTime = sum(data_list_model$incidence_deaths),
     casesGroups = sum(data_list_model[[paste0(group,"distr_cases")]]),
-    deathsGroups = sum(data_list_model[[paste0(group, "distr_deaths")]])) %>% 
-    transmute(CFRoverTime = deathsTime/casesTime,
-              CFRoverGroups = deathsGroups / casesGroups) %>% 
-    pivot_longer(cols = c(CFRoverTime, CFRoverGroups))
+    deathsGroups = sum(data_list_model[[paste0(group, "distr_deaths")]]))
   simData <- rbind(extractValue(sample, "cfr_A_symptomatic"),
         extractValue(sample, "cfr_D_symptomatic"),
         extractValue(sample, "cfr_D_all")) %>% 
