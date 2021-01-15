@@ -1,3 +1,7 @@
+Modelling covid-19 transmision and death rate with baysian statistics 
+
+
+-------------------------------------------------------------------------------
 ## Stylesheet
 
 ### Handling data
